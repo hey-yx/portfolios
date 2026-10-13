@@ -96,7 +96,10 @@ const contacts = [
       ))}
     </ul>
 
-    <p class="mt-4 min-h-5 text-sm opacity-60" data-copy-feedback></p>
+    <p
+      class="mt-4 min-h-5 text-sm opacity-60 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
+      data-copy-feedback
+    ></p>
   </section>
 
   <script is:inline>
@@ -108,6 +111,30 @@ const contacts = [
       }
 
       const feedback = document.querySelector("[data-copy-feedback]");
+      const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+      const supportsMotion = () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // 文案直接换掉的话，连着点两次会看不出"又一次复制成功了"。
+      // 每次都让它先沉下去再浮回来，重复操作也有确认感。
+      const flashFeedback = (message) => {
+        if (!(feedback instanceof HTMLElement)) {
+          return;
+        }
+
+        feedback.textContent = message;
+
+        if (!supportsMotion() || typeof feedback.animate !== "function") {
+          return;
+        }
+
+        feedback.animate(
+          [
+            { opacity: 0, transform: "translateY(0.35rem)" },
+            { opacity: 0.6, transform: "translateY(0)" },
+          ],
+          { duration: 260, easing: EASE },
+        );
+      };
 
       buttons.forEach((button) => {
         if (!(button instanceof HTMLButtonElement)) {
@@ -124,9 +151,9 @@ const contacts = [
 
           try {
             await navigator.clipboard.writeText(value);
-            feedback.textContent = `${label}已复制`;
+            flashFeedback(`${label}已复制`);
           } catch {
-            feedback.textContent = `复制失败，请手动复制：${value}`;
+            flashFeedback(`复制失败，请手动复制：${value}`);
           }
         });
       });

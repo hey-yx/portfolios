@@ -207,7 +207,10 @@ const placeholderWeeks = Array.from({ length: 53 }, () => Array.from({ length: 7
         months.append(label);
       });
 
-      calendar.weekData.forEach((week) => {
+      // 按列推进做波浪式填色：每列 9ms，整张图 ~480ms 铺完，比一次性刷上去更能看出"数据在到达"。
+      const createdCells = [];
+
+      calendar.weekData.forEach((week, weekIndex) => {
         week.forEach((day) => {
           const cell = document.createElement("span");
 
@@ -221,12 +224,28 @@ const placeholderWeeks = Array.from({ length: 53 }, () => Array.from({ length: 7
             return;
           }
 
+          // 新格子一创建就带着终态颜色，没有过渡起点。先把始态压成空格的颜色，
+          // 等首帧之后再摘掉，让浏览器的背景色补间从 0 级跑到真实等级。
+          cell.style.setProperty("--contribution-cell-color", "var(--contribution-level-0)");
+          cell.dataset.contributionFill = "true";
+          cell.style.setProperty("--contribution-delay", `${weekIndex * 9}ms`);
           cell.dataset.contributionTooltip = day.tooltip;
           cell.setAttribute("aria-label", day.tooltip);
           cell.tabIndex = 0;
           grid.append(cell);
+          createdCells.push(cell);
         });
       });
+
+      if (createdCells.length) {
+        // 先把"压平"的起始颜色落到 computed style，再摘掉；同一帧内改等于没改。
+        void createdCells[createdCells.length - 1].offsetWidth;
+        window.requestAnimationFrame(() => {
+          createdCells.forEach((cell) => {
+            cell.style.removeProperty("--contribution-cell-color");
+          });
+        });
+      }
     };
 
     const renderContributionError = (chart) => {
@@ -415,8 +434,32 @@ const placeholderWeeks = Array.from({ length: 53 }, () => Array.from({ length: 7
     background-color: var(--contribution-cell-color);
   }
 
+  /* 数据到达后，格子颜色淡过渡而不是突然一片绿 */
+  :global(.contribution-cell[data-contribution-fill]) {
+    transition: background-color 0.45s var(--ease-pop);
+    transition-delay: var(--contribution-delay, 0ms);
+  }
+
   :global(.contribution-cell--loading) {
     opacity: 0.72;
+    animation: contribution-cell-pulse 1.6s ease-in-out infinite;
+    animation-delay: var(--contribution-skeleton-delay, 0ms);
+  }
+
+  @keyframes contribution-cell-pulse {
+    50% {
+      opacity: 0.34;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.contribution-cell[data-contribution-fill]) {
+      transition: none;
+    }
+
+    :global(.contribution-cell--loading) {
+      animation: none;
+    }
   }
 
   :global(.contribution-cell--placeholder) {

@@ -136,7 +136,7 @@ export const newTabConfig: NewTabConfig = {
     resetLabel: "恢复默认",
     statusReady: "本地配置",
     addGroupLabel: "添加分组",
-    addShortcutLabel: "添加 item",
+    addShortcutLabel: "添加站点",
     removeGroupLabel: "删除分组",
     removeShortcutLabel: "删除 item",
     editShortcutLabel: "编辑",

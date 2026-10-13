@@ -128,6 +128,50 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
         const getDaisyTheme = (theme) => (theme === "dark" ? "black" : "light");
         const getColorScheme = (theme) => (theme === "dark" ? "dark" : "light");
 
+        // 主题换同一张"快照"从点击点扩散铺开，替代原来的瞬间换色。
+        // 不支持 View Transitions 或用户要求减少动效时，老老实实瞬切。
+        const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        const runWithThemeReveal = (theme, origin) => {
+          const root = document.documentElement;
+
+          if (typeof document.startViewTransition !== "function" || prefersReducedMotion()) {
+            applyTheme(theme);
+            return;
+          }
+
+          const x = origin?.x ?? window.innerWidth / 2;
+          const y = origin?.y ?? 0;
+          const radius = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y),
+          );
+
+          root.dataset.themeRevealing = "true";
+          const transition = document.startViewTransition(() => applyTheme(theme));
+
+          transition.ready
+            .then(() => {
+              root.animate(
+                {
+                  clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`],
+                },
+                {
+                  duration: 520,
+                  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                  pseudoElement: "::view-transition-new(root)",
+                },
+              );
+            })
+            .catch(() => {});
+
+          transition.finished.then(stopThemeReveal, stopThemeReveal);
+        };
+
+        const stopThemeReveal = () => {
+          delete document.documentElement.dataset.themeRevealing;
+        };
+
         const applyTheme = (theme) => {
           document.documentElement.dataset.theme = getDaisyTheme(theme);
           document.documentElement.style.colorScheme = getColorScheme(theme);
@@ -163,7 +207,7 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
               return;
             }
 
-            option.addEventListener("click", () => {
+            option.addEventListener("click", (event) => {
               const selectedTheme = option.dataset.themeOption;
 
               try {
@@ -180,7 +224,15 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
                 ? selectedTheme
                 : getSystemTheme();
 
-              applyTheme(resolvedTheme);
+              const shouldSkipReveal =
+                getDaisyTheme(resolvedTheme) === document.documentElement.dataset.theme;
+
+              if (shouldSkipReveal) {
+                applyTheme(resolvedTheme);
+              } else {
+                runWithThemeReveal(resolvedTheme, { x: event.clientX, y: event.clientY });
+              }
+
               option.blur();
             });
 
@@ -202,6 +254,191 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
         }
 
         bindThemeControls();
+      })();
+    </script>
+    <script is:inline>
+      // 滚动入场：[data-reveal] 元素进视口时上浮。同一容器的子元素按 80ms 递进，
+      // 整体吃掉首屏比 Third-party 延迟更轻，above-the-fold 内容不进视口也直接放行。
+      (() => {
+        const STAGGER_STEP = 80;
+        const MAX_STAGGER = 320;
+
+        const assignStagger = (elements) => {
+          const groups = new Map();
+
+          elements.forEach((element) => {
+            const key = element.dataset.revealGroup ?? "";
+            const list = groups.get(key) ?? [];
+            list.push(element);
+            groups.set(key, list);
+          });
+
+          groups.forEach((list) => {
+            list.forEach((element, index) => {
+              if (element.dataset.revealVisible) {
+                return;
+              }
+
+              element.style.setProperty(
+                "--reveal-delay",
+                `${Math.min(index * STAGGER_STEP, MAX_STAGGER)}ms`,
+              );
+            });
+          });
+        };
+
+        const revealNow = (element, { instant = false } = {}) => {
+          // 刷新时视口里已有的元素直接落位，不各自上浮，位移统一交给右侧内容区那一层。
+          if (instant) {
+            element.dataset.revealInstant = "true";
+          }
+
+          element.dataset.revealVisible = "true";
+        };
+
+        // 桌面端整页滚动发生在 .drawer-content 里而不是 window 上，参照 window 会永不命中。
+        const findScrollRoot = () => {
+          const drawer = document.querySelector(".drawer-content");
+
+          if (drawer instanceof HTMLElement) {
+            const style = window.getComputedStyle(drawer);
+
+            if (/(auto|scroll|overlay)/.test(style.overflowY) && drawer.scrollHeight > drawer.clientHeight) {
+              return drawer;
+            }
+          }
+
+          return null;
+        };
+
+        // 用几何判断代替 IntersectionObserver：后者的回调依赖合成器投递visual lacuna，
+        // 在部分无头/被节流的容器里一次都不回调，元素就会永久停在 opacity:0。
+        // 自算可见性则只依赖 scroll 事件和 getBoundingClientRect，行为可预期。
+        const isInView = (element, rootBounds) => {
+          const rect = element.getBoundingClientRect();
+
+          if (rect.height === 0 && rect.width === 0) {
+            return false;
+          }
+
+          const threshold = Math.min(rect.height * 0.05, 24);
+          return rect.top < rootBounds.bottom - threshold && rect.bottom > rootBounds.top;
+        };
+
+        let cleanupCurrent = null;
+
+        const bindReveal = () => {
+          // bindReveal 会被 page-load / after-swap 反复调用，也可能跨页调用；
+          // 任何提前返回之前先摘掉上一组监听，避免旧页的扫描一直挂着。
+          if (cleanupCurrent) {
+            cleanupCurrent();
+          }
+
+          const elements = [...document.querySelectorAll("[data-reveal]:not([data-reveal-visible])")];
+
+          if (!elements.length) {
+            return;
+          }
+
+          // 先读一次布局，让浏览器把 opacity:0 的起始态落到 computed style 上，
+          // 后面再加可见标记才会真正走出过渡，而不是瞬间跳到终态。
+          void document.body.getBoundingClientRect();
+
+          const scrollRoot = findScrollRoot();
+          const getRootBounds = () =>
+            scrollRoot ? scrollRoot.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+
+          assignStagger(elements);
+
+          const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+          if (typeof window.IntersectionObserver !== "function" || prefersReducedMotion) {
+            elements.forEach(revealNow);
+            return;
+          }
+
+          // 刷新时视口里已有的元素立即落位（不各自上浮），避免和右侧内容区那层整体上浮
+          // 叠成两次位移；视口外的元素保持待命，等滚动到跟前再走上浮。判可见要用首帧几何，
+          // 因此放在 rAF 之前先算一次。
+          const visibleNow = elements.filter((element) => isInView(element, getRootBounds()));
+          visibleNow.forEach((element) => revealNow(element, { instant: true }));
+
+          const pending = elements.filter((element) => !element.dataset.revealVisible);
+
+          if (!pending.length) {
+            return;
+          }
+
+          const sweep = () => {
+            const bounds = getRootBounds();
+            const remaining = pending.filter((element) => !element.dataset.revealVisible);
+
+            remaining.forEach((element) => {
+              if (isInView(element, bounds)) {
+                revealNow(element);
+              }
+            });
+
+            // 全部就位后摘掉监听，省掉后续滚动的无谓计算。
+            if (!remaining.length) {
+              stopListening();
+            }
+          };
+
+          let sweepQueued = false;
+          const scrollTargets = [scrollRoot, window].filter(Boolean);
+          let fallbackTimer = null;
+
+          const scheduleSweep = () => {
+            if (sweepQueued) {
+              return;
+            }
+
+            sweepQueued = true;
+            window.requestAnimationFrame(() => {
+              sweepQueued = false;
+              sweep();
+            });
+          };
+
+          const stopListening = () => {
+            scrollTargets.forEach((target) => target.removeEventListener("scroll", scheduleSweep));
+            window.removeEventListener("resize", scheduleSweep);
+
+            if (fallbackTimer !== null) {
+              window.clearInterval(fallbackTimer);
+              fallbackTimer = null;
+            }
+
+            if (cleanupCurrent === stopListening) {
+              cleanupCurrent = null;
+            }
+          };
+
+          // bindReveal 会被 page-load / after-swap 反复调用，挂载新监听前先摘掉上一组，
+          // 否则同一批元素会被多组监听器重复扫描。
+          cleanupCurrent = stopListening;
+          scrollTargets.forEach((target) => target.addEventListener("scroll", scheduleSweep, { passive: true }));
+          window.addEventListener("resize", scheduleSweep);
+
+          // rAF 被节流的环境（后台标签页、部分无头容器）里 scroll 到但不出帧，
+          // 定时器保证终究会再算一次，内容不会永久隐形。
+          fallbackTimer = window.setInterval(sweep, 500);
+
+          // 首屏若在绘制前就打上标记，浏览器会直接从 opacity:1 起算、看不到上升过程，
+          // 所以放到下一帧触发。
+          window.requestAnimationFrame(sweep);
+        };
+
+        document.documentElement.dataset.revealReady = "true";
+
+        if (!window.__revealBound) {
+          document.addEventListener("astro:page-load", bindReveal);
+          document.addEventListener("astro:after-swap", bindReveal);
+          window.__revealBound = true;
+        }
+
+        bindReveal();
       })();
     </script>
     <script is:inline>

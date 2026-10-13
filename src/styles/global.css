@@ -3,6 +3,8 @@
 [data-theme="light"],
 [data-theme="black"],
 :root {
+    /* 全站统一缓动：与 new-tab 同一条曲线（先快后缓的大幅收尾），别再各处各写一套。 */
+    --ease-pop: cubic-bezier(0.22, 1, 0.36, 1);
     --font-sans:
         -apple-system,
         BlinkMacSystemFont,
@@ -49,6 +51,22 @@ body {
     --rounded-btn: 0.08rem;
     --rounded-badge: 0.2rem;
     --tab-radius: 0;
+}
+
+/* 内容页点按钮不缩放：daisyUI 默认每次点击都先缩到 .95 再弹到 1.02，
+   阅读型页面上这层"手感"会打断注意力。new-tab 是卡片面板，保留它自己的弹跳。 */
+html:not(:has([data-new-tab-page])) {
+    --animation-btn: 0s;
+    --btn-focus-scale: 1;
+}
+
+/* 下拉菜单与弹窗同理：daisyUI 让它们从 0.95 / 0.9 缩着长出来，
+   点主题按钮和点开图片时都算"点一下就放大"，内容页一并改成纯淡入。
+   .modal .modal-box 是为了压过 daisyUI 的 .modal[open] .modal-box。 */
+html:not(:has([data-new-tab-page])) .dropdown:is(:not(details)) .dropdown-content,
+html:not(:has([data-new-tab-page])) .modal .modal-box {
+    --tw-scale-x: 1;
+    --tw-scale-y: 1;
 }
 
 [data-theme="light"] .theme-image-variant--dark,
@@ -168,6 +186,117 @@ body {
 
 .time-line-container>div:last-child .education__time>.education__line {
     display: none;
+}
+
+/* ---------- 全站爽感：统一的过渡语言 ----------
+   缓动曲线与 new-tab 同为 --ease-pop（先冲刺、尾部长收），全站只用这一个。
+   内容页只做"位移 + 明暗"（上浮、淡出、滑入），不做缩放：缩放是 new-tab 那张卡片面板的
+   语言，放到阅读型页面上会显得像在"弹"，反而不稳。
+   下面三段各自职责：
+   1) 页面转场（View Transitions）
+   2) 滚动入场（data-reveal，JS 用几何扫描打标记）
+   3) 无障碍兜底（reduced-motion 一律退化） */
+
+/* 页面转场：内容页只让右侧内容区轻微上浮，整页快照不做任何动画——
+   左侧固定侧栏因此在刷新与切页时都不会被拖着晃。new-tab 是单屏工具页，
+   保留原有整页"从下方浮上来"的入场。 */
+@media (prefers-reduced-motion: no-preference) {
+    html:not(:has([data-new-tab-page]))::view-transition-old(root),
+    html:not(:has([data-new-tab-page]))::view-transition-new(root) {
+        animation: none;
+    }
+
+    ::view-transition-old(root) {
+        animation: ntp-fade-out 0.22s ease both;
+    }
+
+    /* new-tab 是单屏工具页，刷新保留"从下方浮上来"的入场。 */
+    html:has([data-new-tab-page])::view-transition-new(root) {
+        animation: ntp-rise-in 0.42s var(--ease-pop) both;
+    }
+
+    /* 内容页入场：位移只发生在这块内容区，左侧固定侧栏不参与。 */
+    html:not(:has([data-new-tab-page])) main {
+        animation: ntp-content-in 0.46s var(--ease-pop) backwards;
+    }
+
+    @keyframes ntp-fade-out {
+        to {
+            opacity: 0;
+        }
+    }
+
+    @keyframes ntp-content-in {
+        from {
+            opacity: 0;
+            transform: translateY(0.9rem);
+        }
+    }
+
+    @keyframes ntp-rise-in {
+        from {
+            opacity: 0;
+            transform: translateY(1.25rem);
+        }
+    }
+
+    /* 主题切换时只让新快照从点击点扩散，关掉默认的淡入淡出与 plus-lighter 混色，
+       否则圆外面能看到新旧两层叠加的残影。 */
+    html[data-theme-revealing]::view-transition-old(root),
+    html[data-theme-revealing]::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
+    }
+}
+
+/* 滚动入场：元素进视口时上浮。属性 [data-reveal] 由 BaseLayout 的
+   IntersectionObserver 翻成 [data-reveal-visible]，未见到前茅点保持在终态位置
+   的下方，见到后才吸附上去——避免"看不见的地区白跑一趟"造成的闪烁。 */
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    transition:
+        opacity 0.55s ease,
+        transform 0.7s var(--ease-pop);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal][data-reveal-visible] {
+    opacity: 1;
+    transform: none;
+}
+
+/* 刷新时已经在视口里的元素跳过各自的上浮直接落位，避免和右侧内容区那层整体上浮叠加成
+   两次位移。滚动到跟前才见到的元素仍走上面的上浮。 */
+[data-reveal][data-reveal-instant] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+}
+
+/* JS 未接管（禁用脚本 / hydration 失败）时不能让内容永久隐形。 */
+html:not([data-reveal-ready]) [data-reveal] {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
+        /* 无限循环要让 animation-duration 归零，只砍时长会变成每毫秒刷一次的高频闪烁 */
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 @media (min-width: 640px) {

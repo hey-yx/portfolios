@@ -11,14 +11,12 @@ RUN if [ -n "$ALPINE_MIRROR" ]; then sed -i "s#https://dl-cdn.alpinelinux.org#${
 
 WORKDIR /app
 
-# bun/npm 统一走 npmmirror；sharp 0.32 的 libvips 二进制走 SHARP_DIST_BASE_URL（GitHub releases 境内卡死）。
-# 该变量需自带版本目录，版本号随 lockfile 里 sharp 升级同步改
-ENV NPM_CONFIG_REGISTRY=https://registry.npmmirror.com \
-    SHARP_DIST_BASE_URL=https://registry.npmmirror.com/-/binary/sharp-libvips/v8.14.5/
+# bun/npm 统一走 npmmirror。sharp 不单独装：astro 自带的 0.34 走 @img/* 预编译包，
+# 纯 npm 依赖、不需要 node-gyp 编译，也不碰 GitHub releases（境内构建稳定）。
+ENV NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
 
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
-RUN cd /app && npm rebuild sharp
 
 COPY . .
 RUN bun run check && bun run build

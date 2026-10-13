@@ -1,5 +1,5 @@
 ---
-const { mobile = false } = Astro.props;
+const { mobile = false, triggerClass = "" } = Astro.props;
 
 const options = [
   { value: "system", label: "跟随系统" },
@@ -14,6 +14,7 @@ const options = [
     tabindex="0"
     class:list={[
       mobile ? "btn btn-square btn-ghost" : "btn btn-ghost gap-2 normal-case",
+      triggerClass,
     ]}
     aria-label="切换主题"
   >

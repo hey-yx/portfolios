@@ -105,7 +105,7 @@ const activeTileClasses = previewGrid ? previewTileClasses : tileClasses;
               <Image
                 src={image.src}
                 alt={image.alt}
-                class="h-full w-full object-cover transition duration-[220ms] ease-out group-hover:scale-[1.035] group-hover:saturate-[1.04] group-hover:contrast-[1.03] group-focus-visible:scale-[1.035] group-focus-visible:saturate-[1.04] group-focus-visible:contrast-[1.03]"
+                class="h-full w-full object-cover transition duration-[220ms] ease-out group-hover:saturate-[1.04] group-hover:contrast-[1.03] group-focus-visible:saturate-[1.04] group-focus-visible:contrast-[1.03]"
                 loading={index < 3 ? "eager" : "lazy"}
                 widths={[320, 640, 960]}
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
@@ -153,7 +153,7 @@ const activeTileClasses = previewGrid ? previewTileClasses : tileClasses;
             <button class="btn btn-sm absolute right-3 top-3 z-[1] h-9 min-h-9 border border-[color-mix(in_srgb,oklch(var(--b1))_26%,transparent)] bg-[color-mix(in_srgb,oklch(var(--bc))_76%,transparent)] px-3 font-bold text-[oklch(var(--b1))] backdrop-blur-[12px] transition hover:bg-[color-mix(in_srgb,oklch(var(--bc))_72%,transparent)] focus-visible:bg-[color-mix(in_srgb,oklch(var(--bc))_72%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color-mix(in_srgb,oklch(var(--b1))_80%,transparent)] max-sm:right-2.5 max-sm:top-2.5" type="button" data-lightbox-close aria-label="关闭图片查看">
               关闭
             </button>
-            <img class="block max-h-[calc(min(86dvh,52rem)-2.75rem)] w-auto max-w-[min(94vw,76rem)] min-h-0 object-contain max-sm:max-h-[calc(100dvh-3rem)] max-sm:w-[100vw] max-sm:max-w-[100vw]" data-lightbox-image alt="" />
+            <img class="block max-h-[calc(min(86dvh,52rem)-2.75rem)] w-auto max-w-[min(94vw,76rem)] min-h-0 object-contain max-sm:max-h-[calc(100dvh-3rem)] max-sm:w-[100vw] max-sm:max-w-[100vw] motion-safe:transition-[opacity,transform] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]" data-lightbox-image alt="" />
             <figcaption class="min-h-11 px-16 py-3 text-center text-sm leading-6 text-[color-mix(in_srgb,oklch(var(--b1))_78%,transparent)] [text-shadow:0_1px_1px_color-mix(in_srgb,oklch(var(--bc))_55%,transparent)] max-sm:min-h-12 max-sm:px-[4.25rem] max-sm:pb-3.5 max-sm:pt-3" data-lightbox-caption></figcaption>
           </figure>
           <button
@@ -175,6 +175,37 @@ const activeTileClasses = previewGrid ? previewTileClasses : tileClasses;
 
 <script is:inline define:vars={{ galleryId }}>
   (() => {
+    const galleryCssId = `lb-dialog-motion`;
+    if (!document.getElementById(galleryCssId)) {
+      const style = document.createElement("style");
+      style.id = galleryCssId;
+      style.textContent = `
+        @keyframes lb-backdrop-in {
+          from { opacity: 0; }
+        }
+
+        @keyframes lb-content-in {
+          from { opacity: 0; transform: translateY(0.75rem); }
+        }
+
+        [data-moment-lightbox][open]::backdrop {
+          animation: lb-backdrop-in 0.28s ease both;
+        }
+
+        [data-moment-lightbox][open] .modal-box {
+          animation: lb-content-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          [data-moment-lightbox][open]::backdrop,
+          [data-moment-lightbox][open] .modal-box {
+            animation: none !important;
+          }
+        }
+      `;
+      document.head.append(style);
+    }
+
     const dialog = document.querySelector(`[data-moment-lightbox="${galleryId}"]`);
     const triggers = [...document.querySelectorAll(`[data-moment-trigger="${galleryId}"]`)];
 
@@ -189,7 +220,64 @@ const activeTileClasses = previewGrid ? previewTileClasses : tileClasses;
     const nextButton = dialog.querySelector("[data-lightbox-next]");
     let activeIndex = 0;
 
-    const setActiveImage = (index) => {
+    const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+    const supportsMotion = () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const closeLightbox = () => {
+      if (!supportsMotion() || typeof dialog.animate !== "function") {
+        dialog.close();
+        return;
+      }
+
+      // <dialog> 一 close() 就立刻从渲染树摘掉，动画来不及跑完，
+      // 所以先把关闭动画挂在 dialog 上，跑完再真正 close()。
+      const animation = dialog.animate(
+        [
+          { opacity: 1 },
+          { opacity: 0 },
+        ],
+        { duration: 180, easing: EASE, fill: "both" },
+      );
+
+      const finish = () => {
+        animation.cancel();
+        dialog.close();
+      };
+
+      animation.addEventListener("finish", finish, { once: true });
+      // 标签页被切到后台时 finish 不会触发，加一道超时兜底，避免灯箱卡在半透明回不去。
+      window.setTimeout(finish, 400);
+    };
+
+    // 首次 setActiveImage 时图片还没开始加载，没有 opacity 起点，直接过渡看不到效果，
+    // 因此第一次只赋值，后续翻页才走"淡出→换图→淡入"。
+    let hasRenderedImage = false;
+
+    const swap = (mutate) => {
+      if (!hasRenderedImage || !supportsMotion() || !image) {
+        hasRenderedImage = true;
+        mutate();
+        return;
+      }
+
+      image.style.opacity = "0";
+      window.setTimeout(() => {
+        mutate();
+        image.style.opacity = "";
+      }, 140);
+    };
+
+    const openLightbox = (index) => {
+      // 打开走原来的直赋值：首次没有旧图可以淡出，淡入由 dialog 自身的入场动画负责。
+      hasRenderedImage = false;
+      applyIndexSilently(index);
+
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    };
+
+    const applyIndexSilently = (index) => {
       activeIndex = (index + triggers.length) % triggers.length;
       const trigger = triggers[activeIndex];
 
@@ -201,37 +289,39 @@ const activeTileClasses = previewGrid ? previewTileClasses : tileClasses;
       if (caption instanceof HTMLElement) {
         caption.textContent = trigger.dataset.caption || trigger.dataset.alt || "";
       }
+
+      hasRenderedImage = true;
     };
 
-    const openLightbox = (index) => {
-      setActiveImage(index);
-
-      if (!dialog.open) {
-        dialog.showModal();
-      }
+    const step = (offset) => {
+      swap(() => applyIndexSilently(activeIndex + offset));
     };
 
     triggers.forEach((trigger, index) => {
       trigger.addEventListener("click", () => openLightbox(index));
     });
 
-    closeButton?.addEventListener("click", () => dialog.close());
-    prevButton?.addEventListener("click", () => setActiveImage(activeIndex - 1));
-    nextButton?.addEventListener("click", () => setActiveImage(activeIndex + 1));
+    closeButton?.addEventListener("click", closeLightbox);
+    prevButton?.addEventListener("click", () => step(-1));
+    nextButton?.addEventListener("click", () => step(1));
 
     dialog.addEventListener("click", (event) => {
       if (event.target === dialog) {
-        dialog.close();
+        closeLightbox();
       }
     });
 
     dialog.addEventListener("keydown", (event) => {
       if (event.key === "ArrowLeft") {
-        setActiveImage(activeIndex - 1);
+        step(-1);
       }
 
       if (event.key === "ArrowRight") {
-        setActiveImage(activeIndex + 1);
+        step(1);
+      }
+
+      if (event.key === "Escape") {
+        closeLightbox();
       }
     });
   })();

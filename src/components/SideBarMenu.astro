@@ -2,14 +2,16 @@
 import { actionNavItems, primaryNavItems } from "../data/navigation";
 
 const { sideBarActiveItemID } = Astro.props;
-const activeClass = "bg-base-300";
+// 高亮底色用 ::before 铺一层而不是换 background class，换 class 是瞬切；
+// 铺一层可以用 transform 从左推入场，选中项出现时有"划过去"的确认感。
+const activeClass = "sidebar-nav-link--active";
 ---
 
 <ul class="menu grow shrink menu-md overflow-y-auto">
     {
         primaryNavItems.map((item) => (
             <li>
-                <a class:list={["py-3 text-base", item.id === sideBarActiveItemID && activeClass]} href={item.href}>
+                <a class:list={["sidebar-nav-link", item.id === sideBarActiveItemID && activeClass]} href={item.href}>
                     {item.label}
                 </a>
             </li>
@@ -19,7 +21,7 @@ const activeClass = "bg-base-300";
         actionNavItems.map((item) => (
             <li>
                 <a
-                    class:list={["py-3 text-base", item.id === sideBarActiveItemID && activeClass]}
+                    class:list={["sidebar-nav-link", item.id === sideBarActiveItemID && activeClass]}
                     href={item.href}
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noopener noreferrer" : undefined}
@@ -31,3 +33,61 @@ const activeClass = "bg-base-300";
         ))
     }
 </ul>
+
+<style>
+    .sidebar-nav-link {
+        /* isolate 让 ::before 的 z-index:-1 留在这条链接自己的层里，
+           既不会盖住文字，也不会沉到侧栏背景后面。 */
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        padding: 0.75rem !important;
+        transition:
+            padding-left 0.35s var(--ease-pop),
+            font-weight 0.35s ease;
+    }
+
+    .sidebar-nav-link::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: oklch(var(--b3));
+        transform: scaleX(0);
+        transform-origin: left center;
+        opacity: 0;
+        transition:
+            transform 0.4s var(--ease-pop),
+            opacity 0.25s ease;
+    }
+
+    .sidebar-nav-link:hover::before {
+        transform: scaleX(1);
+        opacity: 0.5;
+    }
+
+    .sidebar-nav-link:active::before {
+        opacity: 0.72;
+    }
+
+    .sidebar-nav-link--active::before {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+
+    .sidebar-nav-link--active {
+        padding-left: 1.15rem !important;
+        font-weight: 600;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sidebar-nav-link,
+        .sidebar-nav-link::before {
+            transition: none;
+        }
+
+        .sidebar-nav-link:hover::before {
+            opacity: 1;
+        }
+    }
+</style>
