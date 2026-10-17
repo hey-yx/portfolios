@@ -210,7 +210,7 @@ html:not(:has([data-new-tab-page])) .modal .modal-box {
         animation: ntp-fade-out 0.22s ease both;
     }
 
-    /* new-tab 是单屏工具页，刷新保留"从下方浮上来"的入场。 */
+    /* new-tab 是单屏工具页，整页像窗口打开一样从下方浮上来并轻微放大（缩放是它的语言）。 */
     html:has([data-new-tab-page])::view-transition-new(root) {
         animation: ntp-rise-in 0.42s var(--ease-pop) both;
     }
@@ -233,10 +233,12 @@ html:not(:has([data-new-tab-page])) .modal .modal-box {
         }
     }
 
+    /* new-tab 专属：整页"窗口打开"入场。这个 keyframe 只服务 new-tab，
+       内容页不要引用（内容页禁缩放，走 ntp-content-in）。 */
     @keyframes ntp-rise-in {
         from {
             opacity: 0;
-            transform: translateY(1.25rem);
+            transform: translateY(1.25rem) scale(0.985);
         }
     }
 

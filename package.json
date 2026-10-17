@@ -10,7 +10,7 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check",
+    "check": "astro check && node scripts/check-new-tab-vars.mjs",
     "astro": "astro"
   },
   "dependencies": {

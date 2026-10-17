@@ -1,5 +1,5 @@
 ---
-const { mobile = false, triggerClass = "" } = Astro.props;
+const { mobile = false, triggerClass = "", colorTarget = "" } = Astro.props;
 
 const options = [
   { value: "system", label: "跟随系统" },
@@ -17,6 +17,7 @@ const options = [
       triggerClass,
     ]}
     aria-label="切换主题"
+    data-new-tab-color-target={colorTarget || undefined}
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

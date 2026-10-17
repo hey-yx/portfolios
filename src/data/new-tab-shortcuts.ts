@@ -75,6 +75,17 @@ export interface NewTabConfig {
     shortcutDescriptionLabel: string;
     shortcutLogoLabel: string;
     fileLabel: string;
+    notesLabel: string;
+    notesPanelTitle: string;
+    notesLocalTitle: string;
+    notesLocalBody: string;
+    notesLogoTitle: string;
+    notesLogoBody: string;
+    notesLogoCacheTitle: string;
+    notesLogoCacheBody: string;
+    notesCommandLabel: string;
+    notesRecoveryTitle: string;
+    notesRecoveryBody: string;
   };
 }
 
@@ -146,6 +157,17 @@ export const newTabConfig: NewTabConfig = {
     shortcutDescriptionLabel: "说明",
     shortcutLogoLabel: "图标 URL",
     fileLabel: "选择 JSON",
+    notesLabel: "图标不显示怎么办",
+    notesPanelTitle: "图标不显示怎么办",
+    notesLocalTitle: "站点只存在这台浏览器",
+    notesLocalBody: "站点、分组、背景图都保存在当前浏览器的本地存储里，不上传服务器。换浏览器、换设备，或者清理浏览数据，都会让它们消失。建议定期用配置里的「导出 JSON」备份。",
+    notesLogoTitle: "图标是怎么来的",
+    notesLogoBody: "页面不保存任何图标文件，每次加载时按顺序试探：先读目标网站的图标标签与常见路径，再借第三方图标服务，最后直接要网站自己的 favicon。所以图标显示不出来，通常是对方网站暂时访问不到，不是你的配置出了问题。",
+    notesLogoCacheTitle: "试探结果会缓存",
+    notesLogoCacheBody: "为了让页面加载更快，每次试探的结果会记在本地：成功的记 7 天，失败的记 1 天。失败的记录到期前不会重新试探，如果对方网站已经恢复而图标还没回来，就需要手动清一次。",
+    notesCommandLabel: "清理指令（在页面按 F12 打开开发者工具，切到 Console 粘贴执行）",
+    notesRecoveryTitle: "什么时候需要清理",
+    notesRecoveryBody: "站点明明能打开、图标却迟迟不显示；或者刚修复过网络问题想让它立刻重试。清理只会让页面重新试探图标，不会动你的站点和分组。清理后刷新页面即可。",
   },
 };
 

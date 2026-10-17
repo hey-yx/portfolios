@@ -3,10 +3,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import {
   ArrowUpRight,
   Check,
-  ChevronDown,
+  ChevronUp,
   Dices,
   EllipsisVertical,
   GripVertical,
+  Info,
   Layers,
   LayoutGrid,
   PencilLine,
@@ -40,24 +41,44 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   showFooter={false}
   showFloatingThemeToggle={false}
 >
+  {/* 布局存在 localStorage、服务端不知道：入场动画要不要为弧形档降级，必须在 shell
+      首次渲染前定下来，所以这里内联读一次，把判据挂到 html 上（CSS 见样式块）。 */}
+  <script
+    is:inline
+    set:html={`(() => {
+  try {
+    const storedLayout = JSON.parse(window.localStorage.getItem(${JSON.stringify(newTabConfig.storageKey)}) ?? "null")?.shortcutLayout;
+    if (storedLayout) {
+      document.documentElement.dataset.newTabLayout = storedLayout;
+    }
+  } catch {
+    // 读不到就按默认网格处理
+  }
+})();`}
+  />
+
+  {/* 背景层挂 shell 外：shell 入场要整体缩放，fixed 元素留在里面会被拽进包含块。
+      外面这层 isolate 容器兜住负 z-index，否则会被 body 的不透明背景色盖住。 */}
+  <div class="pointer-events-none fixed inset-0 isolate z-0" aria-hidden="true" data-new-tab-background-host>
+    <div
+      class="pointer-events-none absolute inset-0 z-[-20] hidden bg-base-100"
+      aria-hidden="true"
+      data-new-tab-background-base
+    ></div>
+    <div
+      class="pointer-events-none absolute inset-0 -z-10 hidden bg-center bg-cover bg-no-repeat opacity-0 transition-opacity duration-200"
+      aria-hidden="true"
+      data-new-tab-background-layer
+    ></div>
+  </div>
+
   <section
-    class="new-tab-shell relative isolate z-10 grid w-[min(100%,58rem)] gap-[clamp(1.5rem,3.5vh,2.25rem)] pt-[clamp(2rem,9vh,5.5rem)] max-sm:gap-7"
+    class="new-tab-shell relative isolate z-10 mx-auto grid w-[min(100%,70rem)] gap-[clamp(1.5rem,3.5vh,2.25rem)] pt-[clamp(2rem,9vh,5.5rem)] max-sm:gap-7"
     aria-labelledby="new-tab-title"
     data-new-tab-page
     data-booting="true"
   >
     <h1 id="new-tab-title" class="sr-only">{newTabConfig.heading}</h1>
-
-    <div
-      class="pointer-events-none fixed inset-0 z-[-20] hidden bg-base-100"
-      aria-hidden="true"
-      data-new-tab-background-base
-    ></div>
-    <div
-      class="pointer-events-none fixed inset-0 -z-10 hidden bg-center bg-cover bg-no-repeat opacity-0 transition-opacity duration-200"
-      aria-hidden="true"
-      data-new-tab-background-layer
-    ></div>
 
     <div class="new-tab-toolbar flex items-end justify-between gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-3">
       <div class="new-tab-greeting-block grid content-start gap-1.5">
@@ -72,16 +93,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           data-new-tab-color-target="navigation"
         ></p>
       </div>
-      <div class="new-tab-actions flex items-center justify-end gap-1.5 max-sm:justify-start max-sm:gap-1">
+      {/* 窄屏工具行自动折行：屏幕放不下就分两排，不挤压也不溢出 */}
+      <div class="new-tab-actions flex flex-wrap items-center justify-end gap-1.5 max-sm:justify-start max-sm:gap-1">
         <div class="dropdown dropdown-end" data-layout-switcher>
           <button
-            class="btn btn-ghost btn-sm h-9 min-h-9 w-9 p-0 text-base-content/55 transition-colors hover:text-base-content [&_svg]:h-4 [&_svg]:w-4"
+            class="btn btn-ghost btn-sm h-8 min-h-8 w-8 p-0 transition-colors [&_svg]:h-4 [&_svg]:w-4"
             type="button"
             tabindex="0"
             aria-haspopup="menu"
             aria-label="切换布局"
             title="切换布局"
             data-layout-trigger
+            data-new-tab-color-target="navigation"
           >
             <span data-layout-trigger-icon="grid" class="grid place-items-center">
               <LayoutGrid aria-hidden="true" />
@@ -161,11 +184,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         <div>
           <ThemeToggle
             mobile={true}
-            triggerClass="h-9 min-h-9 w-9 p-0 [&_svg]:h-[1.05rem] [&_svg]:w-[1.05rem]"
+            triggerClass="h-8 min-h-8 w-8 p-0 [&_svg]:h-[1.05rem] [&_svg]:w-[1.05rem]"
+            colorTarget="navigation"
           />
         </div>
         <a
-          class="btn btn-ghost btn-sm h-9 min-h-9 gap-1.5 px-3 text-[0.82rem] font-medium text-base-content/60 hover:text-base-content"
+          class="btn btn-ghost btn-sm h-8 min-h-8 gap-1.5 px-3 text-[0.82rem] font-medium transition-colors"
           href={newTabConfig.homeLink.href}
           data-home-link
           data-new-tab-color-target="navigation"
@@ -174,7 +198,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           <ArrowUpRight class="h-3.5 w-3.5 opacity-55" aria-hidden="true" />
         </a>
         <button
-          class="btn btn-ghost btn-sm h-9 min-h-9 gap-1.5 px-3 text-[0.82rem] font-medium text-base-content/60 hover:text-base-content [&_svg]:h-3.5 [&_svg]:w-3.5"
+          class="btn btn-ghost btn-sm h-8 min-h-8 gap-1.5 px-3 text-[0.82rem] font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5"
           type="button"
           data-shortcut-add
           data-new-tab-color-target="navigation"
@@ -185,7 +209,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           <span class="max-sm:hidden">{newTabConfig.settings.addShortcutLabel}</span>
         </button>
         <button
-          class="btn btn-ghost btn-sm h-9 min-h-9 px-3.5 text-[0.82rem] font-medium text-base-content/60 hover:text-base-content"
+          class="btn btn-ghost btn-sm h-8 min-h-8 px-3.5 text-[0.82rem] font-medium transition-colors"
           type="button"
           data-config-open
           data-new-tab-color-target="navigation"
@@ -193,39 +217,52 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           {newTabConfig.settings.openLabel}
         </button>
         <button
-          class="btn btn-ghost btn-sm h-9 min-h-9 w-9 p-0 text-base-content/55 transition-colors hover:text-base-content [&_svg]:h-4 [&_svg]:w-4"
+          class="btn btn-ghost btn-sm h-8 min-h-8 w-8 p-0 transition-colors [&_svg]:h-4 [&_svg]:w-4"
+          type="button"
+          title={newTabConfig.settings.notesLabel}
+          aria-label={newTabConfig.settings.notesLabel}
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          data-notes-open
+          data-new-tab-color-target="navigation"
+        >
+          <Info aria-hidden="true" />
+        </button>
+        <button
+          class="btn btn-ghost btn-sm h-8 min-h-8 w-8 p-0 transition-colors [&_svg]:h-4 [&_svg]:w-4"
           type="button"
           title="收起问候"
           aria-label="收起问候"
           aria-expanded="true"
           data-header-collapse
+          data-new-tab-color-target="navigation"
         >
-          <ChevronDown aria-hidden="true" />
+          <ChevronUp aria-hidden="true" />
         </button>
       </div>
     </div>
 
     <form
-      class="new-tab-search flex w-full max-w-[44rem] items-stretch border border-base-content/10 bg-base-100 transition-colors duration-200 focus-within:border-base-content/30"
+      class="new-tab-search flex w-full min-w-[16rem] max-w-[70rem] items-stretch border border-base-content/10 bg-base-100 transition-colors duration-200 focus-within:border-base-content/30"
       role="search"
       data-new-tab-search
     >
       <label class="sr-only" for="new-tab-query">搜索关键词</label>
-      <span class="grid w-11 shrink-0 place-items-center pl-3 text-base-content/35" aria-hidden="true">
+      <span class="grid w-10 shrink-0 place-items-center pl-3 text-base-content/35" aria-hidden="true">
         <Search class="h-[1.05rem] w-[1.05rem]" />
       </span>
       <input
         id="new-tab-query"
-        class="new-tab-search__input h-[3.3rem] min-w-0 flex-1 border-0 bg-transparent px-2.5 text-base text-base-content outline-none placeholder:text-base-content/30 sm:text-[0.95rem]"
+        class="new-tab-search__input h-12 min-w-0 flex-1 border-0 bg-transparent px-2.5 text-base text-base-content outline-none placeholder:text-base-content/30 sm:text-[0.95rem]"
         type="search"
         name="q"
         autocomplete="off"
         placeholder={newTabConfig.search.placeholder}
         data-search-query
       />
-      <span class="new-tab-search__divider my-[0.85rem] w-px shrink-0 bg-base-content/10" aria-hidden="true"></span>
+      <span class="new-tab-search__divider my-[0.7rem] w-px shrink-0 bg-base-content/10" aria-hidden="true"></span>
       <button
-        class="btn h-auto min-h-0 w-[3.3rem] shrink-0 rounded-none border-0 bg-base-content text-base-100 hover:bg-base-content/85 focus-visible:bg-base-content/85 sm:w-auto sm:px-5"
+        class="btn h-auto min-h-0 w-12 shrink-0 rounded-none border-0 bg-base-content text-base-100 hover:bg-base-content/85 focus-visible:bg-base-content/85 sm:w-auto sm:px-5"
         type="submit"
         aria-label={newTabConfig.search.submitLabel}
         title={newTabConfig.search.submitLabel}
@@ -236,21 +273,25 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     </form>
 
     <div class="shortcut-stack grid gap-6 max-sm:gap-5" aria-label="快捷网站" data-shortcut-stack></div>
-
-    <button
-      class="new-tab-restore btn btn-square btn-sm fixed right-4 top-4 z-[70] h-9 min-h-9 w-9 border border-base-content/15 bg-base-100/85 p-0 text-base-content/70 shadow-[0_6px_20px_rgba(0,0,0,0.10)] backdrop-blur hover:text-base-content [&_svg]:h-4 [&_svg]:w-4"
-      type="button"
-      aria-label="展开问候与搜索"
-      title="展开问候与搜索（按 / 唤回搜索）"
-      data-header-restore
-    >
-      <ChevronDown aria-hidden="true" />
-    </button>
   </section>
 
-  <div class="new-tab-config fixed inset-0 z-[80] hidden pointer-events-none opacity-0 transition-opacity duration-200" data-config-drawer>
+  {/* 恢复按钮同样移出 shell：它是 fixed，留在里面会被 shell 的入场缩放当成包含块。 */}
+  <button
+    class="new-tab-restore btn btn-square btn-sm fixed right-4 top-4 z-[70] h-8 min-h-8 w-8 border border-base-content/15 bg-base-100/85 p-0 text-base-content/70 shadow-[0_6px_20px_rgba(0,0,0,0.10)] backdrop-blur hover:text-base-content [&_svg]:h-4 [&_svg]:w-4"
+    type="button"
+    aria-label="展开问候与搜索"
+    title="展开问候与搜索（按 / 唤回搜索）"
+    data-header-restore
+  >
+    <ChevronUp aria-hidden="true" />
+  </button>
+
+  {/* 两个抽屉共用一套开合规则：data-open 是唯一开关。
+      进出都走同一条 transition——进场 translate-x-full → 0，出场 0 → translate-x-full，
+      allow-discrete 让 hidden 也能参与过渡，JS 不再需要 setTimeout 兜底延迟隐藏。 */}
+  <div class="new-tab-config fixed inset-0 z-[80] hidden opacity-0 transition-opacity duration-200 [transition-behavior:allow-discrete] [&:not([data-open])]:pointer-events-none" data-config-drawer>
     <button class="new-tab-config__backdrop absolute inset-0 border-0 bg-base-content/20 opacity-0 transition-opacity duration-200" type="button" aria-label={newTabConfig.settings.closeLabel} data-config-close></button>
-    <aside class="new-tab-config__sheet absolute right-0 top-0 grid h-dvh w-[min(100vw,31rem)] max-sm:w-[min(100vw,24rem)] grid-rows-[auto_minmax(0,1fr)_auto] border-l border-base-content/10 bg-base-100 shadow-[-16px_0_48px_rgba(0,0,0,0.10)] translate-x-full transition-transform duration-200" aria-label={newTabConfig.settings.panelTitle} aria-modal="true" role="dialog">
+    <aside class="new-tab-config__sheet absolute right-0 top-0 grid h-dvh w-[min(100vw,31rem)] max-sm:w-[min(100vw,24rem)] rounded-l-2xl border-l border-base-content/10 bg-base-100/95 shadow-[-1px_0_2px_-1px_rgba(15,23,42,0.08),-8px_0_16px_-8px_rgba(15,23,42,0.10),-20px_0_40px_-20px_rgba(15,23,42,0.14)] grid-rows-[auto_minmax(0,1fr)_auto] backdrop-blur-sm translate-x-full transition-transform duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)]" aria-label={newTabConfig.settings.panelTitle} aria-modal="true" role="dialog">
       <div class="new-tab-config__header flex items-center justify-between gap-3 border-b border-base-content/10 p-4">
         <div class="min-w-0">
           <h2 class="m-0 text-[0.95rem] font-bold leading-tight">{newTabConfig.settings.panelTitle}</h2>
@@ -377,6 +418,49 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     </aside>
   </div>
 
+  {/* 图标与数据说明抽屉：讲清数据存在哪、图标怎么来、缓存怎么清——都是用户遇到
+     「图标不出来/数据丢了」时真正需要的那几句话，顺带把清理指令写成能直接粘贴的。 */}
+  <div class="new-tab-notes fixed inset-0 z-[85] hidden opacity-0 transition-opacity duration-200 [transition-behavior:allow-discrete] [&:not([data-open])]:pointer-events-none" data-notes-panel>
+    <button class="new-tab-notes__backdrop absolute inset-0 border-0 bg-base-content/20 opacity-0 transition-opacity duration-200" type="button" aria-label={newTabConfig.settings.notesPanelTitle} data-notes-close></button>
+    <aside class="new-tab-notes__sheet absolute right-0 top-0 grid h-dvh w-[min(100vw,31rem)] max-sm:w-[min(100vw,24rem)] rounded-l-2xl border-l border-base-content/10 bg-base-100/95 shadow-[-1px_0_2px_-1px_rgba(15,23,42,0.08),-8px_0_16px_-8px_rgba(15,23,42,0.10),-20px_0_40px_-20px_rgba(15,23,42,0.14)] grid-rows-[auto_minmax(0,1fr)_auto] backdrop-blur-sm transition-transform duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)]" role="dialog" aria-modal="true" aria-label={newTabConfig.settings.notesPanelTitle}>
+      <div class="new-tab-notes__header flex items-center justify-between gap-3 border-b border-base-content/10 p-4">
+        <div class="flex min-w-0 items-center gap-2.5">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-base-content/[0.06] text-base-content/55 [&_svg]:h-4 [&_svg]:w-4">
+            <Info aria-hidden="true" />
+          </span>
+          <h2 class="m-0 text-[0.95rem] font-bold leading-tight">{newTabConfig.settings.notesPanelTitle}</h2>
+        </div>
+        <button class="btn btn-square btn-ghost btn-sm" type="button" aria-label={newTabConfig.settings.closeLabel} data-notes-close>
+          <X class="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div class="new-tab-notes__body grid content-start gap-5 overflow-y-auto p-4 text-[0.8rem] leading-relaxed text-base-content/75">
+        <section class="grid gap-1.5">
+          <h3 class="m-0 text-[0.82rem] font-semibold text-base-content">{newTabConfig.settings.notesLocalTitle}</h3>
+          <p class="m-0">{newTabConfig.settings.notesLocalBody}</p>
+        </section>
+
+        <section class="grid gap-1.5">
+          <h3 class="m-0 text-[0.82rem] font-semibold text-base-content">{newTabConfig.settings.notesLogoTitle}</h3>
+          <p class="m-0">{newTabConfig.settings.notesLogoBody}</p>
+        </section>
+
+        <section class="grid gap-1.5">
+          <h3 class="m-0 text-[0.82rem] font-semibold text-base-content">{newTabConfig.settings.notesLogoCacheTitle}</h3>
+          <p class="m-0">{newTabConfig.settings.notesLogoCacheBody}</p>
+        </section>
+
+        <section class="grid gap-2">
+          <h3 class="m-0 text-[0.82rem] font-semibold text-base-content">{newTabConfig.settings.notesRecoveryTitle}</h3>
+          <p class="m-0">{newTabConfig.settings.notesRecoveryBody}</p>
+          <p class="m-0 text-[0.72rem] leading-snug text-base-content/50">{newTabConfig.settings.notesCommandLabel}</p>
+          <pre class="new-tab-notes__code m-0 overflow-x-auto rounded-lg border border-base-content/10 bg-base-200/40 p-3 text-[0.72rem] leading-relaxed" data-notes-command></pre>
+        </section>
+      </div>
+    </aside>
+  </div>
+
   <template data-new-tab-icon="check">
     <Check class="h-3.5 w-3.5" aria-hidden="true" />
   </template>
@@ -402,25 +486,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   <script is:inline type="application/json" id="new-tab-defaults" set:html={serializedDefaultNewTabPayload} />
 
   <style is:inline>
-    /* new-tab 自带 pt-[clamp(2rem,9vh,5.5rem)]，再叠 main 的 pt-6 lg:pt-16 会把内容推得过低，
-       白白吃掉一屏高度、把快捷方式挤到滚动区。这里只去掉垂直方向，左右留白保留。 */
+    /* new-tab 是单屏工具页，不走 BaseLayout 的阅读宽度：main 的 max-w-5xl 会把 shell
+       自己的 70rem 卡回 928px，lg:px-12 又会再吃掉左右各 48px——用户要「左右空隙少一点」。
+       注意 max-width 不能设成 none：main 靠 mx-auto + max-width 居中，置 none 会让它
+       贴左（1512 屏实测 x=0、右侧空 392px）。改成 100% 保持弹性宽度，居中交给 shell 自己。 */
     main:has([data-new-tab-page]) {
-      padding-top: 0;
-      padding-bottom: 0;
+      padding: 0;
+      max-width: 100%;
     }
 
-    /* 少数矮视口内容确实放不下时仍要滚动：提前占住滚动条槽位，避免它出现/消失时整页横移。 */
-    html:has([data-new-tab-page]) {
-      scrollbar-gutter: stable;
-    }
-
-    /* 入场动画让快捷方式从下方浮上来（translateY 0.7rem），中间态把文档底部撑高约 160px，
-       在常见笔记本视口下足以让滚动条闪一下。这里只剪掉纵向的瞬时溢出，留 2rem 余量，
-       hover 抬升与 tooltip 都在余量内，不受影响。 */
-    [data-new-tab-page].new-tab-shell {
-      overflow-y: clip;
-      overflow-clip-margin: 2rem;
-    }
+    /* 滚动条交给浏览器默认行为：内容放不下才出现、能滚，放得下就不出现。
+       不要用 scrollbar-gutter 固定占槽，也不要 overflow: clip 剪掉溢出内容——
+       那会造成"占着滚动条区域却不能滚"。 */
 
     /* new-tab 动效（全局样式，绕过 Tailwind purge）：布局补间 / 入场 / 问候与搜索收起、挂起 */
     [data-new-tab-page].new-tab-shell {
@@ -433,6 +510,174 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       transition: padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
+    /* 宽屏（≥640px）：问候语与日期独占最顶一行，搜索框与功能按钮并排第二行，快捷区垫底——
+       用户原话「搜索栏和操作的那几个功能在一行内，那个 xx好，Ethanz888 再往上移」。
+       工具栏在宽屏始终 display: contents，让 greeting-block 与 actions 各自成为 shell 的
+       直接网格项。关键是「始终」：以前只有展开态拆、收起态收回 flex，折叠第一帧
+       display 从 contents 跳成 flex，工具栏凭空长出 446px 的盒，用户原话
+       「折叠过程中操作栏区域过渡有一点卡顿僵硬」——实测就是这一下。
+
+       列宽一律写 minmax(0, Xrem)，不用 fit-content：fit-content 与 minmax 是不同类型的
+       轨道，二者之间 transition: grid-template-columns 不生效，浏览器直接一步跳到终值
+       （实测 t=56ms cols=734px → t=63ms cols=352px，actions 同步从 x=763 瞬移到 x=380）。
+       同类型轨道才能逐帧补间。areas 也全程不变，同理——areas 变了元素的行列映射立即重算，
+       同样不补间（实测 search 宽度 658 → 1120 一步跳）。
+       收起态靠问候语自己的 max-height 归零让位，搜索框与功能按钮的位置都不动。
+       封顶值分三档：宽屏 28rem（七个按钮带文字全展开约 446px）常规桌面单行放得下；
+       640~899px 收 22rem、640~699px 再收 18rem，逼 flex-wrap 折成两行，
+       否则搜索框被挤到和功能行重叠（实测 640px 重叠 110px、700px 重叠 50px）。
+       提醒：grid-template-areas 每行 token 数必须等于列数（这里是 2），写成单 token 的
+       跨行形状会被浏览器整条静默丢弃。 */
+    @media (min-width: 640px) {
+      [data-new-tab-page].new-tab-shell {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
+        grid-template-areas:
+          "greeting greeting"
+          "search actions"
+          "stack stack";
+        transition:
+          padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+          grid-template-columns 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      @media (min-width: 640px) and (max-width: 899px) {
+        [data-new-tab-page].new-tab-shell {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+        }
+      }
+
+      /* 640 这一档 shell 只有约 592px：搜索框保底 16rem(256px) + 列间距 32px 后，
+         功能行只剩约 300px。22rem(352px) 还会重叠 16px，收到 18rem(288px) 刚好放下
+         四个图标钮，带文字的按钮折到第二行。 */
+      @media (min-width: 640px) and (max-width: 699px) {
+        [data-new-tab-page].new-tab-shell {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+        }
+      }
+
+      [data-new-tab-page] .new-tab-toolbar {
+        display: contents;
+        gap: 0;
+      }
+
+      [data-new-tab-page] .new-tab-greeting-block {
+        grid-area: greeting;
+      }
+
+      [data-new-tab-page] .new-tab-actions {
+        grid-area: actions;
+        align-self: center;
+        justify-content: flex-end;
+      }
+
+      /* 聚焦即撑满，但功能按钮不许换行：搜索框在自己的格子里从 22rem 过渡到 100%，
+         按钮留在第二列原位。这里刻意不切单列网格——切成单列 actions 会被推到下一行
+         （用户原话「不要让右侧功能换行」），而且 areas 变形不补间、位置是瞬移。 */
+      [data-new-tab-page]:has(.new-tab-search:focus-within) .new-tab-search {
+        max-width: 100%;
+      }
+    }
+
+    /* 刷新/首次加载入场：整页像窗口打开一样「突」到眼前（缩放是 new-tab 的语言），
+       并带一点自下而上的上浮。缩放收底边、上浮压顶边，中间态不会把文档顶高闪滚动条，
+       结束即释放 transform。背景层与恢复按钮已移出 shell，不会被当成 fixed 的包含块。 */
+    [data-new-tab-page].new-tab-shell {
+      animation: ntab-page-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    @keyframes ntab-page-in {
+      from {
+        opacity: 0;
+        transform: translateY(0.9rem) scale(0.94);
+      }
+    }
+
+    /* 背景与页面同一口气入场：轻微缩放 + 淡入（宿主在 shell 外，transform 动画不影响任何 fixed 布局）。
+       没配背景图时宿主里只有同色兜底层，动画无感、无副作用。 */
+    [data-new-tab-background-host] {
+      animation: ntab-bg-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    @keyframes ntab-bg-in {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+    }
+
+    /* ── 抽屉（配置 / 图标说明）开合 ─────────────────────────────────
+       唯一开关是宿主上的 data-open。hidden 也进了过渡列表（allow-discrete），
+       所以进场：hidden 摘掉 → 遮罩淡入 + 抽屉从右滑到位；出场：反向走完再落 hidden，
+       不再靠 JS setTimeout 猜时长。duration 280ms 比原 200ms 稍长，滑动手感更完整。 */
+    [data-config-drawer],
+    [data-notes-panel] {
+      transition:
+        opacity 0.2s ease,
+        display 0.28s allow-discrete;
+    }
+
+    [data-config-drawer][data-open],
+    [data-notes-panel][data-open] {
+      opacity: 1;
+    }
+
+    [data-config-drawer] .new-tab-config__backdrop,
+    [data-notes-panel] .new-tab-notes__backdrop {
+      opacity: 0;
+      transition: opacity 0.24s ease;
+    }
+
+    [data-config-drawer][data-open] .new-tab-config__backdrop,
+    [data-notes-panel][data-open] .new-tab-notes__backdrop {
+      opacity: 1;
+    }
+
+    [data-config-drawer] .new-tab-config__sheet,
+    [data-notes-panel] .new-tab-notes__sheet {
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    [data-config-drawer][data-open] .new-tab-config__sheet,
+    [data-notes-panel][data-open] .new-tab-notes__sheet {
+      transform: translateX(0);
+    }
+
+    /* 弧形布局的瓦片钉在 fixed 坞上（贴着屏幕底部）：shell 一旦有 transform，坞会被当成包含块
+       参照拽进内容区，整页缩放/上浮会破坏布局。这一档把动效拆到壳内区块自己做：
+       工具栏/搜索上浮淡入、弧形坞自身从底部略沉淡入、缩放交给坞内瓦片自己的弹入。
+       判据挂在 html 上——布局存 localStorage，由 shell 前的内联脚本在首帧前写入。 */
+    html[data-new-tab-layout="ring"] [data-new-tab-page].new-tab-shell {
+      animation: none;
+    }
+
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-toolbar,
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search {
+      animation: ntab-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search {
+      animation-delay: 60ms;
+    }
+
+    @keyframes ntab-rise {
+      from {
+        opacity: 0;
+        transform: translateY(0.7rem);
+      }
+    }
+
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-arc-dock {
+      animation: ntab-dock-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    @keyframes ntab-dock-in {
+      from {
+        opacity: 0;
+        transform: translateY(1.4rem);
+      }
+    }
+
     /* 首屏 padding 从展开态滑到收起态要 0.45s，而快捷方式正好在这条过渡刚开始时插入，
        被撑在旧 padding 上把整页顶高约 60px，右侧就闪出滚动条。首帧先不起过渡，
        等布局落定再放行——入场 keyframe 动画不受影响，只有 padding 补间在首屏被跳过。 */
@@ -443,10 +688,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       transition: none;
     }
 
-    [data-new-tab-page] .new-tab-toolbar {
-      grid-area: toolbar;
-    }
-
+    /* toolbar 在宽屏是 display: contents，本身不占格；窄屏仍是普通 flex 流里的第一块，
+       grid-area 由基础规则（"toolbar" 单列区）兜住，不需要按 header 状态切换。 */
     [data-new-tab-page] .new-tab-search {
       grid-area: search;
     }
@@ -455,17 +698,80 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       grid-area: stack;
     }
 
-    /* 一段收起：搜索框上移，与功能按钮同一行（桌面宽度起） */
+    /* 工具栏图标与文字统一跟一个基准色走：默认模式用 55% 不透明度的正文色，
+       选了颜色模式（浅色/深色文字）时 applyTextColors 会给每个带
+       data-new-tab-color-target 的元素内联写 color，图标用 currentColor 自然跟上。
+       之前图标各自写死 text-base-content/55、文字写 /60，两档灰度不一致；
+       背景图 + 颜色模式组合下图标还会比文字暗一截，用户反馈「图标看不到」。
+       hover 提亮用 filter 而不是 color，避免覆盖内联色让颜色模式失效。 */
+    [data-new-tab-page] .new-tab-actions .btn {
+      color: color-mix(in oklab, currentColor 55%, transparent);
+    }
+
+    [data-new-tab-page] .new-tab-actions .btn:hover {
+      filter: brightness(1.6);
+    }
+
+    [data-new-tab-page] .new-tab-actions .btn[aria-expanded="true"] {
+      filter: brightness(1.6);
+    }
+
+    /* 常态（normal）搜索框就是短的：22rem 上限，右侧功能按钮留在原位不换行。
+       聚焦时由上面的 :focus-within 规则过渡到 100%，两端都是长度值所以能逐帧补间。
+       之前这里写 max-width: none 让常态就顶满整列，用户原话
+       「我其实希望输入框本来很短的，然后点击后就有过渡撑满当前宽度」。
+       分档与列宽对齐：第一列比 22rem 还窄的档位（640~899px 实测 316~437px）
+       若沿用 22rem，常态就已顶满、聚焦时看不出过渡，所以按第一列可用宽度逐档收窄，
+       保证每一档都有「短 → 撑满」的可见过程。 */
+    [data-new-tab-page]:not([data-header-state]) .new-tab-search {
+      max-width: 22rem;
+    }
+
+    @media (min-width: 640px) and (max-width: 899px) {
+      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
+        max-width: 18rem;
+      }
+    }
+
+    @media (min-width: 640px) and (max-width: 979px) {
+      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
+        max-width: 20rem;
+      }
+    }
+
+    /* 700 这一档第一列只剩 316px，20rem(320px) 会逼得常态就顶满、看不出过渡；
+       收到 18rem(288px)，给聚焦留出可见的撑满过程。 */
+    @media (min-width: 640px) and (max-width: 759px) {
+      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
+        max-width: 18rem;
+      }
+    }
+
+    @media (min-width: 640px) and (max-width: 699px) {
+      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
+        max-width: 16rem;
+      }
+    }
+
+    /* 一段收起：问候语缩到 0 让位，搜索框吃掉它空出来的宽度。
+       刻意不改 areas、也不改列数——areas 一变，元素的行列映射立即重算、不补间
+       （实测 search 宽度 658 → 1120 一步跳，actions 从 x=886 瞬移到 x=580）。
+       这里只把第二列从 28rem 收到 22rem，与展开态同为 minmax 轨道，
+       列宽补间照常生效，搜索框与功能按钮的位置连续变化。
+       收起态功能按钮改贴左：第一行问候语已归零，第二行按钮与搜索框同行，
+       贴左才和搜索框左边缘对齐，不会孤零零挂在右边。 */
     @media (min-width: 640px) {
-      [data-new-tab-page][data-header-state="collapsed"].new-tab-shell {
-        grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
-        grid-template-areas:
-          "search toolbar"
-          "stack stack";
+      [data-new-tab-page][data-header-state="collapsed"].new-tab-shell,
+      [data-new-tab-page][data-header-state="suspended"].new-tab-shell {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+        transition:
+          padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+          grid-template-columns 0.45s cubic-bezier(0.22, 1, 0.36, 1);
       }
 
-      [data-new-tab-page][data-header-state="collapsed"] .new-tab-toolbar {
-        justify-content: flex-end;
+      [data-new-tab-page][data-header-state="collapsed"] .new-tab-actions,
+      [data-new-tab-page][data-header-state="suspended"] .new-tab-actions {
+        justify-content: flex-start;
       }
     }
 
@@ -500,11 +806,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     }
 
     [data-new-tab-page] [data-header-collapse] svg,
-    [data-new-tab-page] .new-tab-restore svg {
+    html:has([data-new-tab-page]) .new-tab-restore svg {
       transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    [data-new-tab-page] .new-tab-restore {
+    /* 恢复按钮已移出 shell（fixed，免疫入场缩放的包含块），选择器改挂 html:has */
+    html:has([data-new-tab-page]) .new-tab-restore {
       opacity: 0;
       visibility: hidden;
       transform: translateY(-0.4rem);
@@ -518,33 +825,58 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       padding-top: clamp(1.25rem, 4vh, 2.25rem);
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-greeting-block {
+    /* 挂起态沿用收起态的问候语压缩：suspended 是 collapsed 的下一级，
+       第一行必须继续是 0 高。之前这条只写 collapsed，suspended 下问候语回到
+       自然高度，第二行被顶下去、搜索框跟着位移——用户原话「第二次折叠的时候
+       那个大的搜索框闪了一下」。 */
+    [data-new-tab-page][data-header-state="collapsed"] .new-tab-greeting-block,
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-greeting-block {
+      /* 只压高度，不压宽度。一旦同时把 max-width 也归零，overflow: hidden 里内部 grid
+         子元素会按极窄宽度重新换行，盒子反而被撑高（实测 62px → 97px），
+         把第二行在折叠第一帧顶下去 36px。宽度让位交给 grid 列宽自己过渡，
+         问候语跨满整行、宽度根本不参与折叠。 */
       max-height: 0;
-      max-width: 0;
       opacity: 0;
       overflow: hidden;
       transform: translateY(-0.75rem);
       pointer-events: none;
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search {
-      max-width: 22rem;
+    /* 聚焦即撑满：收起态定的 22rem 在 focus-within 时作废，搜索框在自己的格子里
+       过渡到 100%，功能按钮留在第二列原位不换行（与展开态同一套做法）。
+       注意这里不能写 max-width: none——none 不是长度值，浏览器不插值，
+       实测 max-width: 22rem → none 直接一步跳到终值，没有过渡。 */
+    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search:focus-within {
+      max-width: 100%;
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__input {
+    /* 挂起态沿用收起态的搜索框压缩：高度、分隔线边距、文字标签都不许弹回完整尺寸。
+       这些是 collapsed 专属的「变小」规则，漏了 suspended 就会在第二次折叠时
+       把大号搜索框的内容重新铺开（搜索框正处于 max-height: 0 的折叠过程中，
+       内容反而被撑出来闪一下）。 */
+    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__input,
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-search__input {
       height: 2.5rem;
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__divider {
+    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__divider,
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-search__divider {
       margin-top: 0.55rem;
       margin-bottom: 0.55rem;
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__submit-label {
+    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__submit-label,
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-search__submit-label {
       display: none;
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] [data-header-collapse] svg {
+    /* 箭头指向「点下去之后内容往哪走」，与标题文字同向，不要按状态字面猜：
+       normal 朝上（问候与搜索收上去）、collapsed/suspended 朝下（再收一级 / 展开回来）。
+       之前只有 collapsed 一条 rotate 且方向搞反，用户原话「刚开始的时候那个箭头方向不对」——
+       首屏正是 normal 态，一眼就看到箭头朝下却写着「收起」。 */
+    [data-new-tab-page][data-header-state="collapsed"] [data-header-collapse] svg,
+    [data-new-tab-page][data-header-state="suspended"] [data-header-collapse] svg,
+    html:has([data-new-tab-page][data-header-state="suspended"]) .new-tab-restore svg {
       transform: rotate(180deg);
     }
 
@@ -565,7 +897,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       border-color: transparent;
     }
 
-    [data-new-tab-page][data-header-state="suspended"] .new-tab-restore {
+    html:has([data-new-tab-page][data-header-state="suspended"]) .new-tab-restore {
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
@@ -601,6 +933,37 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     }
 
+    /* 右键菜单：从指针处弹出（缩放起点略偏左上，像从指尖长出来）。
+       退场走 .ntab-menu-vanish，播完才 remove，否则菜单会啪地消失。 */
+    .shortcut-context-menu {
+      animation: ntab-menu-in 0.16s cubic-bezier(0.22, 1, 0.36, 1) both;
+      transform-origin: top left;
+    }
+
+    .shortcut-context-menu.ntab-menu-vanish {
+      animation: ntab-menu-out 0.13s cubic-bezier(0.4, 0, 1, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes ntab-menu-in {
+      from {
+        opacity: 0;
+        transform: scale(0.94) translateY(-0.2rem);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    @keyframes ntab-menu-out {
+      to {
+        opacity: 0;
+        transform: scale(0.97);
+      }
+    }
+
     /* 弧形布局：拼接画布固定为底部弧形坞，吃满视口全宽 */
     [data-new-tab-page] .new-tab-arc-dock {
       position: fixed;
@@ -611,51 +974,122 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       padding: 0 0.375rem 0.25rem;
     }
 
-    /* item 卡片深浅由 data-item-tone 驱动：浅色文字配黑卡，深色文字配浅卡，默认跟随主题 */
-    html[data-item-tone="light"] [data-shortcut-stack] .shortcut-item {
-      background-color: rgba(0, 0, 0, 0.05) !important;
-      border-color: rgba(0, 0, 0, 0.08) !important;
+    /* ── item 卡片材质 ────────────────────────────────────────────────
+       四层阴影叠出实物感：顶部受光边 + 1px 内描边 + 接触阴影 + 环境阴影。
+       深浅仍由 data-item-tone 驱动（浅色文字配黑卡、深色文字配浅卡、默认跟随主题），
+       但 tone / 主题 / 背景图只改写 --ntab-card-* 变量，材质与 hover 各只有一份规则，
+       不再每个变体各写一套 background-color / border-color。 */
+    [data-shortcut-stack] .shortcut-item {
+      --ntab-card-bg: rgba(0, 0, 0, 0.05);
+      --ntab-card-sheen: none;
+      --ntab-card-ring: rgba(0, 0, 0, 0.08);
+      --ntab-card-edge: rgba(255, 255, 255, 0.85);
+      --ntab-card-contact: rgba(15, 23, 42, 0.05);
+      --ntab-card-ambient: rgba(15, 23, 42, 0.1);
+      --ntab-card-lift: 1;
+      --ntab-card-focus: rgba(15, 23, 42, 0.55);
+      --ntab-card-label-shadow: none;
+
+      background-color: var(--ntab-card-bg);
+      background-image: var(--ntab-card-sheen);
+      border-color: transparent;
+      box-shadow:
+        inset 0 1px 0 0 var(--ntab-card-edge),
+        inset 0 0 0 1px var(--ntab-card-ring),
+        0 1px 2px -1px var(--ntab-card-contact),
+        0 calc(13px * var(--ntab-card-lift)) calc(26px * var(--ntab-card-lift)) calc(-17px * var(--ntab-card-lift)) var(--ntab-card-ambient);
     }
 
-    html[data-item-tone="light"] [data-shortcut-stack] .shortcut-item:hover,
-    html[data-item-tone="light"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      background-color: rgba(0, 0, 0, 0.09) !important;
-      border-color: rgba(0, 0, 0, 0.2) !important;
+    /* 悬停 / 聚焦：环境阴影放大做出「抬起来」的高度变化。
+       下面是亮色页面浅灰卡的配色，深色变体各自覆盖。 */
+    [data-shortcut-stack] .shortcut-item:hover,
+    [data-shortcut-stack] .shortcut-item:focus-visible {
+      --ntab-card-lift: 1.45;
+      --ntab-card-bg: rgba(0, 0, 0, 0.075);
+      --ntab-card-ring: rgba(0, 0, 0, 0.14);
+      --ntab-card-edge: rgba(255, 255, 255, 1);
+      --ntab-card-ambient: rgba(15, 23, 42, 0.17);
     }
 
+    /* 键盘聚焦补一道轮廓环：走 outline，不参与阴影插值 */
+    [data-shortcut-stack] .shortcut-item:focus-visible {
+      outline: 1px solid var(--ntab-card-focus);
+      outline-offset: 3px;
+    }
+
+    /* 按下回弹：位移归零 + 轻微缩小，模拟实体按键 */
+    [data-shortcut-stack] .shortcut-item:active {
+      transition-duration: 0.09s;
+    }
+
+    /* 图标不加底板：favicon 真实透出（用户定稿），hover 时只放大图标本身 */
+    [data-shortcut-stack] .shortcut-item__icon {
+      background-color: transparent;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    [data-shortcut-stack] .shortcut-item:hover .shortcut-item__icon,
+    [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__icon {
+      transform: scale(1.05);
+    }
+
+    [data-shortcut-stack] .shortcut-item__label {
+      text-shadow: var(--ntab-card-label-shadow);
+    }
+
+    /* 纯黑页面：深灰卡靠提亮与受光边分层，黑色阴影在纯黑上不可见，故留空 */
     html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item {
-      background-color: rgba(255, 255, 255, 0.08) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
+      --ntab-card-bg: rgba(255, 255, 255, 0.07);
+      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 72%);
+      --ntab-card-ring: rgba(255, 255, 255, 0.09);
+      --ntab-card-edge: rgba(255, 255, 255, 0.1);
+      --ntab-card-contact: rgba(0, 0, 0, 0);
+      --ntab-card-ambient: rgba(0, 0, 0, 0);
+      --ntab-card-focus: rgba(255, 255, 255, 0.6);
     }
 
     html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item:hover,
     html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      background-color: rgba(255, 255, 255, 0.13) !important;
-      border-color: rgba(255, 255, 255, 0.3) !important;
+      --ntab-card-bg: rgba(255, 255, 255, 0.13);
+      --ntab-card-ring: rgba(255, 255, 255, 0.26);
+      --ntab-card-edge: rgba(255, 255, 255, 0.16);
     }
 
-    /* 亮色页面上的黑卡用实底近纯黑，白 8% 提亮只在纯黑页面可见 */
+    /* 亮色页面上的黑卡用实底近纯黑，顶部一道受光渐变；阴影落回浅色背景 */
     html[data-item-tone="dark"][data-theme="light"] [data-shortcut-stack] .shortcut-item {
-      background-color: rgba(8, 9, 12, 0.97) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
+      --ntab-card-bg: rgba(8, 9, 12, 0.97);
+      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0) 68%);
+      --ntab-card-ring: rgba(255, 255, 255, 0.1);
+      --ntab-card-edge: rgba(255, 255, 255, 0.11);
+      --ntab-card-contact: rgba(8, 9, 12, 0.16);
+      --ntab-card-ambient: rgba(8, 9, 12, 0.26);
+      --ntab-card-focus: rgba(8, 9, 12, 0.6);
     }
 
     html[data-item-tone="dark"][data-theme="light"] [data-shortcut-stack] .shortcut-item:hover,
     html[data-item-tone="dark"][data-theme="light"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      background-color: rgba(28, 30, 37, 0.98) !important;
-      border-color: rgba(255, 255, 255, 0.22) !important;
+      --ntab-card-bg: rgba(24, 26, 32, 0.98);
+      --ntab-card-ring: rgba(255, 255, 255, 0.22);
+      --ntab-card-edge: rgba(255, 255, 255, 0.15);
+      --ntab-card-ambient: rgba(8, 9, 12, 0.36);
     }
 
     /* 暗色页面上的浅卡用白色提亮，黑 5% 在纯黑上不可见 */
     html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item {
-      background-color: rgba(255, 255, 255, 0.1) !important;
-      border-color: rgba(255, 255, 255, 0.12) !important;
+      --ntab-card-bg: rgba(255, 255, 255, 0.08);
+      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 72%);
+      --ntab-card-ring: rgba(255, 255, 255, 0.1);
+      --ntab-card-edge: rgba(255, 255, 255, 0.12);
+      --ntab-card-contact: rgba(0, 0, 0, 0);
+      --ntab-card-ambient: rgba(0, 0, 0, 0);
+      --ntab-card-focus: rgba(255, 255, 255, 0.6);
     }
 
     html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item:hover,
     html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      background-color: rgba(255, 255, 255, 0.16) !important;
-      border-color: rgba(255, 255, 255, 0.3) !important;
+      --ntab-card-bg: rgba(255, 255, 255, 0.13);
+      --ntab-card-ring: rgba(255, 255, 255, 0.28);
+      --ntab-card-edge: rgba(255, 255, 255, 0.18);
     }
 
     /* 黑卡上的副标题改浅色，避免深灰小字压深卡看不清 */
@@ -663,27 +1097,42 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       color: rgba(255, 255, 255, 0.6) !important;
     }
 
-    /* 有背景图时改为半透明卡片：黑卡压暗照片、白卡提亮照片 */
+    /* 有背景图时改为半透明卡片：黑卡压暗照片、白卡提亮照片；
+       照片上文字补一道投影，标题与说明都保住可读性 */
     html[data-item-tone="dark"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item {
-      background-color: rgba(0, 0, 0, 0.6) !important;
-      border-color: rgba(255, 255, 255, 0.12) !important;
+      --ntab-card-bg: rgba(0, 0, 0, 0.58);
+      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 70%);
+      --ntab-card-ring: rgba(255, 255, 255, 0.14);
+      --ntab-card-edge: rgba(255, 255, 255, 0.16);
+      --ntab-card-contact: rgba(0, 0, 0, 0.28);
+      --ntab-card-ambient: rgba(0, 0, 0, 0.34);
+      --ntab-card-focus: rgba(255, 255, 255, 0.65);
+      --ntab-card-label-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
     }
 
     html[data-item-tone="dark"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:hover,
     html[data-item-tone="dark"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      background-color: rgba(0, 0, 0, 0.78) !important;
-      border-color: rgba(255, 255, 255, 0.3) !important;
+      --ntab-card-bg: rgba(0, 0, 0, 0.74);
+      --ntab-card-ring: rgba(255, 255, 255, 0.3);
+      --ntab-card-edge: rgba(255, 255, 255, 0.22);
+      --ntab-card-ambient: rgba(0, 0, 0, 0.44);
     }
 
     html[data-item-tone="light"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item {
-      background-color: rgba(255, 255, 255, 0.65) !important;
-      border-color: rgba(0, 0, 0, 0.08) !important;
+      --ntab-card-bg: rgba(255, 255, 255, 0.62);
+      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 70%);
+      --ntab-card-ring: rgba(0, 0, 0, 0.08);
+      --ntab-card-edge: rgba(255, 255, 255, 0.9);
+      --ntab-card-contact: rgba(15, 23, 42, 0.08);
+      --ntab-card-ambient: rgba(15, 23, 42, 0.18);
+      --ntab-card-focus: rgba(15, 23, 42, 0.6);
     }
 
     html[data-item-tone="light"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:hover,
     html[data-item-tone="light"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      background-color: rgba(255, 255, 255, 0.8) !important;
-      border-color: rgba(0, 0, 0, 0.16) !important;
+      --ntab-card-bg: rgba(255, 255, 255, 0.78);
+      --ntab-card-ring: rgba(0, 0, 0, 0.16);
+      --ntab-card-ambient: rgba(15, 23, 42, 0.24);
     }
 
     /* 悬浮提示跟随 item 卡片深浅：文字颜色模式强制换色后，浮层底色同步切换，标题和说明都保持可读 */
@@ -717,51 +1166,34 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       color: rgba(17, 24, 39, 0.6) !important;
     }
 
-    /* 刷新入场：问候/搜索/快捷方式三块作为一体上浮，不再让每个 item 各弹各的。
-       backwards 只在动画期间生效，结束后交还给常规级联，避免盖掉 FLIP 与收起态的行内 transform。 */
-    @keyframes ntab-shell-in {
-      from {
-        opacity: 0;
-        transform: translateY(1.15rem);
-      }
-
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-
-    [data-new-tab-page] > .new-tab-toolbar,
-    [data-new-tab-page] > .new-tab-search,
-    [data-new-tab-page] > [data-shortcut-stack] {
-      animation: ntab-shell-in 0.52s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    }
-
-    /* 弧形坞固定在视口底部：容器一旦有 transform 就会变成它的包含块，把坞拽进窄栏。
-       这一档只做明暗过渡，位移交给坞内部元素自己完成。 */
-    [data-new-tab-page][data-shortcut-layout="ring"] > [data-shortcut-stack] {
-      animation-name: ntab-shell-fade;
-    }
-
-    @keyframes ntab-shell-fade {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
+    /* 刷新入场：快捷方式瓦片逐个弹出（序号 × 24ms 错峰，上限 360ms），自下而上浮到位并带轻微缩放——
+       new-tab 的"窗"感来源。backwards 只在动画期间生效，结束后交还给常规级联，
+       避免盖掉 FLIP 与收起态的行内 transform。 */
     [data-shortcut-stack] .ntab-pop > .shortcut-item,
     [data-shortcut-stack] .shortcut-item.ntab-pop {
       animation: ntab-pop-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      animation-delay: var(--ntab-delay, 0ms);
     }
 
     @keyframes ntab-pop-in {
       from {
         opacity: 0;
-        transform: translateY(0.7rem) scale(0.94);
+        transform: translateY(0.9rem) scale(0.94);
+      }
+    }
+
+    /* 移除退场：与 ntab-pop-in 对称的反向过程——瓦片缩小淡出，被遮罩按住不响应点击。
+       动画播完才真正从数据里删（见 removeShortcutWithTransition），
+       否则 DOM 全量重建会把动画一刀斩断。 */
+    [data-shortcut-stack] .shortcut-item-shell.ntab-vanish > .shortcut-item {
+      animation: ntab-pop-out 0.26s cubic-bezier(0.4, 0, 1, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes ntab-pop-out {
+      to {
+        opacity: 0;
+        transform: scale(0.86);
       }
     }
 
@@ -778,7 +1210,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
   <script>
     // @ts-nocheck
-    import { META_PROXY_ORIGIN } from "../data/meta-proxy";
+    import { buildMetaProxyUrl, META_PROXY_ORIGIN } from "../data/meta-proxy";
     const defaultPayloadElement = document.getElementById("new-tab-defaults");
     const defaultPayload = defaultPayloadElement?.textContent
       ? JSON.parse(defaultPayloadElement.textContent)
@@ -826,7 +1258,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       scatter: "随机",
     };
     const logoCacheStorageKey = `${storageKey}:logo-cache`;
-    const logoResolverVersion = 5;
+    // v5→v6：缓存里的 logoUrl 存的是代理地址，读出来会被再套一层代理（522）；
+    // 同时 canProxyUrl 补齐环回/链路本地拦截、候选链补 1Panel 与按目录探测，旧条目全部作废重建。
+    // v6→v7：load 后的 content-type 复核把「fetch 被 CORS 挡掉」误判成「拿到 HTML 兜底页」，
+    // 直连站点（localhost / 内网 / 裸 IP）的真实 favicon 被一路误杀到链尾；同时第三方
+    // favicon 服务保留直连候选，导致 Google / DuckDuckGo 的占位图写进缓存。
+    // 旧缓存里已存有假图标，全部作废重建。
+    const logoResolverVersion = 7;
     const settingsLabels = defaultPayload.config?.settings ?? {};
     let newTabState = defaultState();
     let activeDragPayload = null;
@@ -1116,8 +1554,23 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     };
 
     const closeShortcutContextMenu = () => {
-      activeShortcutContextMenu?.remove();
+      const menu = activeShortcutContextMenu;
+
+      if (!menu) {
+        return;
+      }
+
+      // 先摘引用再播退场：二次调用直接跳过，避免连点触发多段动画。
+      // remove 延后到动画结束，否则菜单会瞬间消失、没有收起的过程。
       activeShortcutContextMenu = null;
+
+      if (menu.classList.contains("ntab-menu-vanish")) {
+        menu.remove();
+        return;
+      }
+
+      menu.classList.add("ntab-menu-vanish");
+      window.setTimeout(() => menu.remove(), 140);
     };
 
     const getContextMenuPoint = (event, fallbackElement) => {
@@ -1151,7 +1604,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       closeShortcutContextMenu();
 
       const menu = document.createElement("div");
-      menu.className = "shortcut-context-menu fixed z-[90] grid min-w-44 max-w-[18rem] gap-1 border border-base-content/15 bg-base-100 p-1.5 text-sm text-base-content shadow-[0_12px_36px_rgba(0,0,0,0.12)] outline-none";
+      menu.className = "shortcut-context-menu fixed z-[90] grid min-w-44 max-w-[18rem] gap-0.5 rounded-xl border border-base-content/10 bg-base-100/95 p-1.5 text-sm text-base-content shadow-[0_1px_2px_-1px_rgba(15,23,42,0.08),0_8px_16px_-8px_rgba(15,23,42,0.10),0_20px_40px_-20px_rgba(15,23,42,0.14)] outline-none backdrop-blur-sm";
       menu.setAttribute("role", "menu");
       menu.tabIndex = -1;
 
@@ -1177,8 +1630,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       actions.forEach((action) => {
         const button = document.createElement("button");
         button.className = action.danger
-          ? "grid h-9 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 rounded-[0.15rem] border-0 bg-transparent px-2 text-left text-error/80 transition hover:bg-error/10 focus-visible:bg-error/10 focus-visible:outline-none"
-          : "grid h-9 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 rounded-[0.15rem] border-0 bg-transparent px-2 text-left text-base-content/75 transition hover:bg-base-200 focus-visible:bg-base-200 focus-visible:outline-none";
+          ? "grid h-9 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 rounded-lg border-0 bg-transparent px-2 text-left text-error/85 transition-colors duration-150 hover:bg-error/10 focus-visible:bg-error/10 focus-visible:outline-none"
+          : "grid h-9 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 rounded-lg border-0 bg-transparent px-2 text-left text-base-content/75 transition-colors duration-150 hover:bg-base-200 focus-visible:bg-base-200 focus-visible:outline-none";
         button.type = "button";
         button.setAttribute("role", "menuitem");
         button.innerHTML = `<span class="grid h-4 w-4 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5">${getIconMarkup(action.icon)}</span><span class="truncate text-xs font-semibold">${action.label}</span>`;
@@ -1248,10 +1701,24 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     const createShortcutAddForm = (group) => {
       const form = document.createElement("form");
-      form.className = "shortcut-item-add-form col-span-full grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-1.5 border border-base-content/10 bg-base-100/90 p-2 backdrop-blur";
+      form.className = "shortcut-item-add-form col-span-full grid w-full max-w-[min(100%,24rem)] gap-3 border border-base-content/10 bg-base-100/95 p-3.5 shadow-[0_10px_36px_rgba(0,0,0,0.12)] backdrop-blur";
+
+      // 标题栏：一句话说明 + 关闭钮，让这块面板自己会说话
+      const header = document.createElement("div");
+      header.className = "flex items-center justify-between gap-2";
+      const heading = document.createElement("p");
+      heading.className = "m-0 text-[0.82rem] font-semibold leading-tight";
+      heading.textContent = settingsLabels.addShortcutLabel ?? "添加站点";
+      const dismissButton = document.createElement("button");
+      dismissButton.className = "btn btn-square btn-ghost btn-xs h-7 min-h-7 w-7 p-0 text-base-content/50 transition hover:text-base-content";
+      dismissButton.type = "button";
+      dismissButton.setAttribute("aria-label", "取消添加");
+      dismissButton.title = "取消";
+      dismissButton.innerHTML = getIconMarkup("close");
+      header.append(heading, dismissButton);
 
       const fields = document.createElement("div");
-      fields.className = "grid min-w-0 gap-1";
+      fields.className = "grid min-w-0 gap-2.5";
 
       let targetGroup = group;
       const syncAddTarget = () => {
@@ -1266,7 +1733,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         groupSelectLabel.textContent = "所属分组";
 
         const groupSelect = document.createElement("select");
-        groupSelect.className = "select select-bordered select-xs h-8 min-h-8 w-full bg-base-100/80 text-xs";
+        groupSelect.className = "select select-bordered select-sm h-9 min-h-9 w-full bg-base-100/80 text-xs";
         groupSelect.setAttribute("aria-label", "所属分组");
 
         newTabState.shortcutGroups.forEach((item, index) => {
@@ -1287,51 +1754,101 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       syncAddTarget();
 
-      const titleLabel = document.createElement("label");
-      titleLabel.className = "sr-only";
-      titleLabel.textContent = settingsLabels.shortcutTitleLabel ?? "名称";
+      // 图标预览：地址解析出 logo 前先显示站点首字母，拿到后真实透出 favicon
+      const preview = document.createElement("div");
+      preview.className = "flex items-center gap-2.5";
+      const previewIcon = document.createElement("span");
+      previewIcon.className = "shortcut-item__icon relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-md border border-base-content/10 bg-base-200/60";
+      previewIcon.setAttribute("aria-hidden", "true");
+      const previewImage = document.createElement("img");
+      previewImage.className = "hidden h-full w-full object-contain p-[0.3rem]";
+      previewImage.alt = "";
+      previewImage.referrerPolicy = "no-referrer";
+      const previewInitial = document.createElement("span");
+      previewInitial.className = "text-[0.95rem] font-bold leading-none text-base-content/60";
+      previewInitial.textContent = "?";
+      previewIcon.append(previewImage, previewInitial);
+      const previewText = document.createElement("div");
+      previewText.className = "grid min-w-0 gap-0.5";
+      const previewTitle = document.createElement("p");
+      previewTitle.className = "m-0 truncate text-[0.82rem] font-medium leading-tight";
+      previewTitle.textContent = "新站点";
+      const previewHint = document.createElement("p");
+      previewHint.className = "m-0 truncate text-[0.72rem] leading-tight text-base-content/45";
+      previewHint.textContent = "填地址后自动识别名称与图标";
+      previewText.append(previewTitle, previewHint);
+      preview.append(previewIcon, previewText);
+      fields.append(preview);
+
+      const fieldRow = (labelText, inputEl) => {
+        const row = document.createElement("label");
+        row.className = "grid min-w-0 gap-1";
+        const rowLabel = document.createElement("span");
+        rowLabel.className = "text-[0.72rem] font-medium text-base-content/55";
+        rowLabel.textContent = labelText;
+        row.append(rowLabel, inputEl);
+        return row;
+      };
+
       const titleInput = document.createElement("input");
-      titleInput.className = "input input-bordered input-xs h-8 min-w-0 bg-base-100/80 text-xs";
+      titleInput.className = "input input-bordered input-sm h-9 min-h-9 w-full min-w-0 bg-base-100/80 text-xs";
       titleInput.type = "text";
       titleInput.autocomplete = "off";
       titleInput.setAttribute("aria-label", settingsLabels.shortcutTitleLabel ?? "名称");
       titleInput.placeholder = settingsLabels.shortcutTitleLabel ?? "名称";
 
-      const urlLabel = document.createElement("label");
-      urlLabel.className = "sr-only";
-      urlLabel.textContent = settingsLabels.shortcutUrlLabel ?? "地址";
       const urlInput = document.createElement("input");
-      urlInput.className = "input input-bordered input-xs h-8 min-w-0 bg-base-100/80 text-xs";
+      urlInput.className = "input input-bordered input-sm h-9 min-h-9 w-full min-w-0 bg-base-100/80 text-xs";
       urlInput.type = "text";
       urlInput.inputMode = "url";
       urlInput.autocomplete = "off";
       urlInput.setAttribute("aria-label", settingsLabels.shortcutUrlLabel ?? "地址");
-      urlInput.placeholder = settingsLabels.shortcutUrlLabel ?? "地址";
+      urlInput.placeholder = "example.com";
+
+      fields.append(fieldRow(settingsLabels.shortcutTitleLabel ?? "名称", titleInput));
+      fields.append(fieldRow(settingsLabels.shortcutUrlLabel ?? "地址", urlInput));
 
       const error = document.createElement("p");
       error.className = "hidden text-[0.72rem] leading-snug text-error";
 
-      fields.append(titleLabel, titleInput, urlLabel, urlInput, error);
-
-      const submitButton = createIconButton("创建", "check", "text-success/75 hover:text-success");
-      submitButton.type = "submit";
-      const cancelButton = createIconButton("取消", "close");
       let shortcutMetadataRequestId = 0;
       let shortcutMetadataTimer = 0;
       let shortcutMetadata = null;
 
+      const footer = document.createElement("div");
+      footer.className = "flex items-center justify-end gap-1.5";
+      const cancelButton = document.createElement("button");
+      cancelButton.className = "btn btn-ghost btn-sm h-8 min-h-8 px-3 text-xs text-base-content/60 transition hover:text-base-content";
+      cancelButton.type = "button";
+      cancelButton.textContent = "取消";
+      const submitButton = document.createElement("button");
+      submitButton.className = "btn btn-sm h-8 min-h-8 border-0 bg-base-content px-4 text-xs text-base-100 transition hover:bg-base-content/85 focus-visible:bg-base-content/85";
+      submitButton.type = "submit";
+      submitButton.textContent = "添加";
+      footer.append(cancelButton, submitButton);
+
       const applyShortcutMetadata = (metadata) => {
         shortcutMetadata = metadata;
 
-        if (normalizeText(titleInput.value)) {
-          return;
+        // 图标预览跟随解析结果
+        const logoUrl = metadata?.logoUrl ?? metadata?.candidates?.[0] ?? "";
+        if (logoUrl) {
+          previewImage.src = logoUrl;
+          previewImage.classList.remove("hidden");
+          previewInitial.classList.add("hidden");
         }
 
-        const suggestedTitle = metadata?.title || getShortcutHostname(normalizeShortcutUrlInput(urlInput.value));
+        // 预览标题同步（用户已填名称时不抢）
+        if (!normalizeText(titleInput.value)) {
+          const suggestedTitle = metadata?.title || getShortcutHostname(normalizeShortcutUrlInput(urlInput.value));
 
-        if (suggestedTitle) {
-          titleInput.value = suggestedTitle;
-          clearInlineFormError(error);
+          if (suggestedTitle) {
+            titleInput.value = suggestedTitle;
+            previewTitle.textContent = suggestedTitle;
+            clearInlineFormError(error);
+          }
+        } else {
+          previewTitle.textContent = normalizeText(titleInput.value);
         }
       };
 
@@ -1360,8 +1877,17 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         shortcutMetadataTimer = window.setTimeout(syncShortcutMetadata, 550);
       };
 
-      cancelButton.addEventListener("click", () => {
+      const dismiss = () => {
         renderShortcutGroups();
+      };
+
+      dismissButton.addEventListener("click", dismiss);
+      cancelButton.addEventListener("click", dismiss);
+
+      titleInput.addEventListener("input", () => {
+        previewTitle.textContent = normalizeText(titleInput.value) || "新站点";
+        previewInitial.textContent = getShortcutInitial(titleInput.value) || "?";
+        clearInlineFormError(error);
       });
 
       form.addEventListener("submit", async (event) => {
@@ -1409,25 +1935,40 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       });
 
       [titleInput, urlInput].forEach((input) => {
-        input.addEventListener("input", () => {
-          clearInlineFormError(error);
-        });
         input.addEventListener("keydown", (event) => {
           if (event.key === "Escape") {
             event.preventDefault();
-            renderShortcutGroups();
+            dismiss();
           }
         });
       });
 
+      // 地址框回车：先去补名称（元数据还没到就停在原地），别直接提交半成品
+      urlInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") {
+          return;
+        }
+        const url = normalizeShortcutUrlInput(urlInput.value);
+
+        if (url && isValidShortcutUrl(url) && !normalizeText(titleInput.value)) {
+          event.preventDefault();
+          titleInput.focus();
+        }
+      });
+
       urlInput.addEventListener("input", () => {
         shortcutMetadata = null;
+        previewImage.classList.add("hidden");
+        previewImage.removeAttribute("src");
+        previewInitial.classList.remove("hidden");
+        previewInitial.textContent = "?";
+        previewHint.textContent = "填地址后自动识别名称与图标";
         scheduleShortcutMetadataSync();
       });
       urlInput.addEventListener("blur", syncShortcutMetadata);
       urlInput.addEventListener("change", syncShortcutMetadata);
 
-      form.append(fields, submitButton, cancelButton);
+      form.append(header, fields, error, footer);
       return form;
     };
 
@@ -1914,9 +2455,40 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     const dragHandleIcon = getIconMarkup("drag");
 
-    const faviconProxyUrl = META_PROXY_ORIGIN;
+    // 代理地址固定带斜杠，与 unwrapProxyUrl 的 pathname === "/" 判定保持一致
+    const getProxyUrl = (url) => buildMetaProxyUrl(url);
 
-    const getProxyUrl = (url) => `${faviconProxyUrl}?url=${encodeURIComponent(url)}`;
+    // 旧版本把「当前成功加载的地址」原样写进了缓存，而候选链第一条本来就是代理地址，
+    // 于是缓存里存的是代理地址；下次读出来再 pushLogoCandidate 就又套一层代理，
+    // 代理请求代理自身域名，Worker 侧固定 522。这里统一剥掉代理前缀再进候选链。
+    // 按 host + pathname 判定，字符串前缀比对会因带不带斜杠而漏。
+    const unwrapProxyUrl = (url) => {
+      if (!url) {
+        return url;
+      }
+
+      let current = url;
+
+      for (let round = 0; round < 4; round += 1) {
+        let parsed;
+        try {
+          parsed = new URL(current);
+        } catch {
+          return current;
+        }
+
+        const isProxySelf = parsed.origin === META_PROXY_ORIGIN && parsed.pathname === "/";
+        const inner = isProxySelf ? parsed.searchParams.get("url") : null;
+
+        if (!inner) {
+          return current;
+        }
+
+        current = inner;
+      }
+
+      return current;
+    };
 
     const isRemoteUrl = (value) => /^https?:\/\//i.test(value);
 
@@ -1928,17 +2500,38 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     };
 
+    // 与 cloudflare-worker/newtab-meta-proxy.js 的黑名单保持一致：
+    // 环回（127./0.）、链路本地（169.254.）在客户端就要挡掉，
+    // 否则内网站点会先发一次注定被 Worker 拒绝的请求，日志里平白多一条 400。
+    //
+    // 注意这里不再挡裸 IP：Cloudflare 会拦「Worker 去 fetch 的目标是 IP 字面量」的请求
+    // （error 1003），但那是 Worker 发出去之后才发生的，客户端无法预判；
+    // 而且确实存在能通的 IP（Cloudflare 自家的 1.1.1.1 实测 200），
+    // 所以在客户端一律放行，让请求真正发出去，由实际结果决定成败。
+    // 代价是 101.35.226.231:8090 这类面板每次会白发一次注定 403 的代理请求，
+    // 但它本来就只能靠直连或域名代名取图（见 resolveIpLiteralFallbackUrls）。
     const canProxyUrl = (url) => {
       try {
-        const { hostname } = new URL(url);
-        const normalizedHost = hostname.toLowerCase();
+        const { protocol, hostname } = new URL(url);
+
+        // 非 http(s) 地址（如 data: 内置图标）不要往代理送
+        if (protocol !== "http:" && protocol !== "https:") {
+          return false;
+        }
+
+        const normalizedHost = hostname.toLowerCase().replace(/^\[|\]$/g, "");
 
         if (
           normalizedHost === "localhost" ||
+          normalizedHost === "::1" ||
+          normalizedHost === "0:0:0:0:0:0:0:1" ||
           normalizedHost.endsWith(".local") ||
           normalizedHost.endsWith(".lan") ||
+          normalizedHost.startsWith("127.") ||
+          normalizedHost.startsWith("0.") ||
           normalizedHost.startsWith("10.") ||
-          normalizedHost.startsWith("192.168.")
+          normalizedHost.startsWith("192.168.") ||
+          normalizedHost.startsWith("169.254.")
         ) {
           return false;
         }
@@ -1970,7 +2563,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     };
 
-    const pushLogoCandidate = (candidates, url, withProxy = true) => {
+    const pushLogoCandidate = (candidates, url, withProxy = true, proxyOnly = false) => {
       if (!url || candidates.includes(url)) {
         return;
       }
@@ -1979,6 +2572,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         const proxyUrl = getProxyUrl(url);
         if (!candidates.includes(proxyUrl)) {
           candidates.push(proxyUrl);
+        }
+
+        // proxyOnly 用于第三方 favicon 服务：它们的目标域名不带 CORS 头，
+        // 直连版加载成功后无法复核 content-type，占位图会被误判成真实图标。
+        if (proxyOnly) {
+          return;
         }
       }
 
@@ -1997,15 +2596,77 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       return isPlainObject(cached) ? cached : undefined;
     };
 
-    const getShortcutLogoUrls = (shortcut) => {
-      if (shortcut.logo) {
-        const logoUrl = resolveShortcutAssetUrl(shortcut.logo, shortcut.url);
+    // 取站点地址所在的目录（保留协议、端口与路径前缀），用于按目录试 favicon。
+    // 例：https://1panel.itcox.cn:15660/ccd1a10224/ → 同址；.../ccd1a10224 → 补尾斜杠的目录。
+    const resolveShortcutDirectoryUrl = (url) => {
+      try {
+        const parsed = new URL(url);
+        const path = parsed.pathname.replace(/\/[^/]*$/, "/");
 
-        return isRemoteUrl(logoUrl)
-          ? [getProxyUrl(logoUrl), logoUrl]
-          : [logoUrl];
+        return `${parsed.origin}${path}`;
+      } catch {
+        return "";
+      }
+    };
+
+    // 1Panel 的图标路径与守卫页特征是已知的，主机名带 panel 或安全入口样式时按 1Panel 处理；
+    // 这里只做路径补充，最终能否取到仍由候选链逐条试。
+    const isOnePanelHost = (hostname) =>
+      /(^|\.)1?panel\./i.test(hostname) || /(^|\.)panel\./i.test(hostname);
+
+    // 裸 IP 站点（http://101.35.226.231:8090/ 这类面板）有一条死结：
+    // new-tab 自己是 https 页面，浏览器直接拦掉所有 http:// 直连候选，不发请求；
+    // 而走 meta.itcox.cn 代理时，Cloudflare 又对「目标是 IP 字面量」一律回 1003。
+    // 两条路都断了，只剩「换成域名再走代理」这一条——实测 http://itcox.cn:8090/public/favicon.png
+    // 经代理返回 200 + image/png，能拿到 500×500 的真图。
+    //
+    // 域名从哪来：不硬编码任何 IP 映射，改用 new-tab 页面自己所在的域名（location.hostname）
+    // 试同一个端口。理由是这类瓦片的现实用法——用户把自己机器上的服务（1Panel 面板、
+    // 安全入口应用）加进来，而 new-tab 本身就部署在那台机器上，端口不同而已。
+    // 取不到也不亏：代名候选排在通用路径之后，失败就走第三方服务与首字母兜底。
+    const getIpLiteralAliasUrls = (shortcut, baseUrl) => {
+      const aliasUrls = [];
+
+      let parsed;
+      try {
+        parsed = new URL(baseUrl);
+      } catch {
+        return aliasUrls;
       }
 
+      // 只处理裸 IPv4：IPv6 字面量在 URL 里带方括号，交给通用链路
+      if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(parsed.hostname)) {
+        return aliasUrls;
+      }
+
+      const pageHost = window.location.hostname;
+      // 页面自己也是 IP（本地/内网访问）、或是 localhost 时没有可用域名，跳过
+      if (
+        !pageHost ||
+        /^\d{1,3}(\.\d{1,3}){3}$/.test(pageHost) ||
+        pageHost === "localhost" ||
+        pageHost.endsWith(".local") ||
+        pageHost.endsWith(".lan")
+      ) {
+        return aliasUrls;
+      }
+
+      // 端口必须保留：面板与非默认端口的应用全靠它区分
+      const aliasOrigin = `${parsed.protocol}//${pageHost}${parsed.port ? `:${parsed.port}` : ""}`;
+      // 路径本身就是应用路径（/tencentcloud、/a/b），图标通常挂在它自己的目录下。
+      // 带安全入口的 1Panel（/ccd1a10224/）同理。路径为空（站点根）时只试站点根。
+      const appPath = parsed.pathname.replace(/\/$/, "");
+
+      if (appPath) {
+        aliasUrls.push(`${aliasOrigin}${appPath}/public/favicon.png`);
+      }
+      aliasUrls.push(`${aliasOrigin}/public/favicon.png`);
+      aliasUrls.push(`${aliasOrigin}/favicon.png`);
+
+      return aliasUrls;
+    };
+
+    const getShortcutLogoUrls = (shortcut) => {
       let originUrl = "";
       try {
         originUrl = new URL(shortcut.url).origin;
@@ -2018,33 +2679,50 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const cachedLogo = getCachedShortcutLogo(shortcut);
       const canUseCachedLogo = cachedLogo?.resolverVersion === logoResolverVersion;
 
+      // 用户指定过的图标排最前，但不再就此收尾：指定图标失效（站点改版、地址过期）时
+      // 后面仍接完整探测链，避免瓦片直接掉回首字母。
+      if (shortcut.logo) {
+        const logoUrl = unwrapProxyUrl(resolveShortcutAssetUrl(shortcut.logo, shortcut.url));
+
+        pushLogoCandidate(candidates, logoUrl);
+      }
+
       if (canUseCachedLogo && cachedLogo?.logoUrl) {
-        pushLogoCandidate(candidates, cachedLogo.logoUrl, false);
+        pushLogoCandidate(candidates, unwrapProxyUrl(cachedLogo.logoUrl), false);
       }
 
+      // 页面自己声明的图标（<link rel="icon">、og:image 等）排在猜测路径之前：
+      // 站点说了自己的图标在哪，就没有理由再拿 7 条通用路径去猜。SPA 兜底站点
+      // （任何不存在路径都返 200 text/html）上这些猜测注定全败，声明是唯一可靠来源。
+      // collectLogoUrlsFromHtml 已把页面声明的地址收进 candidates，这里只做排序前置。
       if (canUseCachedLogo && Array.isArray(cachedLogo?.candidates)) {
-        pushLogoCandidates(candidates, cachedLogo.candidates);
+        pushLogoCandidates(candidates, cachedLogo.candidates.map(unwrapProxyUrl));
       }
 
+      // 只留实测有命中可能的路径。用生产配置里四个真实站点逐条 curl 过：
+      // /icon.*、/apple-touch-icon*、/assets/*、/images/* 这 12 条全部是 404 或 SPA 的
+      // HTML 兜底（200 text/html），零命中，只会白烧请求——而每个路径经代理还会裂成
+      // 代理+直连两条候选，等于 24 次注定失败的往返。apple-touch-icon 类的能力没有丢：
+      // 页面真声明了 <link rel="apple-touch-icon"> 时，collectLogoUrlsFromHtml 会收进来。
       const commonPaths = [
         "/favicon.svg",
         "/favicon.png",
         "/favicon.ico",
+        // webp 放前面：Vite 项目默认产出 favicon.webp，静态 HTML 里也常写这个格式，
+        // 漏掉它时 SPA 的 HTML 兜底会把其余候选全扮成 200，白试一整轮
+        "/favicon.webp",
+        "/public/favicon.png",
         "/logo.svg",
         "/logo.png",
-        "/icon.svg",
-        "/icon.png",
-        "/apple-touch-icon.png",
-        "/apple-touch-icon-precomposed.png",
-        "/assets/logo.svg",
-        "/assets/logo.png",
-        "/assets/favicon.svg",
-        "/assets/favicon.png",
-        "/images/logo.svg",
-        "/images/logo.png",
-        "/images/logo-blue.png",
-        "/images/logo-light.png",
+        "/logo.webp",
       ];
+
+      // 1Panel v2 的图标固定在 /public/favicon.png：静态 HTML 里没有图标标签，
+      // 且带安全入口时守卫页会把带路径的请求全返 HTML 兜底，只有站点根路径下取得到。
+      // 实测确认这条是 1Panel 站点唯一能拿到图的候选，所以排在最前面。
+      if (isOnePanelHost(hostname)) {
+        pushLogoCandidate(candidates, `${originUrl}/public/favicon.png`);
+      }
 
       commonPaths.forEach((path) => {
         if (!originUrl) {
@@ -2054,13 +2732,47 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         pushLogoCandidate(candidates, new URL(path, originUrl).href);
       });
 
+      // 裸 IP 站点改用页面所在域名 + 原端口再试一轮。直连候选在 https 页面里全被
+      // 浏览器拦掉、代理候选又被 Cloudflare 对 IP 字面量的 1003 挡掉，不换域名就无解。
+      // 排在通用路径之后：域名代名是猜出来的对应关系，能中最好，不中也不多花钱。
+      getIpLiteralAliasUrls(shortcut, shortcut.url).forEach((aliasUrl) => {
+        pushLogoCandidate(candidates, aliasUrl);
+      });
+
       const googleFavicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=64`;
       const duckDuckGoFavicon = `https://icons.duckduckgo.com/ip3/${hostname}.ico`;
-      const directFavicon = `https://${hostname}/favicon.ico`;
+      // hostname 不含端口：非默认端口站点（如面板 :15660）要补回协议与端口，否则会打到默认端口上
+      const faviconOrigin = originUrl ? new URL(originUrl) : null;
+      const directFavicon = faviconOrigin
+        ? `${faviconOrigin.protocol}//${hostname}${faviconOrigin.port ? `:${faviconOrigin.port}` : ""}/favicon.ico`
+        : "";
 
-      pushLogoCandidate(candidates, googleFavicon);
-      pushLogoCandidate(candidates, duckDuckGoFavicon);
+      // 第三方 favicon 服务只走代理：直连这些域名时浏览器不带 CORS 头，
+      // load 后的 content-type 复核只能得到「无法判断」，于是它们对无图标站点返回的
+      // 占位图（Google 的 16x16 默认图、DuckDuckGo 的 404 地球）会被当成真实图标写进缓存。
+      // 代理域名自带 access-control-allow-origin: *，复核结论才可靠。
+      pushLogoCandidate(candidates, googleFavicon, true, true);
+      pushLogoCandidate(candidates, duckDuckGoFavicon, true, true);
       pushLogoCandidate(candidates, directFavicon, false);
+
+      // 带路径的站点（安全入口 /ccd1a10224/、子目录应用）图标可能在应用目录下。
+      // 放在最后：这类请求大多被守卫页挡下返回 HTML 兜底，提前只会白发一批请求。
+      // 只有目录真的比 origin 深才探测：根路径站点（https://host/）算出来的目录与
+      // origin 只差一个尾斜杠，不去掉就会让每块瓦片都多跑一整轮通用路径。
+      const directoryUrl = resolveShortcutDirectoryUrl(shortcut.url);
+      const isDeeperThanOrigin = (() => {
+        if (!directoryUrl || !originUrl) {
+          return false;
+        }
+
+        return new URL(directoryUrl).pathname.replace(/\/$/, "") !== "";
+      })();
+
+      if (directoryUrl && isDeeperThanOrigin) {
+        commonPaths.forEach((path) => {
+          pushLogoCandidate(candidates, new URL(path.slice(1), directoryUrl).href);
+        });
+      }
 
       return candidates;
     };
@@ -2092,6 +2804,11 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     const isLoadingPageTitle = (value) =>
       /^loading[.\s]*$/i.test(value) || /^(加载中|正在加载|请稍候)[.。\s]*$/.test(value);
 
+    // 1Panel 的图标由前端运行时注入（默认 /public/favicon.png），静态 HTML 里没有图标标签；
+    // 没带安全入口时会收到守卫页，页面里有固定命令文案（安全入口未配置或域名绑定不符两种变体），
+    // 可据此认出 1Panel 并直接用内置图标。
+    const isOnePanelGuardPage = (html) => html.includes("1pctl user-info") || html.includes("1pctl reset domain");
+
     const collectLogoUrlsFromHtml = (html, baseUrl) => {
       const candidates = [];
       const parser = new DOMParser();
@@ -2102,7 +2819,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         doc.querySelector('meta[name="application-name"]')?.getAttribute("content") ??
         "",
       ));
-      const resolvedTitle = [pageTitle, fallbackTitle].find(
+      const isGuardPage = isOnePanelGuardPage(html);
+      const resolvedTitle = (isGuardPage ? [] : [pageTitle, fallbackTitle]).find(
         (value) => value && !isLoadingPageTitle(value),
       ) ?? "";
       const iconSelector = [
@@ -2149,57 +2867,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       });
 
       return {
-        candidates,
+        candidates: isGuardPage ? [onePanelLogoDataUrl, ...candidates] : candidates,
         title: resolvedTitle,
         description: normalizeText(
           doc.querySelector('meta[name="description"]')?.getAttribute("content") ??
           doc.querySelector('meta[property="og:description"]')?.getAttribute("content"),
         ),
-      };
-    };
-
-    const collectAssetScriptUrlsFromHtml = (html, baseUrl) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const urls = [];
-      const selector = [
-        "script[src]",
-        'link[rel="modulepreload"][href]',
-        'link[rel="preload"][as="script"][href]',
-      ].join(",");
-
-      doc.querySelectorAll(selector).forEach((element) => {
-        const rawUrl = element.getAttribute("src") ?? element.getAttribute("href");
-        const scriptUrl = resolveShortcutAssetUrl(rawUrl, baseUrl);
-
-        if (scriptUrl && !urls.includes(scriptUrl)) {
-          urls.push(scriptUrl);
-        }
-      });
-
-      return urls;
-    };
-
-    const collectBundledLogoUrls = async (html, baseUrl, signal) => {
-      const scriptUrls = collectAssetScriptUrlsFromHtml(html, baseUrl).slice(0, 2);
-      const candidates = [];
-
-      for (const scriptUrl of scriptUrls) {
-        try {
-          const response = await fetch(getProxyUrl(scriptUrl), { signal });
-          const script = response.ok ? await response.text() : "";
-
-          if (/assets\/js\/1panel-(?:menu-)?logo-[\w-]+\.js/.test(script)) {
-            candidates.push(onePanelLogoDataUrl);
-          }
-        } catch {
-          // Ignore optional bundle probing and keep the regular favicon chain.
-        }
-      }
-
-      return {
-        logoUrl: candidates[0],
-        candidates: candidates.filter((url, index, items) => items.indexOf(url) === index),
       };
     };
 
@@ -2279,17 +2952,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           }
 
           const discovered = collectLogoUrlsFromHtml(html, shortcut.url);
-          const bundled = discovered.candidates.length
-            ? { candidates: [] }
-            : await collectBundledLogoUrls(html, shortcut.url, controller.signal);
-          if (bundled.logoUrl) {
-            discovered.logoUrl = bundled.logoUrl;
-          }
-          discovered.candidates = [
-            ...discovered.candidates,
-            ...bundled.candidates,
-          ].filter((url, index, items) => url && items.indexOf(url) === index);
-          discovered.logoUrl = discovered.logoUrl ?? discovered.candidates[0] ?? "";
+          discovered.logoUrl = unwrapProxyUrl(discovered.logoUrl ?? discovered.candidates[0] ?? "");
 
           if (!discovered.candidates.length && !discovered.title && !discovered.description) {
             mergeShortcutLogoCache(cacheKey, {
@@ -2352,7 +3015,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       fetchShortcutMetadata(shortcut).then((metadata) => {
         refreshShortcutMetadataDisplay(shortcut, image);
 
-        if (!image.isConnected) {
+        if (!image.isConnected || image.dataset.logoExhausted === "true") {
           return;
         }
 
@@ -2385,35 +3048,114 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       return nextFallback;
     };
 
+    // SPA 与部分面板站点对不存在的路径也返回 200 + text/html（前端路由兜底），
+    // <img> 拿到 HTML 时表现不统一：多数触发 error，个别被当成可解码内容而触发 load。
+    // 仅凭 naturalWidth > 0 就认为「图标找到了」会把兜底页当成功写进缓存，
+    // 之后一直复用这个假图标。这里用 fetch 复核一次 content-type。
+    // 状态码也要看：Google s2/favicons 对没有图标的站点回的是 404 + image/png
+    // （726 字节通用地球占位图），只看 content-type 会把这张地球当站点 logo 缓存下来。
+    //
+    // 复核结论分三档，"没拿到 content-type" 不等于 "不是图片"：fetch 对非 CORS 源
+    // （localhost、内网 IP、裸 IP 站点）会直接 TypeError，那是浏览器策略挡的，
+    // 不是上游回了 HTML。这类请求一律判 unknown，由调用方按 <img> 的解码结果决定。
+    const LOGO_VERIFY_IMAGE = "image";
+    const LOGO_VERIFY_HTML = "html";
+    const LOGO_VERIFY_UNKNOWN = "unknown";
+    const verifyLogoResponse = async (url) => {
+      try {
+        const response = await fetch(url, { method: "GET" });
+        const contentType = response.headers.get("content-type") ?? "";
+
+        if (/text\/html/i.test(contentType)) {
+          return LOGO_VERIFY_HTML;
+        }
+
+        return response.ok && /^image\//i.test(contentType) ? LOGO_VERIFY_IMAGE : LOGO_VERIFY_HTML;
+      } catch {
+        return LOGO_VERIFY_UNKNOWN;
+      }
+    };
+
+    // Google s2 对「没有 favicon 的域名」返回一张内置默认图：请求 sz=64 却只给 16x16，
+    // 而真实小图标（如 github.com 的 32x32）不会低于这个尺寸。把它当成功会拿一张
+    // 白色地球盖住首字母，所以按「请求尺寸远大于实际尺寸」认出占位图并继续往下试。
+    // 只对 Google s2 域名生效：站点自己的 favicon 再小也是它的真实标识。
+    const isGoogleFaviconPlaceholder = (url, naturalWidth) => {
+      let parsed;
+      try {
+        parsed = new URL(url);
+      } catch {
+        return false;
+      }
+
+      if (parsed.hostname !== "www.google.com" || !parsed.pathname.startsWith("/s2/favicons")) {
+        return false;
+      }
+
+      const requestedSize = Number(parsed.searchParams.get("sz") ?? 0);
+
+      return Number.isFinite(requestedSize) && requestedSize > 16 && naturalWidth <= 16;
+    };
+
     const bindLogoFallback = (image) => {
+      const advanceToNextFallback = () => {
+        const fallback = getNextLogoFallback(image);
+
+        if (fallback && image.src !== fallback) {
+          image.src = fallback;
+          return true;
+        }
+
+        image.hidden = true;
+        // 候选链走完仍没图：标记为已放弃，阻止 discoverShortcutLogo 的迟到回调
+        // 把这里重新显示出来并跳回链首（本地站点的 metadata 会立即 resolve，必然撞上）。
+        image.dataset.logoExhausted = "true";
+        image.closest(".shortcut-item__icon")?.querySelector(".shortcut-item__initial")?.classList.remove("hidden");
+        return false;
+      };
+
       image.addEventListener("load", () => {
-        if (image.currentSrc && image.naturalWidth > 0) {
+        if (!image.currentSrc || image.naturalWidth <= 0) {
+          return;
+        }
+
+        if (isGoogleFaviconPlaceholder(image.currentSrc, image.naturalWidth)) {
+          advanceToNextFallback();
+          return;
+        }
+
+        const verify = async () => {
+          const loadedLogoUrl = unwrapProxyUrl(image.currentSrc);
+          const verdict = await verifyLogoResponse(image.currentSrc);
+
+          // 只有拿到确凿的 text/html 才认定是 SPA 兜底页；复核被 CORS 挡掉时
+          // <img> 已经解码出像素（naturalWidth > 0 在上面拦过），按成功处理，
+          // 否则 localhost / 内网 / 裸 IP 站点的真实 favicon 会被一路误判到链尾。
+          if (verdict === LOGO_VERIFY_HTML) {
+            advanceToNextFallback();
+            return;
+          }
+
           const existing = shortcutLogoCache[image.dataset.logoCacheKey];
 
           if (
             existing?.metadataResolved &&
             existing?.logoUrl &&
-            existing.logoUrl !== image.currentSrc
+            existing.logoUrl !== loadedLogoUrl
           ) {
             return;
           }
 
           mergeShortcutLogoCache(image.dataset.logoCacheKey, {
-            logoUrl: image.currentSrc,
+            logoUrl: loadedLogoUrl,
           });
-        }
+        };
+
+        void verify();
       });
 
       image.addEventListener("error", () => {
-        const fallback = getNextLogoFallback(image);
-
-        if (fallback && image.src !== fallback) {
-          image.src = fallback;
-          return;
-        }
-
-        image.hidden = true;
-        image.closest(".shortcut-item__icon")?.querySelector(".shortcut-item__initial")?.classList.remove("hidden");
+        advanceToNextFallback();
       });
     };
 
@@ -2642,6 +3384,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
 
       const mode = newTabState.shortcutLayout;
+      const stagger = animate && previousPlacements.size === 0;
+      let globalIndex = 0;
 
       stack.querySelectorAll(".shortcut-group__items").forEach((itemsEl) => {
         if (!(itemsEl instanceof HTMLElement)) {
@@ -2664,30 +3408,36 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             return;
           }
 
+          const delay = stagger ? Math.min(globalIndex * 24, 360) : 0;
+
+          globalIndex += 1;
+          child.style.setProperty("--ntab-delay", `${delay}ms`);
+
           const previous = animate ? previousPlacements.get(key) : undefined;
 
           if (previous) {
             const dx = previous.x - target.x;
             const dy = previous.y - target.y;
-            const dr = (previous.rot ?? 0) - target.rot;
+            const dr = (previous.rot ?? 0) - (target.rot ?? 0);
 
             if (dx || dy || dr) {
               // 起点先关过渡提交，再同步恢复过渡落到终点；不走 rAF（后台/遮挡标签页会节流导致终态不落地）。
               child.style.transition = "none";
-              child.style.transform = `translate(${target.x + dx}px, ${target.y + dy}px) rotate(${target.rot + dr}deg)`;
+              child.style.transform = `translate(${previous.x}px, ${previous.y}px) rotate(${previous.rot ?? 0}deg)`;
               child.getBoundingClientRect();
               child.style.transition = "";
-              child.style.transform = mode === "grid"
-                ? ""
-                : `translate(${target.x}px, ${target.y}px) rotate(${target.rot}deg)`;
+              child.style.transform =
+                mode === "grid"
+                  ? ""
+                  : `translate(${target.x}px, ${target.y}px) rotate(${target.rot ?? 0}deg)`;
             } else if (mode === "grid") {
               child.style.transform = "";
             } else {
-              child.style.transform = `translate(${target.x}px, ${target.y}px) rotate(${target.rot}deg)`;
+              child.style.transform = `translate(${target.x}px, ${target.y}px) rotate(${target.rot ?? 0}deg)`;
             }
-          } else if (animate && previousPlacements.size > 0 && !previousPlacements.has(key)) {
+          } else if (animate && !previousPlacements.has(key)) {
             child.classList.add("ntab-pop");
-            window.setTimeout(() => child.classList.remove("ntab-pop"), 620);
+            window.setTimeout(() => child.classList.remove("ntab-pop"), delay + 620);
           }
         });
 
@@ -2784,8 +3534,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       if (shell instanceof HTMLElement) {
         // 没有分组时工具栏的添加入口无处分派，交给空态引导（见 [data-has-groups] 样式）
         shell.dataset.hasGroups = newTabState.shortcutGroups.length ? "true" : "false";
-        shell.dataset.shortcutLayout = newTabState.shortcutLayout;
       }
+
+      // 入场动画的弧形降级判据挂在 html 上（首帧前由内联脚本写入），切换布局后同步保持一致
+      document.documentElement.dataset.newTabLayout = newTabState.shortcutLayout;
 
       const previousPlacements = new Map(shortcutPlacementMemory);
 
@@ -3049,6 +3801,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
               return;
             }
 
+            // 先播退场动画再从数据里删：renderShortcutGroups 是 textContent = "" 全量重建，
+            // 同步 splice 会让瓦片瞬间消失，用户看不到自己删了什么、旁边瓦片为何突然挪位。
+            // 动画期间遮罩点击，避免连点触发两次删除。
+            if (itemShell instanceof HTMLElement && !itemShell.classList.contains("ntab-vanish")) {
+              itemShell.classList.add("ntab-vanish");
+              window.setTimeout(() => {
+                group.shortcuts.splice(currentShortcutIndex, 1);
+                persistConfigChange("已删除");
+              }, 260);
+              return;
+            }
+
             group.shortcuts.splice(currentShortcutIndex, 1);
             persistConfigChange("已删除");
           };
@@ -3201,7 +3965,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           });
 
           const item = document.createElement("a");
-          item.className = "shortcut-item group/item absolute inset-0 flex flex-col items-center justify-center gap-[0.4rem] overflow-hidden border border-transparent px-1 py-2 font-[inherit] text-inherit no-underline transition-[transform,border-color,background-color] duration-200 hover:z-20 hover:-translate-y-0.5 focus-visible:z-20 focus-visible:-translate-y-0.5 focus-visible:outline-none";
+          item.className = "shortcut-item group/item absolute inset-0 flex flex-col items-center justify-center gap-[0.4rem] overflow-hidden border border-transparent px-1 py-2 font-[inherit] text-inherit no-underline transition-[transform,background-color,box-shadow] duration-200 hover:z-20 hover:-translate-y-0.5 focus-visible:z-20 focus-visible:-translate-y-0.5 active:translate-y-0 active:scale-[0.985]";
           item.href = shortcut.url;
           if (newTabState.shortcutOpenMode === "newTab") {
             item.target = "_blank";
@@ -3693,7 +4457,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     };
 
-    // 收起/展开会改变搜索框的网格区域（独占一行 ↔ 与功能按钮同行），用 FLIP 让位移平滑
+    // 收起/展开会改变搜索框所在格的列宽（fit-content(28rem) ↔ 22rem），搜索框宽度随之
+    // 收放。列宽补间本身是连续的，这里只兜住"位置也动了"的情况（聚焦撑满时搜索框换行），
+    // 用 FLIP 把位移补成动画。窄屏没有网格化，两条都为 0，直接跳过。
     const applyHeaderStateWithSearchFlip = () => {
       const search = document.querySelector("[data-new-tab-search]");
       const beforeRect = search instanceof HTMLElement ? search.getBoundingClientRect() : null;
@@ -3928,6 +4694,103 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       form.dataset.searchBound = "true";
     };
 
+    // 图标说明抽屉的开合：配置抽屉也要能关它（两个抽屉同时只开一个），
+    // 所以 open/close 提到这里共享，绑定只做一次。
+    const getNotesPanel = () => {
+      const panel = document.querySelector("[data-notes-panel]");
+
+      return panel instanceof HTMLElement ? panel : null;
+    };
+
+    // 出场动画结束后补落 hidden：opacity 过渡完只是看不见，hidden 才真正把它
+    // 移出可访问性树、也不再占布局。transitionend 只认 opacity（display 那一项
+    // 由 allow-discrete 静默收尾，不会派发事件）。
+    const hideDrawerAfterExit = (panel) => {
+      if (panel.hidden) {
+        return;
+      }
+
+      const finish = () => {
+        if (!panel.dataset.open) {
+          panel.hidden = true;
+          panel.classList.add("hidden");
+        }
+
+        panel.removeEventListener("transitionend", finish);
+      };
+
+      panel.addEventListener("transitionend", finish);
+    };
+
+    const openNotesPanel = () => {
+      const panel = getNotesPanel();
+
+      if (!panel) {
+        return;
+      }
+
+      closeSettingsPanel();
+      // 先摘 hidden 让元素回到过渡起点，下一帧再置 data-open 触发滑入
+      panel.hidden = false;
+      panel.classList.remove("hidden");
+      document.querySelector("[data-notes-open]")?.setAttribute("aria-expanded", "true");
+      window.requestAnimationFrame(() => {
+        panel.dataset.open = "true";
+      });
+    };
+
+    const closeNotesPanel = () => {
+      const panel = getNotesPanel();
+
+      if (!panel) {
+        return;
+      }
+
+      delete panel.dataset.open;
+      document.querySelector("[data-notes-open]")?.setAttribute("aria-expanded", "false");
+      hideDrawerAfterExit(panel);
+    };
+
+    const bindNotes = () => {
+      const panel = getNotesPanel();
+      const openButton = document.querySelector("[data-notes-open]");
+      const command = panel?.querySelector("[data-notes-command]");
+
+      if (!panel || panel.dataset.notesBound === "true") {
+        return;
+      }
+
+      // 指令写成单行、可整段复制：键名跟着当前配置走，别让人手打
+      if (command instanceof HTMLElement) {
+        command.textContent = `localStorage.removeItem(${JSON.stringify(logoCacheStorageKey)})`;
+      }
+
+      openButton?.addEventListener("click", openNotesPanel);
+      panel.querySelectorAll("[data-notes-close]").forEach((button) => {
+        button.addEventListener("click", closeNotesPanel);
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && panel.dataset.open === "true") {
+          closeNotesPanel();
+        }
+      });
+
+      panel.dataset.notesBound = "true";
+    };
+
+    // 配置抽屉的开合同理提到这里：图标说明抽屉开时要能关它
+    const closeSettingsPanel = () => {
+      const settings = document.querySelector("[data-config-drawer]");
+
+      if (!(settings instanceof HTMLElement)) {
+        return;
+      }
+
+      delete settings.dataset.open;
+      hideDrawerAfterExit(settings);
+    };
+
     const bindSettings = () => {
       const settings = document.querySelector("[data-config-drawer]");
       const openButton = document.querySelector("[data-config-open]");
@@ -3951,47 +4814,24 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const exportButton = settings.querySelector("[data-config-export]");
       const clearBackgroundButton = settings.querySelector("[data-config-clear-background]");
       const resetButton = settings.querySelector("[data-config-reset]");
-      const settingsBackdrop = settings.querySelector(".new-tab-config__backdrop");
-      const settingsSheet = settings.querySelector(".new-tab-config__sheet");
 
       const openSettings = () => {
+        closeNotesPanel();
         settings.hidden = false;
         settings.classList.remove("hidden");
         window.requestAnimationFrame(() => {
           settings.dataset.open = "true";
-          settings.classList.remove("pointer-events-none", "opacity-0");
-          settings.classList.add("pointer-events-auto", "opacity-100");
-          settingsBackdrop?.classList.remove("opacity-0");
-          settingsBackdrop?.classList.add("opacity-100");
-          settingsSheet?.classList.remove("translate-x-full");
-          settingsSheet?.classList.add("translate-x-0");
         });
-      };
-
-      const closeSettings = () => {
-        delete settings.dataset.open;
-        settings.classList.remove("pointer-events-auto", "opacity-100");
-        settings.classList.add("pointer-events-none", "opacity-0");
-        settingsBackdrop?.classList.remove("opacity-100");
-        settingsBackdrop?.classList.add("opacity-0");
-        settingsSheet?.classList.remove("translate-x-0");
-        settingsSheet?.classList.add("translate-x-full");
-        window.setTimeout(() => {
-          if (!settings.dataset.open) {
-            settings.hidden = true;
-            settings.classList.add("hidden");
-          }
-        }, 180);
       };
 
       openButton?.addEventListener("click", openSettings);
       settings.querySelectorAll("[data-config-close]").forEach((button) => {
-        button.addEventListener("click", closeSettings);
+        button.addEventListener("click", closeSettingsPanel);
       });
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && settings.dataset.open === "true") {
-          closeSettings();
+          closeSettingsPanel();
         }
       });
 
@@ -4176,6 +5016,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       renderAll();
       bindSearch();
       bindSettings();
+      bindNotes();
       bindShortcutAdd();
       bindLayoutSwitcher();
       bindHeaderCollapse();
