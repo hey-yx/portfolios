@@ -5,6 +5,6 @@ updatedDate: "2026.02.09"
 category: "content"
 order: 1
 heroImage: "/projects/short-video-extractor/cover.webp"
-externalUrl: "https://github.com/ethanz-code/short-video-extractor"
+externalUrl: "https://github.com/hey-yx/short-video-extractor"
 detailPage: false
 ---
