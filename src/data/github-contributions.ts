@@ -128,7 +128,7 @@ const parseWeekData = (html: string) => {
 };
 
 export const getGithubContributionCalendar = async (
-  username = "ethanz-code",
+  username = "hey-yx",
 ): Promise<GithubContributionCalendar> => {
   const sourceUrl = buildContributionSourceUrl(username);
   const profileUrl = `https://github.com/${username}`;
