@@ -1,3 +1,5 @@
+import { withBase } from "../lib/base";
+
 export interface NavItem {
   id: string;
   label: string;
@@ -9,22 +11,22 @@ export const primaryNavItems: NavItem[] = [
   {
     id: "home",
     label: "首页",
-    href: "/",
+    href: withBase("/"),
   },
   {
     id: "projects",
     label: "项目",
-    href: "/projects",
+    href: withBase("/projects"),
   },
   {
     id: "articles",
     label: "文章",
-    href: "/articles",
+    href: withBase("/articles"),
   },
   {
     id: "moments",
     label: "图集",
-    href: "/moments",
+    href: withBase("/moments"),
   },
 ];
 
@@ -32,6 +34,6 @@ export const actionNavItems: NavItem[] = [
   {
     id: "contact",
     label: "联系我",
-    href: "/contact",
+    href: withBase("/contact"),
   },
 ];

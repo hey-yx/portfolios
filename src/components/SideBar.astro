@@ -3,6 +3,7 @@ import SideBarFooter from "./SideBarFooter.astro";
 import { Image } from "astro:assets";
 import SideBarMenu from "./SideBarMenu.astro";
 import profileImage from "../assets/profile.webp";
+import { withBase } from "../lib/base";
 const { sideBarActiveItemID } = Astro.props;
 ---
 
@@ -11,7 +12,7 @@ const { sideBarActiveItemID } = Astro.props;
   <aside class="sidebar-shell relative flex h-auto min-h-full w-[18rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden bg-base-200 px-4 pb-4 pt-4 text-base-content lg:sticky lg:top-0 lg:h-screen lg:w-[19rem] lg:max-w-none lg:border-r lg:border-base-300/60">
     <div class="relative z-10 flex h-full min-h-full flex-1 flex-col">
       <div class="mx-auto mb-6 mt-4 w-fit sm:mb-8 sm:mt-6">
-        <a href="/">
+        <a href={withBase("/")}>
           <div class="avatar block m-auto">
             <div class="w-28 sm:w-[8.5rem]">
               <Image class="mask mask-circle" format="webp" width={300} height={300} src={profileImage} alt="张永鑫头像" />

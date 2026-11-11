@@ -11,6 +11,7 @@ import rehypeMermaidBlocks from "./src/lib/rehype-mermaid-blocks.mjs";
 // https://astro.build/config
 export default defineConfig({
   site: "https://itcox.cn",
+  base: "/portfolio",
   security: {
     checkOrigin: false,
   },

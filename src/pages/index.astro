@@ -4,6 +4,7 @@ import HorizontalCard from "../components/HorizontalCard.astro";
 import ContributionChart from "../components/ContributionChart.astro";
 import TechStackMarquee from "../components/TechStackMarquee.astro";
 import { getContentEntryPath } from "../lib/content-routes";
+import { withBase } from "../lib/base";
 import { type CollectionEntry, getCollection } from "astro:content";
 
 const workStyle = [
@@ -58,11 +59,11 @@ const getProjectUrl = (project: ProjectEntry): string => {
       </p>
     </div>
     <div class="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4 lg:mt-12">
-      <a class="btn w-full sm:w-auto sm:min-w-[12rem]" href="/contact">联系我</a>
+      <a class="btn w-full sm:w-auto sm:min-w-[12rem]" href={withBase("/contact")}>联系我</a>
       <a href="https://cdn.itcox.cn/baseInfo/resume.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-outline w-full sm:w-auto sm:min-w-[12rem]">查看简历</a>
     </div>
     <div class="mt-4 text-sm leading-6 text-base-content/45">
-      <a href="/new-tab" class="link-hover">New Tab</a>
+      <a href={withBase("/new-tab")} class="link-hover">New Tab</a>
     </div>
   </div>
 

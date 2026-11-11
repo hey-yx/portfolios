@@ -1,3 +1,5 @@
+import { withBase } from "../lib/base";
+
 export interface NewTabShortcut {
   title: string;
   url: string;
@@ -103,7 +105,7 @@ export const newTabConfig: NewTabConfig = {
   storageKey: "ethanz-new-tab-config",
   homeLink: {
     label: "资料卡首页",
-    href: "/",
+    href: withBase("/"),
   },
   greetings: [
     { label: "早上好", from: 5, to: 11 },

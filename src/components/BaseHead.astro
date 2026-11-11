@@ -3,6 +3,7 @@
 import "katex/dist/katex.min.css";
 import '../styles/global.css';
 import { SITE_AUTHOR, SITE_TITLE } from '../config';
+import { withBase } from "../lib/base";
 
 export interface Props {
 	title: string;
@@ -13,8 +14,9 @@ export interface Props {
 
 const { title, description, image, ogType = 'website' } = Astro.props;
 const pageTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
-const socialImage = image ?? "/social_img.webp";
+const canonicalPath = Astro.url.pathname.replace(/^\/portfolio(?=\/|$)/, "") || "/";
+const canonicalUrl = new URL(withBase(canonicalPath), Astro.site ?? Astro.url).toString();
+const socialImage = image ?? withBase("/social_img.webp");
 const socialImageUrl = typeof socialImage === "string"
   ? new URL(socialImage, Astro.url).toString()
   : new URL(socialImage.src, Astro.url).toString();
@@ -23,9 +25,9 @@ const socialImageUrl = typeof socialImage === "string"
 <!-- Global metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href={withBase("/favicon-32x32.png")} />
+<link rel="icon" type="image/png" sizes="192x192" href={withBase("/favicon-192x192.png")} />
+<link rel="apple-touch-icon" sizes="180x180" href={withBase("/apple-touch-icon.png")} />
 <meta name="generator" content={Astro.generator} />
 
 <!-- Primary meta tags -->

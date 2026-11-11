@@ -1,6 +1,7 @@
 ---
 const { title, showDrawerToggle = true } = Astro.props;
 import ThemeToggle from "./ThemeToggle.astro";
+import { withBase } from "../lib/base";
 ---
 
 <div
@@ -19,7 +20,7 @@ import ThemeToggle from "./ThemeToggle.astro";
       }
     </div>
     <div class="navbar-center min-w-0 px-2">
-      <a class="btn btn-ghost max-w-full truncate px-2 text-base font-medium normal-case sm:text-lg" href="/">{title}</a>
+      <a class="btn btn-ghost max-w-full truncate px-2 text-base font-medium normal-case sm:text-lg" href={withBase("/")}>{title}</a>
     </div>
     <div class="navbar-end">
       <ThemeToggle mobile={true} />
