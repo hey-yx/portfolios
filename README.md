@@ -1,6 +1,6 @@
 # portfolios
 
-张永鑫 Ethan Zhang 的个人作品集。展示项目交付、技术文章、工作片段和联系方式。
+张永鑫的个人作品集。展示项目交付、技术文章、工作片段和联系方式。
 
 技术栈：Astro、Tailwind CSS、DaisyUI、Bun。
 

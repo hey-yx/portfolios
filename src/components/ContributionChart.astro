@@ -266,6 +266,58 @@ const placeholderWeeks = Array.from({ length: 53 }, () => Array.from({ length: 7
       }
     };
 
+    // Cloudflare 代理在国内网络偶发超时：先渲染本地缓存，再带一次重试刷新
+    const CONTRIBUTION_CACHE_KEY = "contribution-cache:v1";
+    const CONTRIBUTION_CACHE_TTL = 24 * 60 * 60 * 1000;
+
+    const fetchContributionHtml = async (sourceUrl) => {
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), 12000);
+
+      try {
+        const response = await fetch(sourceUrl, { signal: controller.signal });
+
+        if (!response.ok) {
+          throw new Error(`GitHub returned ${response.status}`);
+        }
+
+        return await response.text();
+      } finally {
+        window.clearTimeout(timer);
+      }
+    };
+
+    const readContributionCache = () => {
+      try {
+        const raw = window.localStorage.getItem(CONTRIBUTION_CACHE_KEY);
+
+        if (!raw) {
+          return null;
+        }
+
+        const parsed = JSON.parse(raw);
+
+        if (!parsed || Date.now() - parsed.savedAt > CONTRIBUTION_CACHE_TTL) {
+          return null;
+        }
+
+        return parsed.calendar ?? null;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const writeContributionCache = (calendar) => {
+      try {
+        window.localStorage.setItem(
+          CONTRIBUTION_CACHE_KEY,
+          JSON.stringify({ savedAt: Date.now(), calendar }),
+        );
+      } catch (error) {
+        // 存储不可用时不影响本次渲染
+      }
+    };
+
     const loadContributionCalendar = async (chart) => {
       if (!(chart instanceof HTMLElement) || chart.dataset.contributionLoaded === "true") {
         return;
@@ -280,19 +332,36 @@ const placeholderWeeks = Array.from({ length: 53 }, () => Array.from({ length: 7
 
       chart.dataset.contributionLoaded = "true";
 
-      try {
-        const response = await fetch(sourceUrl);
+      const cachedCalendar = readContributionCache();
 
-        if (!response.ok) {
-          throw new Error(`GitHub returned ${response.status}`);
+      if (cachedCalendar) {
+        renderContributionCalendar(chart, cachedCalendar);
+      }
+
+      try {
+        let html = "";
+
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          try {
+            html = await fetchContributionHtml(sourceUrl);
+            break;
+          } catch (error) {
+            if (attempt === 1) {
+              throw error;
+            }
+            await new Promise((resolve) => window.setTimeout(resolve, 800));
+          }
         }
 
-        const calendar = parseContributionCalendar(await response.text());
+        const calendar = parseContributionCalendar(html);
 
         renderContributionCalendar(chart, calendar);
+        writeContributionCache(calendar);
       } catch (error) {
         console.warn("Unable to load GitHub contribution calendar.", error);
-        renderContributionError(chart);
+        if (!cachedCalendar) {
+          renderContributionError(chart);
+        }
       }
     };
 
