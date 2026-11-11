@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/protect-moments-assets.mjs",
     "preview": "astro preview",
     "check": "astro check && node scripts/check-new-tab-vars.mjs",
     "astro": "astro"
