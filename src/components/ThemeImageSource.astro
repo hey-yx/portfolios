@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import { withBase } from "../lib/base";
 
 interface Props {
   src: string | ImageMetadata;
@@ -28,7 +29,7 @@ const {
 
 {
   typeof src === "string" ? (
-    <img src={src} alt={alt} class={className} loading={loading} />
+    <img src={withBase(src)} alt={alt} class={className} loading={loading} />
   ) : (
     <Image
       src={src}

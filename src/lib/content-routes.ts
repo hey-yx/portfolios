@@ -1,3 +1,5 @@
+import { withBase } from "./base";
+
 interface ContentEntryRoute {
   id: string;
 }
@@ -11,4 +13,4 @@ export const getContentEntryRouteParams = (entry: ContentEntryRoute) => ({
 });
 
 export const getContentEntryPath = (base: ContentRouteBase, entry: ContentEntryRoute) =>
-  `/${base}/${getContentEntrySlug(entry)}`;
+  withBase(`/${base}/${getContentEntrySlug(entry)}`);

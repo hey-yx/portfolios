@@ -26,6 +26,9 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
 <!doctype html>
 <html lang="zh-CN">
   <head>
+    <script is:inline define:vars={{ siteBase: import.meta.env.BASE_URL }}>
+      window.__SITE_BASE__ = siteBase;
+    </script>
     <style is:inline>
       html:not([data-theme]) { visibility: hidden; }
     </style>
@@ -559,7 +562,13 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
         const storagePrefix = "article-scroll:";
         const restoreDelays = [0, 80, 250, 700];
 
-        const normalizePath = (pathname) => pathname.replace(/\/+$/, "") || "/";
+        const siteBase = (window.__SITE_BASE__ || "/").replace(/\/+$/, "");
+        const normalizePath = (pathname) => {
+          const stripped = siteBase && (pathname === siteBase || pathname.startsWith(`${siteBase}/`))
+            ? pathname.slice(siteBase.length)
+            : pathname;
+          return stripped.replace(/\/+$/, "") || "/";
+        };
         const isArticlePath = (pathname) => {
           const path = normalizePath(pathname);
           return path === "/articles" || path.startsWith("/articles/");
@@ -690,7 +699,13 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
     <script is:inline>
       (() => {
         const visibleScrollTop = 1400;
-        const normalizePath = (pathname) => pathname.replace(/\/+$/, "") || "/";
+        const siteBase = (window.__SITE_BASE__ || "/").replace(/\/+$/, "");
+        const normalizePath = (pathname) => {
+          const stripped = siteBase && (pathname === siteBase || pathname.startsWith(`${siteBase}/`))
+            ? pathname.slice(siteBase.length)
+            : pathname;
+          return stripped.replace(/\/+$/, "") || "/";
+        };
 
         const supportsBackToTop = () => {
           const path = normalizePath(window.location.pathname);
