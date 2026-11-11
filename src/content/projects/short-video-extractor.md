@@ -1,10 +1,13 @@
 ---
-title: "Short Video Extractor"
-description: "一个开源短视频解析去水印服务，主要解决小红书、抖音资源提取问题，后来做到 90+ Stars，也补上了缓存、浏览器复用和 Docker 部署。"
-updatedDate: "2026.02.09"
+title: "ALLParse"
+description: "短视频解析 API：给一条分享链接，返回无水印视频和图集直链，支持抖音、小红书、快手、B 站等 9 个平台。"
+updatedDate: "2026.11.11"
 category: "content"
 order: 1
 heroImage: "/projects/short-video-extractor/cover.webp"
-externalUrl: "https://github.com/hey-yx/short-video-extractor"
+externalUrl: "https://github.com/hey-yx/allparse"
 detailPage: false
+tags:
+  - "短视频解析"
+  - "API"
 ---
