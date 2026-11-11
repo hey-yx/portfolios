@@ -63,9 +63,9 @@ const pageTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
 效果：
 
 ```text
-首页：张永鑫 Ethan Zhang
-文章页：文章 | 张永鑫 Ethan Zhang
-文章详情：从这里开始记录 | 张永鑫 Ethan Zhang
+首页：张永鑫
+文章页：文章 | 张永鑫
+文章详情：从这里开始记录 | 张永鑫
 ```
 
 这是一种常见做法：详情页标题在前，站点名在后。
@@ -145,7 +145,7 @@ https://your-domain.com/social_img.webp
 ```html
 <link rel="canonical" href="..." />
 <meta name="author" content="张永鑫" />
-<meta name="application-name" content="张永鑫 Ethan Zhang" />
+<meta name="application-name" content="张永鑫" />
 <meta name="robots" content="index,follow" />
 ```
 
