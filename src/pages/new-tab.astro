@@ -1377,6 +1377,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       return normalized.length ? normalized : cloneValue(fallback);
     };
 
+    // 站点可能部署在子路径下，localStorage 里存过的旧根路径要挪到当前 base
+    const siteBase = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+    const resolveBaseHref = (href) => {
+      if (!href || !href.startsWith("/") || href.startsWith("//") || !siteBase) {
+        return href;
+      }
+      if (href === siteBase || href.startsWith(`${siteBase}/`)) {
+        return href;
+      }
+      return `${siteBase}${href}`;
+    };
+
     const normalizeHomeLink = (homeLink, fallback) => {
       if (!isPlainObject(homeLink)) {
         return cloneValue(fallback);
@@ -1384,7 +1396,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       return {
         label: normalizeText(homeLink.label, fallback.label),
-        href: normalizeText(homeLink.href, fallback.href),
+        href: resolveBaseHref(normalizeText(homeLink.href, fallback.href)),
       };
     };
 
