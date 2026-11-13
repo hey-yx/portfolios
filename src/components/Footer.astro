@@ -1,4 +1,6 @@
 ---
+import { withBase } from "../lib/base";
+
 const now = new Date();
 const deployedAtLabel = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
@@ -21,9 +23,10 @@ const deployedAtISOString = now.toISOString();
       rel="noopener noreferrer"
       class="link-hover link"
     >
-      鲁ICP备2024099705号
+      鲁ICP备2024099705号<span data-icp-suffix>-1</span>
     </a>
   </div>
+  <script is:inline src={withBase("/icp-suffix.js")} defer></script>
   <div
     class="pointer-events-none fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] right-3 z-30 flex items-center gap-1 whitespace-nowrap text-[10px] leading-none text-base-content/30 sm:right-4 lg:bottom-3 lg:right-4"
     aria-label="Site stats"

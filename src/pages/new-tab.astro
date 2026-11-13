@@ -1377,16 +1377,30 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       return normalized.length ? normalized : cloneValue(fallback);
     };
 
-    // 站点可能部署在子路径下，localStorage 里存过的旧根路径要挪到当前 base
+    // 同一份页面会挂在 itcox.cn/portfolio、hey-yx.com 根路径或本地预览下。
+    // 首页链接按当前地址推算站点根，不写死域名和部署路径。
     const siteBase = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+    const currentPath = window.location.pathname.replace(/\/+$/, "");
+    const siteRoot = currentPath.endsWith("/new-tab")
+      ? `${currentPath.slice(0, -"/new-tab".length)}/`.replace(/^\/\//, "/")
+      : "/";
+    // localStorage 里存过的旧根路径先退回站点内的相对路径，再挂到当前站点根
     const resolveBaseHref = (href) => {
-      if (!href || !href.startsWith("/") || href.startsWith("//") || !siteBase) {
+      if (!href || !href.startsWith("/") || href.startsWith("//")) {
         return href;
       }
-      if (href === siteBase || href.startsWith(`${siteBase}/`)) {
-        return href;
+
+      let path = href;
+
+      if (siteBase && (path === siteBase || path.startsWith(`${siteBase}/`))) {
+        path = path.slice(siteBase.length) || "/";
       }
-      return `${siteBase}${href}`;
+
+      if (path === "/") {
+        return siteRoot;
+      }
+
+      return siteRoot === "/" ? path : `${siteRoot.replace(/\/$/, "")}${path}`;
     };
 
     const normalizeHomeLink = (homeLink, fallback) => {
@@ -3522,7 +3536,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         return;
       }
 
-      homeLink.href = newTabState.homeLink.href;
+      homeLink.href = resolveBaseHref(newTabState.homeLink.href);
       const homeLinkLabel = homeLink.querySelector("[data-home-link-label]");
 
       if (homeLinkLabel instanceof HTMLElement) {
