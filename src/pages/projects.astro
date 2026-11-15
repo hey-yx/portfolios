@@ -41,6 +41,11 @@ const getProjectUrl = (project: ProjectEntry): string => {
 
   <div class="w-full min-w-0 max-w-3xl">
     {
+      featuredProjects.length === 0 && contentProjects.length === 0 && (
+        <p class="border-b border-base-300 py-6 text-ink-2">还没有项目记录。</p>
+      )
+    }
+    {
       featuredProjects.map((project, index) => (
         <>
           <HorizontalCard

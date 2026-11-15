@@ -36,55 +36,39 @@ const techStack: TechItem[] = Object.entries(iconMap)
     return { name, icon: { path: icon.path, fill } };
   })
   .filter((item): item is TechItem => item !== null);
-
-const loopItems = [...techStack, ...techStack];
 ---
 
 <section class="mb-14">
-  <div class="mb-4 text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">技术栈</div>
-  <div class="tech-marquee-mask">
-    <div class="tech-marquee" data-tech-marquee>
-      <div class="tech-marquee-track" data-tech-marquee-track>
-        {loopItems.map((tech) => (
-          <span class="tech-marquee-item">
-            <svg
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill={tech.icon.fill}
-              aria-hidden="true"
-            >
-              <path d={tech.icon.path} />
-            </svg>
-            {tech.name}
-          </span>
-        ))}
-      </div>
+  <h2 class="type-heading mb-4">技术栈</h2>
+  <div class="tech-marquee">
+    <div class="tech-marquee-track">
+      {techStack.map((tech) => (
+        <span class="tech-marquee-item">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill={tech.icon.fill}
+            aria-hidden="true"
+          >
+            <path d={tech.icon.path} />
+          </svg>
+          {tech.name}
+        </span>
+      ))}
     </div>
   </div>
 </section>
 
 <style>
-  .tech-marquee-mask {
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-  }
-
   .tech-marquee {
-    overflow: hidden;
     padding: 0.375rem 0;
   }
 
   .tech-marquee-track {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
-    width: max-content;
-    will-change: transform;
-    animation: tech-marquee-scroll 40s linear infinite;
-  }
-
-  .tech-marquee-track[data-paused="true"] {
-    animation-play-state: paused;
   }
 
   .tech-marquee-item {
@@ -94,87 +78,18 @@ const loopItems = [...techStack, ...techStack];
     padding: 0.375rem 0.875rem;
     border: 1px solid color-mix(in srgb, var(--bc, currentColor) 15%, transparent);
     border-radius: 9999px;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     line-height: 1.25rem;
     white-space: nowrap;
-    opacity: 0.82;
-    transition: opacity 0.2s ease, border-color 0.2s ease;
+    transition: border-color 0.2s ease;
     user-select: none;
   }
 
   .tech-marquee-item:hover {
-    opacity: 1;
     border-color: color-mix(in srgb, var(--bc, currentColor) 35%, transparent);
   }
 
   .tech-marquee-item svg {
     flex-shrink: 0;
   }
-
-  @keyframes tech-marquee-scroll {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-50%);
-    }
-  }
 </style>
-
-<script is:inline>
-  (() => {
-    const state = {
-      cleanupFns: [],
-    };
-
-    const clearTimers = () => {
-      state.cleanupFns.forEach((fn) => fn());
-      state.cleanupFns = [];
-    };
-
-    const initMarquee = () => {
-      clearTimers();
-
-      const container = document.querySelector("[data-tech-marquee]");
-      const track = container?.querySelector("[data-tech-marquee-track]");
-
-      if (!(container instanceof HTMLElement) || !(track instanceof HTMLElement)) {
-        return;
-      }
-
-      track.removeAttribute("data-paused");
-
-      const handleEnter = () => {
-        track.dataset.paused = "true";
-      };
-
-      const handleLeave = () => {
-        track.dataset.paused = "false";
-      };
-
-      container.addEventListener("mouseenter", handleEnter);
-      container.addEventListener("mouseleave", handleLeave);
-
-      state.cleanupFns.push(
-        () => container.removeEventListener("mouseenter", handleEnter),
-        () => container.removeEventListener("mouseleave", handleLeave),
-      );
-    };
-
-    const handleBeforeUnload = () => clearTimers();
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        clearTimers();
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("astro:before-swap", clearTimers);
-    document.addEventListener("astro:after-swap", () => {
-      requestAnimationFrame(initMarquee);
-    });
-
-    initMarquee();
-  })();
-</script>

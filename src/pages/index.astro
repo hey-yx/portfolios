@@ -7,18 +7,6 @@ import { getContentEntryPath } from "../lib/content-routes";
 import { withBase } from "../lib/base";
 import { type CollectionEntry, getCollection } from "astro:content";
 
-const workStyle = [
-  "先确认用户、场景和成本，再拆最短闭环，把产品推到可验证状态。",
-  "上线前补齐日志、监控、备份和恢复方案，确保问题能发现、能回退。",
-];
-
-const deliveryPoints = [
-  "能够独立完成从需求梳理、开发实现到部署上线。",
-  "有多人协同开发经验，能够很好地沟通和配合，推动项目进展。",
-  "会用主流 AI 提高开发效率，通过 AI 工作流进行 UI 设计还原，同时确保实际效果和可持续维护。必要时也能够帮助团队搭建 Token 中转服务。",
-  "我并不会造轮子。比如说要我做克隆数字人，模型的开发训练我没有相关技能，我最多只能帮忙对接现有的以及开源的模型来用。",
-];
-
 type ProjectEntry = CollectionEntry<"projects">;
 
 const projects = await getCollection("projects");
@@ -47,62 +35,21 @@ const getProjectUrl = (project: ProjectEntry): string => {
   sideBarActiveItemID="home"
 >
   <div class="mt-2 pb-12 sm:mt-4 sm:pb-14 lg:mt-6 lg:pb-16">
-    <div class="py-1 text-lg sm:text-xl">你好 👋</div>
-    <div class="text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl">我是 张永鑫</div>
-    <div class="py-3 text-xl font-bold leading-tight sm:text-3xl lg:text-4xl">AI 开发工程师</div>
-    <div class="max-w-4xl py-2">
-      <p class="text-base leading-7 sm:text-lg sm:leading-relaxed lg:text-xl lg:leading-[1.6]">
-        在这里写一些自己的项目经历，技术积累以及所思所想。希望能让你对我有个更全面的了解。
-      </p>
-      <p class="mt-3 text-base leading-7 sm:text-lg sm:leading-relaxed lg:text-xl lg:leading-[1.6]">
-        我做过知识库教程分享、中转站、当过客服，目前在创业探究市场缺口。自学英语，能直接阅读英文开发文档。
-      </p>
-    </div>
+    <p class="py-1 text-lg sm:text-xl">你好 👋</p>
+    <h1 class="type-display">我是 张永鑫</h1>
+    <p class="type-lead py-3 text-ink-2">AI 开发工程师</p>
     <div class="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4 lg:mt-12">
-      <a class="btn w-full sm:w-auto sm:min-w-[12rem]" href={withBase("/contact")}>联系我</a>
-      <a href="https://cdn.itcox.cn/baseInfo/resume.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-outline w-full sm:w-auto sm:min-w-[12rem]">查看简历</a>
-    </div>
-    <div class="mt-4 text-sm leading-6 text-base-content/45">
-      <a href={withBase("/new-tab")} class="link-hover">New Tab</a>
+      <a class="btn min-h-11 w-full border-base-content bg-base-content text-base-100 hover:bg-base-content/90 hover:text-base-100 sm:w-auto sm:min-w-[12rem]" href={withBase("/contact")}>联系我</a>
+      <a href="https://cdn.itcox.cn/baseInfo/resume.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-outline min-h-11 w-full sm:w-auto sm:min-w-[12rem]">查看简历</a>
     </div>
   </div>
-
-  <section class="mb-14" data-reveal>
-    <div class="max-w-4xl">
-      <div class="mb-4 text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">工作方式</div>
-      <div class="mt-5 grid max-w-4xl gap-3 leading-7 opacity-80">
-        {workStyle.map((item) => <p>{item}</p>)}
-      </div>
-    </div>
-  </section>
-
-  <section id="delivery" class="mb-16 scroll-mt-8 lg:scroll-mt-12" data-reveal>
-    <div class="max-w-4xl">
-      <div class="mb-4 text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">交付能力</div>
-      <div class="mt-5 grid max-w-4xl gap-4 leading-7" data-reveal-group="delivery">
-        {
-          deliveryPoints.map((item, index) => (
-            <div class="flex gap-3" data-reveal>
-              <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center bg-base-content text-xs font-bold leading-none text-base-100">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <p class="opacity-80">{item}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
 
   <TechStackMarquee />
 
   <ContributionChart />
 
   <section class="mb-16" data-reveal>
-    <div class="mb-4 text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">近期项目 {"</>"}</div>
-    <p class="mb-6 max-w-3xl leading-7 opacity-80">
-      最近在维护、更新和继续投入的项目在这里噢。
-    </p>
+    <h2 class="type-heading mb-4">最近在做的 <span aria-hidden="true">{"</>"}</span></h2>
     <div class="w-full min-w-0 max-w-3xl" data-reveal-group="home-projects">
       {
         homeProjects.map((project, index) => (

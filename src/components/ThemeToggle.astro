@@ -8,15 +8,17 @@ const options = [
 ];
 ---
 
-<div class="dropdown dropdown-end">
+<div class="theme-switcher relative" data-theme-switcher>
   <button
     type="button"
-    tabindex="0"
     class:list={[
       mobile ? "btn btn-square btn-ghost" : "btn btn-ghost gap-2 normal-case",
       triggerClass,
     ]}
     aria-label="切换主题"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    data-theme-trigger
     data-new-tab-color-target={colorTarget || undefined}
   >
     <svg
@@ -44,7 +46,7 @@ const options = [
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
-            class="h-4 w-4"
+            class="theme-switcher__chevron h-4 w-4"
             aria-hidden="true"
           >
             <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -54,22 +56,23 @@ const options = [
     }
   </button>
 
-  <ul
-    tabindex="0"
-    class="menu dropdown-content z-[60] mt-2 w-44 rounded-box border border-base-300 bg-base-100 p-2 shadow"
-  >
+  <ul class="theme-switcher__menu" role="menu" aria-label="主题" data-theme-menu inert>
     {
       options.map((option) => (
-        <li>
+        <li role="none">
           <button
             type="button"
-            class="theme-option btn btn-ghost btn-sm justify-between normal-case font-normal"
+            role="menuitemradio"
+            tabindex="-1"
+            aria-checked={option.value === "system" ? "true" : "false"}
+            class="theme-switcher__item theme-option"
             data-theme-option={option.value}
           >
             <span>{option.label}</span>
             <span
               class="badge badge-neutral hidden text-[10px] uppercase tracking-wide"
               data-theme-selected={option.value}
+              aria-hidden="true"
             >
               当前
             </span>
@@ -79,3 +82,91 @@ const options = [
     }
   </ul>
 </div>
+
+<style>
+  .theme-switcher__menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 60;
+    display: grid;
+    gap: 0.25rem;
+    width: 11rem;
+    margin: 0;
+    padding: 0.375rem;
+    list-style: none;
+    border: 1px solid var(--line-1);
+    border-radius: var(--radius-panel);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-pop);
+    opacity: 0;
+    transform: translateY(-0.375rem) scale(0.97);
+    transform-origin: top right;
+    pointer-events: none;
+    transition:
+      opacity var(--motion-fast) var(--ease-exit),
+      transform var(--motion-fast) var(--ease-exit);
+  }
+
+  .theme-switcher[data-open] .theme-switcher__menu {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition-duration: var(--motion-base);
+    transition-timing-function: var(--ease-enter);
+  }
+
+  /* 触发器靠近左边缘时（窄屏工具栏），右对齐会把菜单推出视口左边 */
+  .theme-switcher__menu[data-align="start"] {
+    left: 0;
+    right: auto;
+    transform-origin: top left;
+  }
+
+  .theme-switcher__chevron {
+    transition: transform 240ms cubic-bezier(0, 0, 0.15, 1);
+  }
+
+  .theme-switcher[data-open] .theme-switcher__chevron {
+    transform: rotate(180deg);
+  }
+
+  .theme-switcher__item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 0;
+    border-radius: 0.375rem;
+    background: transparent;
+    padding: 0.5rem 0.75rem;
+    color: oklch(var(--bc) / 0.9);
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .theme-switcher__item:hover {
+    background: oklch(var(--bc) / 0.06);
+  }
+
+  .theme-switcher__item:focus-visible {
+    outline: 2px solid oklch(var(--bc));
+    outline-offset: -2px;
+  }
+
+  .theme-switcher__item[aria-checked="true"] {
+    background: oklch(var(--bc) / 0.08);
+    font-weight: 600;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-switcher__menu,
+    .theme-switcher__chevron {
+      transition-duration: 0.01ms;
+    }
+  }
+</style>

@@ -25,11 +25,12 @@ const deployedAtISOString = now.toISOString();
     >
       鲁ICP备2024099705号<span data-icp-suffix>-1</span>
     </a>
+    <a href={withBase("/new-tab")} class="link-hover link" aria-label="打开新标签页">New Tab</a>
   </div>
   <script is:inline src={withBase("/icp-suffix.js")} defer></script>
   <div
-    class="pointer-events-none fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] right-3 z-30 flex items-center gap-1 whitespace-nowrap text-[10px] leading-none text-base-content/30 sm:right-4 lg:bottom-3 lg:right-4"
-    aria-label="Site stats"
+    class="pointer-events-none fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] right-3 z-30 flex items-center gap-1 whitespace-nowrap text-xs leading-none text-ink-2 sm:right-4 lg:bottom-3 lg:right-4"
+    aria-label="页面构建时间"
   >
     <span>last:</span>
     <time datetime={deployedAtISOString}>{deployedAtLabel}</time>

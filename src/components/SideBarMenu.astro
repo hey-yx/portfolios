@@ -11,7 +11,7 @@ const activeClass = "sidebar-nav-link--active";
     {
         primaryNavItems.map((item) => (
             <li>
-                <a class:list={["sidebar-nav-link", item.id === sideBarActiveItemID && activeClass]} href={item.href}>
+                <a class:list={["sidebar-nav-link", item.id === sideBarActiveItemID && activeClass]} href={item.href} aria-current={item.id === sideBarActiveItemID ? "page" : undefined}>
                     {item.label}
                 </a>
             </li>
@@ -23,6 +23,7 @@ const activeClass = "sidebar-nav-link--active";
                 <a
                     class:list={["sidebar-nav-link", item.id === sideBarActiveItemID && activeClass]}
                     href={item.href}
+                    aria-current={item.id === sideBarActiveItemID ? "page" : undefined}
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noopener noreferrer" : undefined}
                     referrerpolicy={item.external ? "no-referrer-when-downgrade" : undefined}

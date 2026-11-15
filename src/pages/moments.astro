@@ -6,27 +6,37 @@ import { momentGroups, momentImages } from "../data/moments";
 
 <BaseLayout
   title="近期影像"
-  description="近期图片档案，按构建时自动生成的九宫格和分组展示。"
+  description="近期图片档案，按分组和九宫格展示。"
   sideBarActiveItemID="moments"
 >
   <h1 class="sr-only">近期影像</h1>
 
-  <MomentMosaic
-    images={momentImages}
-    title=""
-    description=""
-    ariaLabel="近期影像随机预览"
-    showMeta={false}
-    previewGrid
-    galleryId="moments-preview"
-  />
+  {
+    momentImages.length === 0 && (
+      <p class="border-b border-base-300 py-6 text-ink-2">还没有影像。</p>
+    )
+  }
+
+  {
+    momentImages.length > 0 && (
+      <MomentMosaic
+        images={momentImages}
+        title=""
+        description=""
+        ariaLabel="近期影像随机预览"
+        showMeta={false}
+        previewGrid
+        galleryId="moments-preview"
+      />
+    )
+  }
 
   {
     momentGroups.length > 0 && (
       <section class="mt-[clamp(3rem,8vw,5rem)]" aria-label="分组影像">
         <div class="mb-[clamp(1.5rem,4vw,2.25rem)] flex items-center gap-4" aria-hidden="true">
           <span class="h-px flex-1 bg-[color-mix(in_srgb,oklch(var(--bc))_16%,transparent)]" />
-          <span class="shrink-0 text-sm leading-6 text-[color-mix(in_srgb,oklch(var(--bc))_58%,transparent)]">
+          <span class="shrink-0 text-sm leading-6 text-[color-mix(in_srgb,oklch(var(--bc))_72%,transparent)]">
             {momentGroups.length} 组 · {momentImages.length} 张
           </span>
         </div>
@@ -41,7 +51,7 @@ import { momentGroups, momentImages } from "../data/moments";
                       {group.description}
                     </p>
                   )}
-                  <div class="flex shrink-0 gap-3 whitespace-nowrap text-sm leading-6 text-[color-mix(in_srgb,oklch(var(--bc))_58%,transparent)] max-sm:w-full max-sm:justify-between">
+                  <div class="flex shrink-0 gap-3 whitespace-nowrap text-sm leading-6 text-[color-mix(in_srgb,oklch(var(--bc))_72%,transparent)] max-sm:w-full max-sm:justify-between">
                     {group.date && <time datetime={group.date}>{group.date}</time>}
                     <span>{group.images.length} 张</span>
                   </div>

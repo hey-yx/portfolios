@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import {
   ArrowUpRight,
   Check,
+  ChevronDown,
   ChevronUp,
   Dices,
   EllipsisVertical,
@@ -41,6 +42,42 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   showFooter={false}
   showFloatingThemeToggle={false}
 >
+  {/* 标签栏双语：服务端只能输出一份中文，客户端按浏览器语言覆盖 <title> 与 description，
+      页面正文不翻译。ClientRouter 换页会重写 head，所以换页后再执行一次。 */}
+  <script
+    is:inline
+    define:vars={{ tabTitleEn: newTabConfig.titleEn, tabDescriptionEn: newTabConfig.descriptionEn }}
+  >
+    (() => {
+      const applyTabLanguage = () => {
+        let language = "";
+        try {
+          language = (navigator.languages?.[0] || navigator.language || "").toLowerCase();
+        } catch {
+          language = "";
+        }
+
+        // 读不到语言，或者中文环境：保留服务端那份，不往英文猜
+        if (!language || language.startsWith("zh")) {
+          return;
+        }
+
+        const setMetaContent = (selector, value) => {
+          document.querySelectorAll(selector).forEach((node) => node.setAttribute("content", value));
+        };
+
+        document.title = tabTitleEn;
+        setMetaContent('meta[name="title"]', tabTitleEn);
+        setMetaContent('meta[property="og:title"]', tabTitleEn);
+        setMetaContent('meta[name="description"]', tabDescriptionEn);
+        setMetaContent('meta[property="og:description"]', tabDescriptionEn);
+      };
+
+      applyTabLanguage();
+      document.addEventListener("astro:after-swap", applyTabLanguage);
+    })();
+  </script>
+
   {/* 布局存在 localStorage、服务端不知道：入场动画要不要为弧形档降级，必须在 shell
       首次渲染前定下来，所以这里内联读一次，把判据挂到 html 上（CSS 见样式块）。 */}
   <script
@@ -88,20 +125,21 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           data-new-tab-color-target="navigation"
         ></p>
         <p
-          class="new-tab-date m-0 text-[0.82rem] font-medium tracking-[0.01em] text-base-content/45"
+          class="new-tab-date m-0 text-[0.82rem] font-medium tracking-[0.01em] text-ink-2"
           data-new-tab-date
           data-new-tab-color-target="navigation"
         ></p>
       </div>
       {/* 窄屏工具行自动折行：屏幕放不下就分两排，不挤压也不溢出 */}
       <div class="new-tab-actions flex flex-wrap items-center justify-end gap-1.5 max-sm:justify-start max-sm:gap-1">
-        <div class="dropdown dropdown-end" data-layout-switcher>
+        <div class="new-tab-layout relative" data-layout-switcher>
           <button
-            class="btn btn-ghost btn-sm h-8 min-h-8 w-8 p-0 transition-colors [&_svg]:h-4 [&_svg]:w-4"
+            class="new-tab-layout__trigger btn btn-ghost btn-sm h-8 min-h-8 gap-1.5 px-2.5 text-[0.82rem] font-medium transition-colors [&_svg]:h-4 [&_svg]:w-4"
             type="button"
-            tabindex="0"
             aria-haspopup="menu"
-            aria-label="切换布局"
+            aria-expanded="false"
+            aria-controls="new-tab-layout-menu"
+            aria-label="切换布局，当前网格"
             title="切换布局"
             data-layout-trigger
             data-new-tab-color-target="navigation"
@@ -118,68 +156,78 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             <span data-layout-trigger-icon="scatter" class="hidden grid place-items-center">
               <Dices aria-hidden="true" />
             </span>
+            <span class="max-md:hidden" data-layout-trigger-label>网格</span>
+            <ChevronDown class="new-tab-layout__chevron h-3.5 w-3.5 opacity-55" aria-hidden="true" />
           </button>
-          <ul
-            tabindex="0"
-            class="menu dropdown-content z-[60] mt-2 w-40 rounded-box border border-base-300 bg-base-100 p-2 shadow [&_button]:justify-start [&_button]:gap-2"
+          <div
+            id="new-tab-layout-menu"
+            class="new-tab-layout__menu"
+            role="menu"
+            aria-label="快捷区布局"
+            data-layout-menu
+            inert
           >
-            <li>
-              <button
-                class="layout-option btn btn-ghost btn-sm normal-case font-normal"
-                type="button"
-                aria-pressed="true"
-                data-layout-option="grid"
-              >
-                <LayoutGrid class="h-4 w-4" aria-hidden="true" />
-                <span class="flex-1 text-left">网格</span>
-                <span class="grid h-3.5 w-3.5 place-items-center" data-layout-selected="grid">
-                  <Check class="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
-              </button>
-            </li>
-            <li>
-              <button
-                class="layout-option btn btn-ghost btn-sm normal-case font-normal"
-                type="button"
-                aria-pressed="false"
-                data-layout-option="stack"
-              >
-                <Layers class="h-4 w-4" aria-hidden="true" />
-                <span class="flex-1 text-left">堆叠</span>
-                <span class="hidden grid h-3.5 w-3.5 place-items-center" data-layout-selected="stack">
-                  <Check class="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
-              </button>
-            </li>
-            <li>
-              <button
-                class="layout-option btn btn-ghost btn-sm normal-case font-normal"
-                type="button"
-                aria-pressed="false"
-                data-layout-option="ring"
-              >
-                <Spline class="h-4 w-4" aria-hidden="true" />
-                <span class="flex-1 text-left">弧形</span>
-                <span class="hidden grid h-3.5 w-3.5 place-items-center" data-layout-selected="ring">
-                  <Check class="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
-              </button>
-            </li>
-            <li>
-              <button
-                class="layout-option btn btn-ghost btn-sm normal-case font-normal"
-                type="button"
-                aria-pressed="false"
-                data-layout-option="scatter"
-              >
-                <Dices class="h-4 w-4" aria-hidden="true" />
-                <span class="flex-1 text-left">随机</span>
-                <span class="hidden grid h-3.5 w-3.5 place-items-center" data-layout-selected="scatter">
-                  <Check class="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
-              </button>
-            </li>
-          </ul>
+            <button
+              class="new-tab-layout__item"
+              type="button"
+              role="menuitemradio"
+              aria-checked="true"
+              tabindex="-1"
+              data-layout-option="grid"
+            >
+              <span class="new-tab-layout__item-icon"><LayoutGrid class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-text">
+                <span class="new-tab-layout__item-label">网格</span>
+                <span class="new-tab-layout__item-hint">九宫格排列</span>
+              </span>
+              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+            </button>
+            <button
+              class="new-tab-layout__item"
+              type="button"
+              role="menuitemradio"
+              aria-checked="false"
+              tabindex="-1"
+              data-layout-option="stack"
+            >
+              <span class="new-tab-layout__item-icon"><Layers class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-text">
+                <span class="new-tab-layout__item-label">堆叠</span>
+                <span class="new-tab-layout__item-hint">竖向叠成一摞</span>
+              </span>
+              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+            </button>
+            <button
+              class="new-tab-layout__item"
+              type="button"
+              role="menuitemradio"
+              aria-checked="false"
+              tabindex="-1"
+              data-layout-option="ring"
+            >
+              <span class="new-tab-layout__item-icon"><Spline class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-text">
+                <span class="new-tab-layout__item-label">弧形</span>
+                <span class="new-tab-layout__item-hint">沿弧线排开</span>
+              </span>
+              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+            </button>
+            <button
+              class="new-tab-layout__item"
+              type="button"
+              role="menuitemradio"
+              aria-checked="false"
+              tabindex="-1"
+              data-layout-option="scatter"
+            >
+              <span class="new-tab-layout__item-icon"><Dices class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-text">
+                <span class="new-tab-layout__item-label">随机</span>
+                <span class="new-tab-layout__item-hint">每次点击重新散布</span>
+              </span>
+              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+            </button>
+          </div>
         </div>
         <div>
           <ThemeToggle
@@ -212,6 +260,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           class="btn btn-ghost btn-sm h-8 min-h-8 px-3.5 text-[0.82rem] font-medium transition-colors"
           type="button"
           data-config-open
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-controls="new-tab-config-panel"
           data-new-tab-color-target="navigation"
         >
           {newTabConfig.settings.openLabel}
@@ -248,12 +299,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       data-new-tab-search
     >
       <label class="sr-only" for="new-tab-query">搜索关键词</label>
-      <span class="grid w-10 shrink-0 place-items-center pl-3 text-base-content/35" aria-hidden="true">
+      <span class="grid w-10 shrink-0 place-items-center pl-3 text-ink-3" aria-hidden="true">
         <Search class="h-[1.05rem] w-[1.05rem]" />
       </span>
       <input
         id="new-tab-query"
-        class="new-tab-search__input h-12 min-w-0 flex-1 border-0 bg-transparent px-2.5 text-base text-base-content outline-none placeholder:text-base-content/30 sm:text-[0.95rem]"
+        class="new-tab-search__input h-12 min-w-0 flex-1 border-0 bg-transparent px-2.5 text-base text-base-content outline-none placeholder:text-ink-2 sm:text-[0.95rem]"
         type="search"
         name="q"
         autocomplete="off"
@@ -277,7 +328,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
   {/* 恢复按钮同样移出 shell：它是 fixed，留在里面会被 shell 的入场缩放当成包含块。 */}
   <button
-    class="new-tab-restore btn btn-square btn-sm fixed right-4 top-4 z-[70] h-8 min-h-8 w-8 border border-base-content/15 bg-base-100/85 p-0 text-base-content/70 shadow-[0_6px_20px_rgba(0,0,0,0.10)] backdrop-blur hover:text-base-content [&_svg]:h-4 [&_svg]:w-4"
+    class="new-tab-restore btn btn-square btn-sm fixed right-4 top-4 z-[70] h-8 min-h-8 w-8 border border-base-content/15 bg-base-100/85 p-0 text-ink-2 shadow-[0_6px_20px_rgba(0,0,0,0.10)] backdrop-blur hover:text-base-content [&_svg]:h-4 [&_svg]:w-4"
     type="button"
     aria-label="展开问候与搜索"
     title="展开问候与搜索（按 / 唤回搜索）"
@@ -289,13 +340,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   {/* 两个抽屉共用一套开合规则：data-open 是唯一开关。
       进出都走同一条 transition——进场 translate-x-full → 0，出场 0 → translate-x-full，
       allow-discrete 让 hidden 也能参与过渡，JS 不再需要 setTimeout 兜底延迟隐藏。 */}
-  <div class="new-tab-config fixed inset-0 z-[80] hidden opacity-0 transition-opacity duration-200 [transition-behavior:allow-discrete] [&:not([data-open])]:pointer-events-none" data-config-drawer>
+  <div id="new-tab-config-panel" class="new-tab-config fixed inset-0 z-[80] hidden opacity-0 transition-opacity duration-200 [transition-behavior:allow-discrete] [&:not([data-open])]:pointer-events-none" data-config-drawer>
     <button class="new-tab-config__backdrop absolute inset-0 border-0 bg-base-content/20 opacity-0 transition-opacity duration-200" type="button" aria-label={newTabConfig.settings.closeLabel} data-config-close></button>
     <aside class="new-tab-config__sheet absolute right-0 top-0 grid h-dvh w-[min(100vw,31rem)] max-sm:w-[min(100vw,24rem)] rounded-l-2xl border-l border-base-content/10 bg-base-100/95 shadow-[-1px_0_2px_-1px_rgba(15,23,42,0.08),-8px_0_16px_-8px_rgba(15,23,42,0.10),-20px_0_40px_-20px_rgba(15,23,42,0.14)] grid-rows-[auto_minmax(0,1fr)_auto] backdrop-blur-sm translate-x-full transition-transform duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)]" aria-label={newTabConfig.settings.panelTitle} aria-modal="true" role="dialog">
       <div class="new-tab-config__header flex items-center justify-between gap-3 border-b border-base-content/10 p-4">
         <div class="min-w-0">
           <h2 class="m-0 text-[0.95rem] font-bold leading-tight">{newTabConfig.settings.panelTitle}</h2>
-          <p class="mt-1 text-xs leading-snug text-base-content/50" data-config-status>{newTabConfig.settings.statusReady}</p>
+          <p class="mt-1 text-xs leading-snug text-ink-2" data-config-status>{newTabConfig.settings.statusReady}</p>
         </div>
         <button class="btn btn-square btn-ghost btn-sm" type="button" aria-label={newTabConfig.settings.closeLabel} data-config-close>
           <X class="h-4 w-4" aria-hidden="true" />
@@ -304,7 +355,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       <div class="new-tab-config__body grid content-start gap-4 overflow-y-auto p-4">
         <section class="new-tab-config__section grid gap-3">
-          <div class="new-tab-config__section-title text-xs font-semibold tracking-[0.12em] text-base-content/45">{newTabConfig.settings.generalLabel}</div>
+          <div class="new-tab-config__section-title text-xs font-semibold tracking-[0.12em] text-ink-2">{newTabConfig.settings.generalLabel}</div>
           <div class="new-tab-config__grid grid grid-cols-2 gap-3 max-sm:grid-cols-1">
             <label class="form-control grid min-w-0 gap-1.5">
               <span class="label">
@@ -359,7 +410,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
                 <button class="btn btn-outline btn-sm" type="button" data-config-background-file-trigger>
                   {newTabConfig.settings.backgroundFileLabel}
                 </button>
-                <span class="truncate text-[0.78rem] leading-snug text-base-content/55" data-config-background-status>{newTabConfig.settings.backgroundEmptyLabel}</span>
+                <span class="truncate text-[0.78rem] leading-snug text-ink-2" data-config-background-status>{newTabConfig.settings.backgroundEmptyLabel}</span>
               </div>
             </label>
             <label class="form-control grid min-w-0 gap-1.5 col-span-full">
@@ -376,7 +427,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
                 data-config-background-opacity
               />
             </label>
-            <div class="new-tab-config__wide new-tab-config__section-title col-span-full mt-1 border-t border-base-content/10 pt-4 text-xs font-semibold tracking-[0.12em] text-base-content/45">
+            <div class="new-tab-config__wide new-tab-config__section-title col-span-full mt-1 border-t border-base-content/10 pt-4 text-xs font-semibold tracking-[0.12em] text-ink-2">
               {newTabConfig.settings.textColorLabel}
             </div>
             <label class="form-control grid min-w-0 gap-1.5 col-span-full">
@@ -425,7 +476,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     <aside class="new-tab-notes__sheet absolute right-0 top-0 grid h-dvh w-[min(100vw,31rem)] max-sm:w-[min(100vw,24rem)] rounded-l-2xl border-l border-base-content/10 bg-base-100/95 shadow-[-1px_0_2px_-1px_rgba(15,23,42,0.08),-8px_0_16px_-8px_rgba(15,23,42,0.10),-20px_0_40px_-20px_rgba(15,23,42,0.14)] grid-rows-[auto_minmax(0,1fr)_auto] backdrop-blur-sm transition-transform duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)]" role="dialog" aria-modal="true" aria-label={newTabConfig.settings.notesPanelTitle}>
       <div class="new-tab-notes__header flex items-center justify-between gap-3 border-b border-base-content/10 p-4">
         <div class="flex min-w-0 items-center gap-2.5">
-          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-base-content/[0.06] text-base-content/55 [&_svg]:h-4 [&_svg]:w-4">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-base-content/[0.06] text-ink-3 [&_svg]:h-4 [&_svg]:w-4">
             <Info aria-hidden="true" />
           </span>
           <h2 class="m-0 text-[0.95rem] font-bold leading-tight">{newTabConfig.settings.notesPanelTitle}</h2>
@@ -435,7 +486,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         </button>
       </div>
 
-      <div class="new-tab-notes__body grid content-start gap-5 overflow-y-auto p-4 text-[0.8rem] leading-relaxed text-base-content/75">
+      <div class="new-tab-notes__body grid content-start gap-5 overflow-y-auto p-4 text-[0.8rem] leading-relaxed text-ink-2">
         <section class="grid gap-1.5">
           <h3 class="m-0 text-[0.82rem] font-semibold text-base-content">{newTabConfig.settings.notesLocalTitle}</h3>
           <p class="m-0">{newTabConfig.settings.notesLocalBody}</p>
@@ -454,7 +505,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         <section class="grid gap-2">
           <h3 class="m-0 text-[0.82rem] font-semibold text-base-content">{newTabConfig.settings.notesRecoveryTitle}</h3>
           <p class="m-0">{newTabConfig.settings.notesRecoveryBody}</p>
-          <p class="m-0 text-[0.72rem] leading-snug text-base-content/50">{newTabConfig.settings.notesCommandLabel}</p>
+          <p class="m-0 text-[0.72rem] leading-snug text-ink-2">{newTabConfig.settings.notesCommandLabel}</p>
           <pre class="new-tab-notes__code m-0 overflow-x-auto rounded-lg border border-base-content/10 bg-base-200/40 p-3 text-[0.72rem] leading-relaxed" data-notes-command></pre>
         </section>
       </div>
@@ -523,7 +574,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
        同类型轨道才能逐帧补间。areas 也全程不变，同理——areas 变了元素的行列映射立即重算，
        同样不补间（实测 search 宽度 658 → 1120 一步跳）。
        收起态靠问候语自己的 max-height 归零让位，搜索框与功能按钮的位置都不动。
-       封顶值分三档：宽屏 28rem（七个按钮带文字全展开约 446px）常规桌面单行放得下；
+       封顶值分三档：宽屏 28rem（七个控件带文字全展开约 448px）常规桌面单行放得下；
        640~899px 收 22rem、640~699px 再收 18rem，逼 flex-wrap 折成两行，
        否则搜索框被挤到和功能行重叠（实测 640px 重叠 110px、700px 重叠 50px）。
        提醒：grid-template-areas 每行 token 数必须等于列数（这里是 2），写成单 token 的
@@ -575,6 +626,159 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
          （用户原话「不要让右侧功能换行」），而且 areas 变形不补间、位置是瞬移。 */
       [data-new-tab-page]:has(.new-tab-search:focus-within) .new-tab-search {
         max-width: 100%;
+      }
+    }
+
+    /* ── 布局选择弹窗（选型）────────────────────────────────────────
+       四选一的单选菜单，不是操作菜单：role=menu + menuitemradio。
+       数值全部来自 TDesign，出处见 reports/portfolios-newtab-ui-20261115/LEDGER.md；
+       圆角 8 / 4 为派生档，菜单宽度按两行说明实测取整。 */
+    [data-layout-switcher] {
+      --ntab-menu-surface: #ffffff;
+      --ntab-menu-border: #e8e8e8;
+      --ntab-menu-hover: #f3f3f3;
+      --ntab-menu-active: #f3f3f3;
+      --ntab-menu-ink: rgba(0, 0, 0, 0.9);
+      --ntab-menu-ink-2: rgba(0, 0, 0, 0.6);
+      --ntab-menu-accent: #0052d9;
+      --ntab-menu-shadow: 0 12px 32px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.08);
+      --ntab-menu-enter: 240ms;
+      --ntab-menu-exit: 200ms;
+      --ntab-ease-enter: cubic-bezier(0, 0, 0.15, 1);
+      --ntab-ease-exit: cubic-bezier(0.82, 0, 1, 0.9);
+    }
+
+    [data-theme="black"] [data-layout-switcher] {
+      --ntab-menu-surface: #181818;
+      --ntab-menu-border: #2c2c2c;
+      --ntab-menu-hover: #242424;
+      --ntab-menu-active: #242424;
+      --ntab-menu-ink: rgba(255, 255, 255, 0.9);
+      --ntab-menu-ink-2: rgba(255, 255, 255, 0.6);
+      --ntab-menu-accent: #2174ff;
+      --ntab-menu-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.45);
+    }
+
+    [data-layout-switcher] .new-tab-layout__trigger:focus-visible {
+      outline: 2px solid var(--ntab-menu-accent);
+      outline-offset: 2px;
+    }
+
+    [data-layout-switcher] .new-tab-layout__chevron {
+      transition: transform var(--ntab-menu-exit) var(--ntab-ease-exit);
+    }
+
+    [data-layout-switcher][data-open] .new-tab-layout__chevron {
+      transform: rotate(180deg);
+      transition-duration: var(--ntab-menu-enter);
+      transition-timing-function: var(--ntab-ease-enter);
+    }
+
+    [data-layout-switcher] .new-tab-layout__menu {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      z-index: 60;
+      display: grid;
+      gap: 0.25rem;
+      width: min(15rem, calc(100vw - 1rem));
+      padding: 0.5rem;
+      border: 1px solid var(--ntab-menu-border);
+      border-radius: 0.5rem;
+      background: var(--ntab-menu-surface);
+      box-shadow: var(--ntab-menu-shadow);
+      opacity: 0;
+      transform: translateY(-0.375rem) scale(0.97);
+      transform-origin: top right;
+      pointer-events: none;
+      transition:
+        opacity var(--ntab-menu-exit) var(--ntab-ease-exit),
+        transform var(--ntab-menu-exit) var(--ntab-ease-exit);
+    }
+
+    /* 窄屏触发器贴左：右对齐会整块捅出视口左边，改从左边缘展开 */
+    [data-layout-switcher] .new-tab-layout__menu[data-align="start"] {
+      left: 0;
+      right: auto;
+      transform-origin: top left;
+    }
+
+    [data-layout-switcher][data-open] .new-tab-layout__menu {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      transition-duration: var(--ntab-menu-enter);
+      transition-timing-function: var(--ntab-ease-enter);
+    }
+
+    [data-layout-switcher] .new-tab-layout__item {
+      display: grid;
+      grid-template-columns: 1.25rem minmax(0, 1fr) 1rem;
+      align-items: center;
+      gap: 0.625rem;
+      width: 100%;
+      padding: 0.5rem 0.625rem;
+      border: 0;
+      border-radius: 0.25rem;
+      background: transparent;
+      color: var(--ntab-menu-ink);
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 0.12s linear;
+    }
+
+    [data-layout-switcher] .new-tab-layout__item:hover {
+      background: var(--ntab-menu-hover);
+    }
+
+    [data-layout-switcher] .new-tab-layout__item:focus-visible {
+      outline: 2px solid var(--ntab-menu-accent);
+      outline-offset: -2px;
+    }
+
+    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] {
+      background: var(--ntab-menu-active);
+    }
+
+    [data-layout-switcher] .new-tab-layout__item-icon {
+      display: grid;
+      place-items: center;
+      color: var(--ntab-menu-ink-2);
+    }
+
+    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] .new-tab-layout__item-icon {
+      color: var(--ntab-menu-accent);
+    }
+
+    [data-layout-switcher] .new-tab-layout__item-label {
+      display: block;
+      font-size: 0.875rem;
+      line-height: 1.375rem;
+      font-weight: 500;
+    }
+
+    [data-layout-switcher] .new-tab-layout__item-hint {
+      display: block;
+      font-size: 0.75rem;
+      line-height: 1.25rem;
+      color: var(--ntab-menu-ink-2);
+    }
+
+    [data-layout-switcher] .new-tab-layout__item-check {
+      display: grid;
+      place-items: center;
+      color: var(--ntab-menu-accent);
+      opacity: 0;
+    }
+
+    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] .new-tab-layout__item-check {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      [data-layout-switcher] .new-tab-layout__menu,
+      [data-layout-switcher] .new-tab-layout__chevron {
+        transition: none;
       }
     }
 
@@ -701,7 +905,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     /* 工具栏图标与文字统一跟一个基准色走：默认模式用 55% 不透明度的正文色，
        选了颜色模式（浅色/深色文字）时 applyTextColors 会给每个带
        data-new-tab-color-target 的元素内联写 color，图标用 currentColor 自然跟上。
-       之前图标各自写死 text-base-content/55、文字写 /60，两档灰度不一致；
+       之前图标和文字各写一档透明度，两档灰度不一致；
        背景图 + 颜色模式组合下图标还会比文字暗一截，用户反馈「图标看不到」。
        hover 提亮用 filter 而不是 color，避免覆盖内联色让颜色模式失效。 */
     [data-new-tab-page] .new-tab-actions .btn {
@@ -1558,6 +1762,26 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       target.classList.remove("hidden");
     };
 
+    let inlineFormErrorSeq = 0;
+
+    const createInlineFormError = () => {
+      const error = document.createElement("p");
+      error.id = `inline-form-error-${++inlineFormErrorSeq}`;
+      error.className = "hidden text-[0.72rem] leading-snug text-error";
+      error.setAttribute("role", "alert");
+      return error;
+    };
+
+    // 报错时把字段标成 aria-invalid 并挂到错误文案上，读屏能念出「哪里错了」。
+    const markFieldInvalid = (target, message, input) => {
+      setInlineFormError(target, message);
+
+      if (input instanceof HTMLElement) {
+        input.setAttribute("aria-invalid", "true");
+        input.setAttribute("aria-describedby", target.id);
+      }
+    };
+
     const clearInlineFormError = (target) => {
       target.textContent = "";
       target.classList.add("hidden");
@@ -1571,7 +1795,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     const createIconButton = (label, iconName, extraClasses = "") => {
       const button = document.createElement("button");
-      button.className = `btn btn-square btn-ghost btn-xs h-8 min-h-8 w-8 p-0 text-base-content/60 transition hover:text-base-content focus-visible:text-base-content [&_svg]:h-3.5 [&_svg]:w-3.5 ${extraClasses}`;
+      button.className = `btn btn-square btn-ghost btn-xs h-8 min-h-8 w-8 p-0 text-ink-2 transition hover:text-base-content focus-visible:text-base-content [&_svg]:h-3.5 [&_svg]:w-3.5 ${extraClasses}`;
       button.type = "button";
       button.title = label;
       button.setAttribute("aria-label", label);
@@ -1645,7 +1869,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       if (subtitle) {
         const headerSubtitle = document.createElement("small");
-        headerSubtitle.className = "truncate text-[0.68rem] font-semibold leading-tight text-base-content/45";
+        headerSubtitle.className = "truncate text-[0.68rem] font-semibold leading-tight text-ink-2";
         headerSubtitle.textContent = subtitle;
         headerText.append(headerSubtitle);
       }
@@ -1657,7 +1881,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         const button = document.createElement("button");
         button.className = action.danger
           ? "grid h-9 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 rounded-lg border-0 bg-transparent px-2 text-left text-error/85 transition-colors duration-150 hover:bg-error/10 focus-visible:bg-error/10 focus-visible:outline-none"
-          : "grid h-9 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 rounded-lg border-0 bg-transparent px-2 text-left text-base-content/75 transition-colors duration-150 hover:bg-base-200 focus-visible:bg-base-200 focus-visible:outline-none";
+          : "grid h-9 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 rounded-lg border-0 bg-transparent px-2 text-left text-ink-2 transition-colors duration-150 hover:bg-base-200 focus-visible:bg-base-200 focus-visible:outline-none";
         button.type = "button";
         button.setAttribute("role", "menuitem");
         button.innerHTML = `<span class="grid h-4 w-4 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5">${getIconMarkup(action.icon)}</span><span class="truncate text-xs font-semibold">${action.label}</span>`;
@@ -1679,11 +1903,11 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       empty.className = "shortcut-empty grid place-items-center gap-3.5 border border-dashed border-base-content/15 px-6 py-12 text-center";
 
       const title = document.createElement("p");
-      title.className = "m-0 text-sm font-medium leading-relaxed text-base-content/50";
+      title.className = "m-0 text-sm font-medium leading-relaxed text-ink-2";
       title.textContent = "还没有快捷入口，先把常用的网站加进来";
 
       const action = document.createElement("button");
-      action.className = "btn btn-sm h-9 min-h-9 gap-1.5 border border-base-content/20 bg-transparent px-4 text-[0.82rem] font-medium text-base-content/60 hover:border-base-content/40 hover:bg-transparent hover:text-base-content";
+      action.className = "btn btn-sm h-9 min-h-9 gap-1.5 border border-base-content/20 bg-transparent px-4 text-[0.82rem] font-medium text-ink-2 hover:border-base-content/40 hover:bg-transparent hover:text-base-content";
       action.type = "button";
       action.innerHTML = `<span class="grid h-3.5 w-3.5 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5">${getIconMarkup("plus")}</span><span>开始添加</span>`;
       action.addEventListener("click", () => {
@@ -1736,7 +1960,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       heading.className = "m-0 text-[0.82rem] font-semibold leading-tight";
       heading.textContent = settingsLabels.addShortcutLabel ?? "添加站点";
       const dismissButton = document.createElement("button");
-      dismissButton.className = "btn btn-square btn-ghost btn-xs h-7 min-h-7 w-7 p-0 text-base-content/50 transition hover:text-base-content";
+      dismissButton.className = "btn btn-square btn-ghost btn-xs h-7 min-h-7 w-7 p-0 text-ink-2 transition hover:text-base-content";
       dismissButton.type = "button";
       dismissButton.setAttribute("aria-label", "取消添加");
       dismissButton.title = "取消";
@@ -1791,7 +2015,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       previewImage.alt = "";
       previewImage.referrerPolicy = "no-referrer";
       const previewInitial = document.createElement("span");
-      previewInitial.className = "text-[0.95rem] font-bold leading-none text-base-content/60";
+      previewInitial.className = "text-[0.95rem] font-bold leading-none text-ink-2";
       previewInitial.textContent = "?";
       previewIcon.append(previewImage, previewInitial);
       const previewText = document.createElement("div");
@@ -1800,7 +2024,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       previewTitle.className = "m-0 truncate text-[0.82rem] font-medium leading-tight";
       previewTitle.textContent = "新站点";
       const previewHint = document.createElement("p");
-      previewHint.className = "m-0 truncate text-[0.72rem] leading-tight text-base-content/45";
+      previewHint.className = "m-0 truncate text-[0.72rem] leading-tight text-ink-2";
       previewHint.textContent = "填地址后自动识别名称与图标";
       previewText.append(previewTitle, previewHint);
       preview.append(previewIcon, previewText);
@@ -1810,7 +2034,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         const row = document.createElement("label");
         row.className = "grid min-w-0 gap-1";
         const rowLabel = document.createElement("span");
-        rowLabel.className = "text-[0.72rem] font-medium text-base-content/55";
+        rowLabel.className = "text-[0.72rem] font-medium text-ink-2";
         rowLabel.textContent = labelText;
         row.append(rowLabel, inputEl);
         return row;
@@ -1834,8 +2058,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       fields.append(fieldRow(settingsLabels.shortcutTitleLabel ?? "名称", titleInput));
       fields.append(fieldRow(settingsLabels.shortcutUrlLabel ?? "地址", urlInput));
 
-      const error = document.createElement("p");
-      error.className = "hidden text-[0.72rem] leading-snug text-error";
+      const error = createInlineFormError();
+
+      form.addEventListener("input", (event) => {
+        if (event.target instanceof HTMLElement) {
+          event.target.removeAttribute("aria-invalid");
+        }
+      });
 
       let shortcutMetadataRequestId = 0;
       let shortcutMetadataTimer = 0;
@@ -1844,7 +2073,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const footer = document.createElement("div");
       footer.className = "flex items-center justify-end gap-1.5";
       const cancelButton = document.createElement("button");
-      cancelButton.className = "btn btn-ghost btn-sm h-8 min-h-8 px-3 text-xs text-base-content/60 transition hover:text-base-content";
+      cancelButton.className = "btn btn-ghost btn-sm h-8 min-h-8 px-3 text-xs text-ink-2 transition hover:text-base-content";
       cancelButton.type = "button";
       cancelButton.textContent = "取消";
       const submitButton = document.createElement("button");
@@ -1921,13 +2150,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         const url = normalizeShortcutUrlInput(urlInput.value);
 
         if (!url) {
-          setInlineFormError(error, "先输入地址");
+          markFieldInvalid(error, "先输入地址", urlInput);
           urlInput.focus();
           return;
         }
 
         if (!isValidShortcutUrl(url)) {
-          setInlineFormError(error, "地址格式不对");
+          markFieldInvalid(error, "地址格式不对", urlInput);
           urlInput.focus();
           return;
         }
@@ -1944,7 +2173,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         }
 
         if (!title) {
-          setInlineFormError(error, "先输入名称");
+          markFieldInvalid(error, "先输入名称", titleInput);
           titleInput.focus();
           return;
         }
@@ -2066,8 +2295,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const descriptionInput = createInput(settingsLabels.shortcutDescriptionLabel ?? "说明", shortcut.description ?? "");
       const logoInput = createInput(settingsLabels.shortcutLogoLabel ?? "图标 URL", shortcut.logo ?? "", "url");
 
-      const error = document.createElement("p");
-      error.className = "hidden text-[0.72rem] leading-snug text-error";
+      const error = createInlineFormError();
+
+      form.addEventListener("input", (event) => {
+        if (event.target instanceof HTMLElement) {
+          event.target.removeAttribute("aria-invalid");
+        }
+      });
       fields.append(error);
 
       const submitButton = createIconButton("保存", "check", "text-success/75 hover:text-success");
@@ -2112,13 +2346,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         const url = normalizeShortcutUrlInput(urlInput.value);
 
         if (!url) {
-          setInlineFormError(error, "先输入地址");
+          markFieldInvalid(error, "先输入地址", urlInput);
           urlInput.focus();
           return;
         }
 
         if (!isValidShortcutUrl(url)) {
-          setInlineFormError(error, "地址格式不对");
+          markFieldInvalid(error, "地址格式不对", urlInput);
           urlInput.focus();
           return;
         }
@@ -2135,7 +2369,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         }
 
         if (!title) {
-          setInlineFormError(error, "先输入名称");
+          markFieldInvalid(error, "先输入名称", titleInput);
           titleInput.focus();
           return;
         }
@@ -3588,7 +3822,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         summary.className = "shortcut-group__summary flex min-w-0 items-center gap-3";
 
         const title = document.createElement("span");
-        title.className = "min-w-0 whitespace-nowrap text-[0.82rem] font-semibold tracking-[0.02em] text-base-content/55";
+        title.className = "min-w-0 whitespace-nowrap text-[0.82rem] font-semibold tracking-[0.02em] text-ink-2";
         title.dataset.newTabColorTarget = "itemLabel";
         title.textContent = group.title;
 
@@ -3640,7 +3874,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         titleWrap.className = "group/title flex min-w-0 items-center gap-2";
 
         const groupDragHandle = document.createElement("span");
-        groupDragHandle.className = "shortcut-drag-handle grid h-5 w-4 shrink-0 cursor-grab place-items-center border border-base-content/10 bg-base-100 text-base-content/35 opacity-0 transition hover:text-base-content/70 focus-visible:opacity-100 active:cursor-grabbing group-hover/title:opacity-100 max-sm:hidden";
+        groupDragHandle.className = "shortcut-drag-handle grid h-5 w-4 shrink-0 cursor-grab place-items-center border border-base-content/10 bg-base-100 text-ink-3 opacity-0 transition hover:text-ink-2 focus-visible:opacity-100 active:cursor-grabbing group-hover/title:opacity-100 max-sm:hidden";
         groupDragHandle.draggable = true;
         groupDragHandle.title = "拖拽排序";
         groupDragHandle.setAttribute("aria-label", `拖拽排序：${group.title}`);
@@ -3665,7 +3899,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         titleWrap.append(groupDragHandle, title);
 
         const groupMenuButton = document.createElement("button");
-        groupMenuButton.className = "btn btn-square btn-ghost btn-xs shortcut-group__menu h-6 min-h-6 w-6 shrink-0 p-0 text-base-content/45 opacity-0 transition hover:text-base-content/70 focus-visible:text-base-content/70 focus-visible:opacity-100 group-hover/title:opacity-100 max-sm:opacity-100 [&_svg]:h-3.5 [&_svg]:w-3.5";
+        groupMenuButton.className = "btn btn-square btn-ghost btn-xs shortcut-group__menu h-6 min-h-6 w-6 shrink-0 p-0 text-ink-2 opacity-0 transition hover:text-ink-2 focus-visible:text-ink-2 focus-visible:opacity-100 group-hover/title:opacity-100 max-sm:opacity-100 [&_svg]:h-3.5 [&_svg]:w-3.5";
         groupMenuButton.type = "button";
         groupMenuButton.title = "分组操作";
         groupMenuButton.setAttribute("aria-label", `分组操作：${group.title}`);
@@ -3676,7 +3910,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         titleWrap.addEventListener("contextmenu", openGroupMenu);
 
         const count = document.createElement("span");
-        count.className = "shrink-0 text-[0.68rem] font-medium text-base-content/30";
+        count.className = "shrink-0 text-[0.68rem] font-medium text-ink-2";
         count.textContent = String(group.shortcuts.length);
 
         const rule = document.createElement("span");
@@ -3855,7 +4089,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
                   onSelect: openShortcutEditForm,
                 },
                 {
-                  label: settingsLabels.removeShortcutLabel ?? "删除 item",
+                  label: settingsLabels.removeShortcutLabel ?? "删除站点",
                   icon: "trash",
                   danger: true,
                   onSelect: removeShortcut,
@@ -4020,7 +4254,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           discoverShortcutLogo(shortcut, image);
 
           const initial = document.createElement("span");
-          initial.className = "shortcut-item__initial hidden text-[0.95rem] font-bold leading-none text-base-content/60";
+          initial.className = "shortcut-item__initial hidden text-[0.95rem] font-bold leading-none text-ink-2";
           initial.textContent = getShortcutInitial(shortcut.title);
 
           icon.append(image, initial);
@@ -4035,7 +4269,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           itemLabelTitle.textContent = shortcut.title;
 
           const itemLabelText = document.createElement("small");
-          itemLabelText.className = "block w-full truncate text-center text-[0.63rem] font-medium leading-tight text-base-content/45 sm:text-[0.66rem]";
+          itemLabelText.className = "block w-full truncate text-center text-[0.63rem] font-medium leading-tight text-ink-2 sm:text-[0.66rem]";
           itemLabelText.textContent = getShortcutSubtitle(shortcut);
 
           itemLabel.append(itemLabelTitle, itemLabelText);
@@ -4050,7 +4284,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           tooltipTitle.textContent = shortcut.title;
 
           const tooltipText = document.createElement("small");
-          tooltipText.className = "block overflow-hidden text-ellipsis whitespace-nowrap text-[0.72rem] leading-snug text-base-content/55";
+          tooltipText.className = "block overflow-hidden text-ellipsis whitespace-nowrap text-[0.72rem] leading-snug text-ink-2";
           tooltipText.textContent = getShortcutSubtitle(shortcut);
 
           tooltip.append(tooltipTitle, tooltipText);
@@ -4186,7 +4420,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
 
       const addGroupButton = document.createElement("button");
-      addGroupButton.className = "shortcut-group shortcut-group--add mt-1 flex w-fit items-center gap-2 border border-dashed border-base-content/15 bg-transparent px-3.5 py-2.5 font-[inherit] text-[0.8rem] font-semibold text-base-content/40 opacity-80 transition-[transform,border-color,color,opacity] duration-200 hover:-translate-y-0.5 hover:border-base-content/35 hover:text-base-content/70 hover:opacity-100 focus-visible:-translate-y-0.5 focus-visible:border-base-content/35 focus-visible:text-base-content/70 focus-visible:opacity-100 focus-visible:outline-none";
+      addGroupButton.className = "shortcut-group shortcut-group--add mt-1 flex w-fit items-center gap-2 border border-dashed border-base-content/15 bg-transparent px-3.5 py-2.5 font-[inherit] text-[0.8rem] font-semibold text-ink-2 transition-[transform,border-color,color,opacity] duration-200 hover:-translate-y-0.5 hover:border-base-content/35 hover:text-ink-2 hover:opacity-100 focus-visible:-translate-y-0.5 focus-visible:border-base-content/35 focus-visible:text-ink-2 focus-visible:opacity-100 focus-visible:outline-none";
       addGroupButton.type = "button";
       addGroupButton.setAttribute("aria-label", settingsLabels.addGroupLabel ?? "添加分组");
       const addGroupSummary = document.createElement("span");
@@ -4531,24 +4765,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     };
 
     const syncLayoutSwitcher = () => {
+      const label = layoutLabels[newTabState.shortcutLayout] ?? "网格";
+
       document.querySelectorAll("[data-layout-option]").forEach((button) => {
         if (!(button instanceof HTMLElement)) {
           return;
         }
 
-        const active = button.dataset.layoutOption === newTabState.shortcutLayout;
-
-        button.setAttribute("aria-pressed", active ? "true" : "false");
-        button.classList.toggle("bg-base-200", active);
-        button.classList.toggle("font-medium", active);
-      });
-
-      document.querySelectorAll("[data-layout-selected]").forEach((mark) => {
-        if (!(mark instanceof HTMLElement)) {
-          return;
-        }
-
-        mark.classList.toggle("hidden", mark.dataset.layoutSelected !== newTabState.shortcutLayout);
+        // 四选一的单选菜单：状态只放 aria-checked，选中样式由 CSS 跟它走
+        button.setAttribute(
+          "aria-checked",
+          button.dataset.layoutOption === newTabState.shortcutLayout ? "true" : "false",
+        );
       });
 
       document.querySelectorAll("[data-layout-trigger-icon]").forEach((icon) => {
@@ -4559,35 +4787,66 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         icon.classList.toggle("hidden", icon.dataset.layoutTriggerIcon !== newTabState.shortcutLayout);
       });
 
+      const triggerLabel = document.querySelector("[data-layout-trigger-label]");
+
+      if (triggerLabel instanceof HTMLElement) {
+        triggerLabel.textContent = label;
+      }
+
       const trigger = document.querySelector("[data-layout-trigger]");
 
       if (trigger instanceof HTMLElement) {
-        const label = layoutLabels[newTabState.shortcutLayout] ?? "网格";
         trigger.title = `布局：${label}`;
         trigger.setAttribute("aria-label", `切换布局，当前${label}`);
       }
     };
 
-    const bindShortcutAdd = () => {
-      const trigger = document.querySelector("[data-shortcut-add]");
+    // 菜单开关只有一个入口：宿主上的 data-open。打开时把 inert 摘掉并把焦点送进菜单，
+    // 关闭时挂回 inert，菜单项立刻退出 Tab 顺序与无障碍树。规则见 APG menu 模式。
+    const setLayoutMenuOpen = (open, { focusItem = null, focusTrigger = false, deferInert = false } = {}) => {
+      const switcher = document.querySelector("[data-layout-switcher]");
+      const trigger = document.querySelector("[data-layout-trigger]");
+      const menu = document.querySelector("[data-layout-menu]");
 
-      if (!(trigger instanceof HTMLElement) || trigger.dataset.addBound === "true") {
+      if (!(switcher instanceof HTMLElement) || !(trigger instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
         return;
       }
 
-      trigger.addEventListener("click", () => {
-        openShortcutAddForm();
-      });
+      if (open) {
+        const items = Array.from(menu.querySelectorAll("[data-layout-option]")).filter(
+          (item) => item instanceof HTMLElement,
+        );
+        const triggerRect = trigger.getBoundingClientRect();
+        const menuWidth = menu.offsetWidth || 240;
 
-      trigger.dataset.addBound = "true";
-    };
-
-    const closeLayoutMenu = () => {
-      const active = document.activeElement;
-
-      if (active instanceof HTMLElement && active.closest("[data-layout-switcher]")) {
-        active.blur();
+        // 默认与触发器右缘对齐；右侧放不下（窄屏触发器贴左）就改成从左缘展开
+        menu.dataset.align = triggerRect.right - menuWidth < 8 ? "start" : "end";
+        switcher.dataset.open = "true";
+        trigger.setAttribute("aria-expanded", "true");
+        menu.removeAttribute("inert");
+        (focusItem ?? items[0])?.focus();
+        return;
       }
+
+      delete switcher.dataset.open;
+      trigger.setAttribute("aria-expanded", "false");
+
+      if (focusTrigger) {
+        trigger.focus();
+      }
+
+      // Tab 关闭时先让浏览器把焦点挪到下一个控件，再挂 inert；同步挂会把当前焦点
+      // 直接炸回 body，Tab 就从页面开头重新走。
+      if (deferInert) {
+        window.setTimeout(() => {
+          if (switcher.dataset.open !== "true") {
+            menu.setAttribute("inert", "");
+          }
+        }, 0);
+        return;
+      }
+
+      menu.setAttribute("inert", "");
     };
 
     const bindLayoutSwitcher = () => {
@@ -4596,6 +4855,74 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       if (!(switcher instanceof HTMLElement) || switcher.dataset.layoutBound === "true") {
         return;
       }
+
+      const trigger = switcher.querySelector("[data-layout-trigger]");
+      const menu = switcher.querySelector("[data-layout-menu]");
+
+      if (!(trigger instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
+        return;
+      }
+
+      const getLayoutItems = () =>
+        Array.from(menu.querySelectorAll("[data-layout-option]")).filter((item) => item instanceof HTMLElement);
+
+      trigger.addEventListener("click", () => {
+        setLayoutMenuOpen(switcher.dataset.open !== "true");
+      });
+
+      trigger.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && switcher.dataset.open === "true") {
+          event.preventDefault();
+          setLayoutMenuOpen(false);
+          return;
+        }
+
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+          return;
+        }
+
+        event.preventDefault();
+
+        const items = getLayoutItems();
+        setLayoutMenuOpen(true, { focusItem: event.key === "ArrowUp" ? items[items.length - 1] : items[0] });
+      });
+
+      menu.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setLayoutMenuOpen(false, { focusTrigger: true });
+          return;
+        }
+
+        // Tab 不在菜单里循环：关掉菜单，焦点照常走到下一个工具栏按钮
+        if (event.key === "Tab") {
+          setLayoutMenuOpen(false, { deferInert: true });
+          return;
+        }
+
+        if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+          return;
+        }
+
+        event.preventDefault();
+
+        const items = getLayoutItems();
+        const lastIndex = items.length - 1;
+        const currentIndex = items.indexOf(document.activeElement);
+        let nextIndex = currentIndex;
+
+        if (event.key === "Home") {
+          nextIndex = 0;
+        } else if (event.key === "End") {
+          nextIndex = lastIndex;
+        } else if (event.key === "ArrowDown") {
+          nextIndex = currentIndex >= lastIndex ? 0 : currentIndex + 1;
+        } else {
+          nextIndex = currentIndex <= 0 ? lastIndex : currentIndex - 1;
+        }
+
+        items[nextIndex]?.focus();
+      });
 
       switcher.addEventListener("click", (event) => {
         const button = event.target instanceof Element ? event.target.closest("[data-layout-option]") : null;
@@ -4618,7 +4945,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             renderShortcutGroups();
             setStatus("已重新随机");
           }
-          closeLayoutMenu();
+          setLayoutMenuOpen(false, { focusTrigger: true });
           return;
         }
 
@@ -4626,10 +4953,36 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         writeStoredState();
         syncLayoutSwitcher();
         renderShortcutGroups();
-        closeLayoutMenu();
+        setLayoutMenuOpen(false, { focusTrigger: true });
+      });
+
+      document.addEventListener("pointerdown", (event) => {
+        if (switcher.dataset.open !== "true") {
+          return;
+        }
+
+        if (event.target instanceof Node && switcher.contains(event.target)) {
+          return;
+        }
+
+        setLayoutMenuOpen(false);
       });
 
       switcher.dataset.layoutBound = "true";
+    };
+
+    const bindShortcutAdd = () => {
+      const trigger = document.querySelector("[data-shortcut-add]");
+
+      if (!(trigger instanceof HTMLElement) || trigger.dataset.addBound === "true") {
+        return;
+      }
+
+      trigger.addEventListener("click", () => {
+        openShortcutAddForm();
+      });
+
+      trigger.dataset.addBound = "true";
     };
 
     const bindHeaderCollapse = () => {
@@ -4806,6 +5159,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     };
 
     // 配置抽屉的开合同理提到这里：图标说明抽屉开时要能关它
+    let settingsReturnFocus = null;
+
     const closeSettingsPanel = () => {
       const settings = document.querySelector("[data-config-drawer]");
 
@@ -4815,6 +5170,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       delete settings.dataset.open;
       hideDrawerAfterExit(settings);
+      document.querySelector("[data-config-open]")?.setAttribute("aria-expanded", "false");
+
+      if (settingsReturnFocus instanceof HTMLElement && settingsReturnFocus.isConnected) {
+        settingsReturnFocus.focus();
+      }
+
+      settingsReturnFocus = null;
     };
 
     const bindSettings = () => {
@@ -4843,10 +5205,17 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       const openSettings = () => {
         closeNotesPanel();
+        settingsReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : openButton;
+        openButton?.setAttribute("aria-expanded", "true");
         settings.hidden = false;
         settings.classList.remove("hidden");
         window.requestAnimationFrame(() => {
           settings.dataset.open = "true";
+          const closeButton = settings.querySelector(".new-tab-config__header [data-config-close]");
+
+          if (closeButton instanceof HTMLElement) {
+            closeButton.focus();
+          }
         });
       };
 
@@ -4858,6 +5227,47 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && settings.dataset.open === "true") {
           closeSettingsPanel();
+        }
+      });
+
+      // 抽屉是 aria-modal 对话框：Tab 在面板内循环，别让焦点跑到背后的页面上。
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Tab" || settings.dataset.open !== "true") {
+          return;
+        }
+
+        const sheet = settings.querySelector(".new-tab-config__sheet");
+
+        if (!(sheet instanceof HTMLElement)) {
+          return;
+        }
+
+        const focusables = Array.from(
+          sheet.querySelectorAll(
+            'a[href], button:not([disabled]):not([tabindex="-1"]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((element) => element instanceof HTMLElement && element.getClientRects().length > 0);
+
+        if (!focusables.length) {
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+
+        if (!(active instanceof Node) || !sheet.contains(active)) {
+          event.preventDefault();
+          first.focus();
+          return;
+        }
+
+        if (event.shiftKey && active === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && active === last) {
+          event.preventDefault();
+          first.focus();
         }
       });
 

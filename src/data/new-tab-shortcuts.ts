@@ -25,7 +25,10 @@ export interface NewTabHomeLink {
 
 export interface NewTabConfig {
   title: string;
+  // 标签栏双语的英文版：只换 <title> 与 description，页面正文仍是中文。
+  titleEn: string;
   description: string;
+  descriptionEn: string;
   heading: string;
   userName: string;
   storageKey: string;
@@ -99,7 +102,9 @@ export interface NewTabGreeting {
 
 export const newTabConfig: NewTabConfig = {
   title: "New Tab",
+  titleEn: "New Tab | Ethan Zhang",
   description: "搜索、打开常用入口。",
+  descriptionEn: "Search the web and open your saved sites.",
   heading: "快捷搜索",
   userName: "Ethanz888",
   storageKey: "ethanz-new-tab-config",
@@ -127,7 +132,7 @@ export const newTabConfig: NewTabConfig = {
     nameLabel: "名称",
     homeLinkLabel: "首页文案",
     homeHrefLabel: "首页地址",
-    shortcutOpenModeLabel: "item 打开方式",
+    shortcutOpenModeLabel: "站点打开方式",
     shortcutOpenModeCurrentLabel: "当前标签页",
     shortcutOpenModeNewTabLabel: "新标签页",
     searchEngineLabel: "默认搜索引擎",
@@ -151,7 +156,7 @@ export const newTabConfig: NewTabConfig = {
     addGroupLabel: "添加分组",
     addShortcutLabel: "添加站点",
     removeGroupLabel: "删除分组",
-    removeShortcutLabel: "删除 item",
+    removeShortcutLabel: "删除站点",
     editShortcutLabel: "编辑",
     groupTitleLabel: "分组名",
     shortcutTitleLabel: "名称",

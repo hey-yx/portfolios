@@ -65,7 +65,7 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
         ? "drawer lg:drawer-open lg:grid lg:h-screen lg:grid-cols-[19rem_minmax(0,1fr)] lg:overflow-hidden"
         : "min-h-screen",
     ]}>
-      <input id="my-drawer" type="checkbox" class="drawer-toggle" />
+      <input id="my-drawer" type="checkbox" class="drawer-toggle" aria-label="导航菜单" />
       <div
         class:list={[
           "max-w-full overflow-x-clip bg-base-100",
@@ -192,7 +192,7 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
 
             option.classList.toggle("bg-base-200", isActive);
             option.classList.toggle("font-medium", isActive);
-            option.setAttribute("aria-pressed", isActive ? "true" : "false");
+            option.setAttribute("aria-checked", isActive ? "true" : "false");
           });
 
           document.querySelectorAll("[data-theme-selected]").forEach((badge) => {
@@ -257,6 +257,131 @@ const enableClientRouter = TRANSITION_API && typeof ClientRouter !== "undefined"
         }
 
         bindThemeControls();
+      })();
+    </script>
+    <script is:inline>
+      // 主题下拉是菜单按钮模式：开合、方向键、Home/End、Escape、Tab 与外部点击都走这里。
+      // 每个页面上有 1 到 3 个实例（桌面浮层、移动 Header、new-tab 工具栏），用 data 标记防重复绑定。
+      (() => {
+        const bindThemeSwitchers = () => {
+          document.querySelectorAll("[data-theme-switcher]").forEach((switcher) => {
+            if (!(switcher instanceof HTMLElement) || switcher.dataset.switcherBound === "true") {
+              return;
+            }
+
+            const trigger = switcher.querySelector("[data-theme-trigger]");
+            const menu = switcher.querySelector("[data-theme-menu]");
+
+            if (!(trigger instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
+              return;
+            }
+
+            const items = Array.from(menu.querySelectorAll("[data-theme-option]")).filter(
+              (item) => item instanceof HTMLElement,
+            );
+
+            const setOpen = (open, { focusItem = null, focusTrigger = false, deferInert = false } = {}) => {
+              if (open) {
+                const triggerRect = trigger.getBoundingClientRect();
+                const menuWidth = menu.offsetWidth || 176;
+
+                // 触发器贴左时改成从左缘展开，否则右对齐会整块捅出视口
+                menu.dataset.align = triggerRect.right - menuWidth < 8 ? "start" : "end";
+                switcher.dataset.open = "true";
+                trigger.setAttribute("aria-expanded", "true");
+                menu.removeAttribute("inert");
+                (focusItem ?? items[0])?.focus();
+                return;
+              }
+
+              delete switcher.dataset.open;
+              trigger.setAttribute("aria-expanded", "false");
+
+              if (focusTrigger) {
+                trigger.focus();
+              }
+
+              if (deferInert) {
+                window.setTimeout(() => {
+                  if (switcher.dataset.open !== "true") {
+                    menu.setAttribute("inert", "");
+                  }
+                }, 0);
+                return;
+              }
+
+              menu.setAttribute("inert", "");
+            };
+
+            const checkedItem = () =>
+              items.find((item) => item.getAttribute("aria-checked") === "true") ?? items[0];
+
+            trigger.addEventListener("click", () => {
+              setOpen(switcher.dataset.open !== "true");
+            });
+
+            trigger.addEventListener("keydown", (event) => {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                setOpen(true, {
+                  focusItem: event.key === "ArrowUp" ? items.at(-1) : checkedItem(),
+                });
+              }
+            });
+
+            menu.addEventListener("keydown", (event) => {
+              const index = items.indexOf(document.activeElement);
+
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                const delta = event.key === "ArrowDown" ? 1 : -1;
+                items[(index + delta + items.length) % items.length]?.focus();
+                return;
+              }
+
+              if (event.key === "Home" || event.key === "End") {
+                event.preventDefault();
+                (event.key === "Home" ? items[0] : items.at(-1))?.focus();
+                return;
+              }
+
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setOpen(false, { focusTrigger: true });
+                return;
+              }
+
+              if (event.key === "Tab") {
+                setOpen(false, { deferInert: true });
+              }
+            });
+
+            items.forEach((item) => {
+              item.addEventListener("click", () => {
+                setOpen(false, { focusTrigger: true });
+              });
+            });
+
+            document.addEventListener("pointerdown", (event) => {
+              if (switcher.dataset.open !== "true") {
+                return;
+              }
+
+              if (event.target instanceof Node && !switcher.contains(event.target)) {
+                setOpen(false);
+              }
+            });
+
+            switcher.dataset.switcherBound = "true";
+          });
+        };
+
+        bindThemeSwitchers();
+
+        if (!window.__themeSwitcherBound) {
+          document.addEventListener("astro:after-swap", bindThemeSwitchers);
+          window.__themeSwitcherBound = true;
+        }
       })();
     </script>
     <script is:inline>

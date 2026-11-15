@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>江湖路远，后会有期</title>
+    <meta name="description" content="江湖路远，后会有期。" />
+    <meta name="theme-color" content="#f3efe6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121210" media="(prefers-color-scheme: dark)" />
+    <style>
+      /* Hallmark · macrostructure: Letter · tone: austere · theme: UISpecs / portfolios ink */
+      :root {
+        color-scheme: light;
+        --paper: #f3efe6;
+        --ink: #1d1c18;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --paper: #121210;
+          --ink: #ece7db;
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      ::selection {
+        background: var(--ink);
+        color: var(--paper);
+      }
+
+      main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100svh;
+        padding: clamp(1.75rem, 6vw, 6rem);
+      }
+
+      h1 {
+        display: flex;
+        flex-direction: row-reverse;
+        align-items: flex-start;
+        gap: clamp(0.75rem, 2vw, 2rem);
+        margin: 0;
+        font-family:
+          "Songti SC", "Noto Serif SC", "STSong", "Source Han Serif SC",
+          "SimSun", Georgia, serif;
+        font-size: clamp(3.5rem, 7vw, 6.5rem);
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: 0.12em;
+      }
+
+      h1 span {
+        display: block;
+        writing-mode: vertical-rl;
+        text-orientation: upright;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          justify-content: center;
+          padding: 1.75rem;
+        }
+
+        h1 {
+          gap: 0.75rem;
+          letter-spacing: 0.08em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>
+        <span>江湖路远</span>
+        <span>后会有期</span>
+      </h1>
+    </main>
+  </body>
+</html>

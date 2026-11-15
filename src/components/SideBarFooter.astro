@@ -21,7 +21,8 @@ const socialLinks = [
         target="_blank"
         rel="noopener noreferrer"
         title={link.label}
-        class:list={["btn btn-ghost btn-sm btn-square rounded-none", { "relative after:absolute after:-top-0.5 after:-right-0.5 after:h-1.5 after:w-1.5 after:rounded-full after:bg-primary": link.label === "简历" }]}
+        aria-label={link.label}
+        class:list={["btn btn-ghost btn-sm btn-square rounded-none text-ink-2 hover:text-base-content", { "relative after:absolute after:-top-0.5 after:-right-0.5 after:h-1.5 after:w-1.5 after:rounded-full after:bg-primary": link.label === "简历" }]}
       >
         {link.icon ? (
           <link.icon size={16} />

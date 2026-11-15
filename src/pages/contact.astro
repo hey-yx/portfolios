@@ -49,7 +49,7 @@ const contacts = [
             <item.icon size={18} class="opacity-70" />
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-xs opacity-50">{item.label}</div>
+            <div class="text-xs text-ink-2">{item.label}</div>
             <div class="mt-0.5 flex items-center gap-2">
               {item.href ? (
                 <a
@@ -64,7 +64,7 @@ const contacts = [
                 <span class="font-medium">{item.value}</span>
               )}
               {item.note && (
-                <span class="hidden text-xs opacity-40 sm:inline">{item.note}</span>
+                <span class="hidden text-xs text-ink-2 sm:inline">{item.note}</span>
               )}
             </div>
           </div>
@@ -97,7 +97,7 @@ const contacts = [
     </ul>
 
     <p
-      class="mt-4 min-h-5 text-sm opacity-60 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
+      class="mt-4 min-h-5 text-sm text-ink-2 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
       data-copy-feedback
     ></p>
   </section>
@@ -130,7 +130,7 @@ const contacts = [
         feedback.animate(
           [
             { opacity: 0, transform: "translateY(0.35rem)" },
-            { opacity: 0.6, transform: "translateY(0)" },
+            { opacity: 1, transform: "translateY(0)" },
           ],
           { duration: 260, easing: EASE },
         );

@@ -67,11 +67,21 @@
           try {
             const id = `mermaid-${Date.now()}-${index}`;
             const { svg } = await mermaid.render(id, source);
+            // mermaid 以 securityLevel: "strict" 渲染，输出已清理；源码来自仓库文章，不是用户输入。
             diagram.innerHTML = svg;
             diagram.dataset.mermaidRenderedTheme = theme;
           } catch (error) {
             console.error("Failed to render Mermaid diagram", error);
             diagram.dataset.mermaidRenderedTheme = "";
+
+            if (!diagram.querySelector("[data-mermaid-error]")) {
+              const hint = document.createElement("p");
+              hint.className = "mermaid-diagram__error";
+              hint.dataset.mermaidError = "true";
+              hint.setAttribute("role", "alert");
+              hint.textContent = "图表暂时渲染不出来，下面是源码。";
+              diagram.prepend(hint);
+            }
           }
         }),
       );

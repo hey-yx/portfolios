@@ -41,7 +41,7 @@ const hasMermaid = entry.body?.includes("```mermaid") ?? false;
 ---
 
 <BaseLayout title={title} description={description} image={image} sideBarActiveItemID={sideBarActiveItemID} ogType={ogType}>
-  <main class="mx-auto w-full min-w-0 max-w-[760px]">
+  <div class="mx-auto w-full min-w-0 max-w-[760px]">
     <article class={contentProseClass}>
       <div class="not-prose mb-8">
         <div class="mb-6">
@@ -74,11 +74,11 @@ const hasMermaid = entry.body?.includes("```mermaid") ?? false;
 
         {
           isArticle ? (
-            <p class="mt-4 text-base leading-7 opacity-80 sm:text-lg sm:leading-relaxed lg:text-xl">{description}</p>
+            <p class="mt-4 text-base leading-7 text-ink-2 sm:text-lg sm:leading-relaxed lg:text-xl">{description}</p>
           ) : (
             <>
               <p
-                class="mt-4 text-base leading-7 opacity-80 sm:text-lg sm:leading-relaxed lg:text-xl"
+                class="mt-4 text-base leading-7 text-ink-2 sm:text-lg sm:leading-relaxed lg:text-xl"
               >
                 {description}
               </p>
@@ -91,7 +91,7 @@ const hasMermaid = entry.body?.includes("```mermaid") ?? false;
           )
         }
 
-        <div class="mt-3 text-sm opacity-60">
+        <div class="mt-3 text-sm text-ink-2">
           {
             isArticle ? (
               <>
@@ -119,5 +119,5 @@ const hasMermaid = entry.body?.includes("```mermaid") ?? false;
 
       {hasMermaid && <MermaidRenderer />}
     </article>
-  </main>
+  </div>
 </BaseLayout>

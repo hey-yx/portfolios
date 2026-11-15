@@ -8,21 +8,21 @@ const placeholderWeeks = Array.from({ length: 53 }, () => Array.from({ length: 7
 ---
 
 <section class="mb-16" data-contribution-chart data-contribution-src={sourceUrl}>
-  <div class="mb-4 text-2xl font-bold leading-tight lg:text-4xl">今年的活跃状态</div>
-  <p class="max-w-3xl leading-7 opacity-80" data-contribution-summary>GitHub 贡献数据加载中。</p>
+  <h2 class="type-heading mb-4">今年的活跃状态</h2>
+  <p class="max-w-[40rem] type-body text-ink-2" data-contribution-summary role="status" aria-live="polite">GitHub 贡献数据加载中。</p>
 
   <div class="mt-6 overflow-x-auto rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm sm:p-5 lg:p-6" data-contribution-scroll>
     <div class="min-w-[40rem] sm:min-w-[44rem] lg:min-w-[48rem]">
       <div class="flex items-end justify-between gap-6">
         <div>
-          <div class="text-3xl font-bold sm:text-4xl lg:text-5xl" data-contribution-count>--</div>
-          <div class="mt-2 text-sm opacity-60">contributions in the last year</div>
+          <div class="text-2xl font-bold sm:text-3xl" data-contribution-count>--</div>
+          <div class="mt-2 text-sm text-ink-2">contributions in the last year</div>
         </div>
         <a
           href={profileUrl}
           target="_blank"
           rel="noopener noreferrer"
-          class="link link-hover whitespace-nowrap text-sm opacity-70"
+          class="link link-hover whitespace-nowrap text-sm text-ink-2"
         >
           GitHub
         </a>
@@ -196,7 +196,7 @@ const placeholderWeeks = Array.from({ length: 53 }, () => Array.from({ length: 7
       calendar.monthLabels.forEach((item, index) => {
         const label = document.createElement("span");
 
-        label.className = "absolute top-0 whitespace-nowrap text-sm opacity-60";
+        label.className = "absolute top-0 whitespace-nowrap text-sm text-ink-2";
 
         if (index === calendar.monthLabels.length - 1) {
           label.classList.add("-translate-x-full");

@@ -19,17 +19,22 @@ const articles = (await getCollection("articles"))
 
   <section class="grid w-full min-w-0 max-w-3xl gap-4">
     {
+      articles.length === 0 && (
+        <p class="border-b border-base-300 py-6 text-ink-2">还没有文章，先去项目页看看。</p>
+      )
+    }
+    {
       articles.map((article) => (
         <a
           href={getContentEntryPath("articles", article)}
           class="block min-w-0 border-b border-base-300 py-5 transition hover:border-base-content"
         >
           <div class="mb-2 flex flex-wrap items-center gap-2">
-            <time class="text-sm opacity-60">{dayjs(article.data.publishedDate).format("LL")}</time>
+            <time class="text-sm text-ink-2">{dayjs(article.data.publishedDate).format("LL")}</time>
             {article.data.tags?.map((tag) => <span class="badge badge-ghost badge-sm">{tag}</span>)}
           </div>
           <h2 class="break-words text-lg font-bold leading-snug sm:text-xl">{article.data.title}</h2>
-          <p class="mt-2 break-words leading-7 opacity-75">{article.data.description}</p>
+          <p class="mt-2 break-words leading-7 text-ink-2">{article.data.description}</p>
         </a>
       ))
     }
