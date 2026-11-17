@@ -45,6 +45,7 @@ export interface NewTabConfig {
     closeLabel: string;
     generalLabel: string;
     shortcutsLabel: string;
+    boardTitleLabel: string;
     nameLabel: string;
     homeLinkLabel: string;
     homeHrefLabel: string;
@@ -71,6 +72,19 @@ export interface NewTabConfig {
     statusReady: string;
     addGroupLabel: string;
     addShortcutLabel: string;
+    groupDialogCreateTitle: string;
+    groupDialogEditTitle: string;
+    groupDialogHint: string;
+    groupNamePlaceholder: string;
+    groupCreateSubmitLabel: string;
+    groupSaveSubmitLabel: string;
+    groupDuplicateError: string;
+    addShortcutToGroupLabel: string;
+    addShortcutNewGroupLabel: string;
+    boardSummaryEmptyLabel: string;
+    boardSummaryGroupsLabel: string;
+    boardSummarySitesLabel: string;
+    removedLabel: string;
     removeGroupLabel: string;
     removeShortcutLabel: string;
     editShortcutLabel: string;
@@ -129,6 +143,7 @@ export const newTabConfig: NewTabConfig = {
     closeLabel: "关闭",
     generalLabel: "基础",
     shortcutsLabel: "快捷方式",
+    boardTitleLabel: "快捷方式",
     nameLabel: "名称",
     homeLinkLabel: "首页文案",
     homeHrefLabel: "首页地址",
@@ -153,11 +168,24 @@ export const newTabConfig: NewTabConfig = {
     exportLabel: "导出 JSON",
     resetLabel: "恢复默认",
     statusReady: "本地配置",
-    addGroupLabel: "添加分组",
+    addGroupLabel: "新建分组",
     addShortcutLabel: "添加站点",
+    groupDialogCreateTitle: "新建分组",
+    groupDialogEditTitle: "修改分组",
+    groupDialogHint: "分组只用来归类站点，创建后可以随时改名。",
+    groupNamePlaceholder: "例如：工作、工具、常看的站",
+    groupCreateSubmitLabel: "创建",
+    groupSaveSubmitLabel: "保存",
+    groupDuplicateError: "已有同名分组",
+    addShortcutToGroupLabel: "所属分组",
+    addShortcutNewGroupLabel: "新建分组",
+    boardSummaryEmptyLabel: "还没有分组",
+    boardSummaryGroupsLabel: "个分组",
+    boardSummarySitesLabel: "个站点",
+    removedLabel: "删除",
     removeGroupLabel: "删除分组",
     removeShortcutLabel: "删除站点",
-    editShortcutLabel: "编辑",
+    editShortcutLabel: "修改站点",
     groupTitleLabel: "分组名",
     shortcutTitleLabel: "名称",
     shortcutUrlLabel: "地址",

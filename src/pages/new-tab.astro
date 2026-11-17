@@ -15,6 +15,7 @@ import {
   Plus,
   Spline,
   Search,
+  Settings,
   Trash2,
   X,
 } from "lucide-astro";
@@ -110,31 +111,41 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   </div>
 
   <section
-    class="new-tab-shell relative isolate z-10 mx-auto grid w-[min(100%,70rem)] gap-[clamp(1.5rem,3.5vh,2.25rem)] pt-[clamp(2rem,9vh,5.5rem)] max-sm:gap-7"
+    class="new-tab-shell relative isolate z-10 mx-auto w-[min(100%,66rem)]"
     aria-labelledby="new-tab-title"
     data-new-tab-page
     data-booting="true"
   >
     <h1 id="new-tab-title" class="sr-only">{newTabConfig.heading}</h1>
 
-    <div class="new-tab-toolbar flex items-end justify-between gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-3">
-      <div class="new-tab-greeting-block grid content-start gap-1.5">
+    <header class="new-tab-masthead">
+      <div class="new-tab-greeting-block">
         <p
-          class="new-tab-greeting m-0 text-[clamp(1.45rem,3vw,1.9rem)] font-normal leading-[1.18] tracking-[-0.015em] [font-family:var(--font-reading)]"
+          class="new-tab-greeting m-0"
           data-new-tab-greeting
           data-new-tab-color-target="navigation"
         ></p>
         <p
-          class="new-tab-date m-0 text-[0.82rem] font-medium tracking-[0.01em] text-ink-2"
+          class="new-tab-date m-0"
           data-new-tab-date
           data-new-tab-color-target="navigation"
         ></p>
       </div>
-      {/* 窄屏工具行自动折行：屏幕放不下就分两排，不挤压也不溢出 */}
-      <div class="new-tab-actions flex flex-wrap items-center justify-end gap-1.5 max-sm:justify-start max-sm:gap-1">
-        <div class="new-tab-layout relative" data-layout-switcher>
+
+      <details class="new-tab-tools" data-tools-menu>
+        <summary
+          class="new-tab-btn new-tab-btn--ghost new-tab-tools__trigger"
+          aria-label="更多工具"
+          title="更多工具"
+        >
+          <EllipsisVertical aria-hidden="true" />
+          <span class="new-tab-tools__label">更多</span>
+        </summary>
+        <div class="new-tab-tools__panel">
+          <div class="new-tab-actions">
+            <div class="new-tab-layout relative" data-layout-switcher>
           <button
-            class="new-tab-layout__trigger btn btn-ghost btn-sm h-8 min-h-8 gap-1.5 px-2.5 text-[0.82rem] font-medium transition-colors [&_svg]:h-4 [&_svg]:w-4"
+            class="new-tab-btn new-tab-btn--outline new-tab-layout__trigger"
             type="button"
             aria-haspopup="menu"
             aria-expanded="false"
@@ -147,17 +158,17 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             <span data-layout-trigger-icon="grid" class="grid place-items-center">
               <LayoutGrid aria-hidden="true" />
             </span>
-            <span data-layout-trigger-icon="stack" class="hidden grid place-items-center">
+            <span data-layout-trigger-icon="stack" class="hidden place-items-center">
               <Layers aria-hidden="true" />
             </span>
-            <span data-layout-trigger-icon="ring" class="hidden grid place-items-center">
+            <span data-layout-trigger-icon="ring" class="hidden place-items-center">
               <Spline aria-hidden="true" />
             </span>
-            <span data-layout-trigger-icon="scatter" class="hidden grid place-items-center">
+            <span data-layout-trigger-icon="scatter" class="hidden place-items-center">
               <Dices aria-hidden="true" />
             </span>
-            <span class="max-md:hidden" data-layout-trigger-label>网格</span>
-            <ChevronDown class="new-tab-layout__chevron h-3.5 w-3.5 opacity-55" aria-hidden="true" />
+            <span data-layout-trigger-label>布局：网格</span>
+            <ChevronDown class="new-tab-layout__chevron" aria-hidden="true" />
           </button>
           <div
             id="new-tab-layout-menu"
@@ -167,97 +178,69 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             data-layout-menu
             inert
           >
-            <button
-              class="new-tab-layout__item"
-              type="button"
-              role="menuitemradio"
-              aria-checked="true"
-              tabindex="-1"
-              data-layout-option="grid"
-            >
-              <span class="new-tab-layout__item-icon"><LayoutGrid class="h-4 w-4" aria-hidden="true" /></span>
+            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="true" tabindex="-1" data-layout-option="grid">
+              <span class="new-tab-layout__item-icon"><LayoutGrid aria-hidden="true" /></span>
               <span class="new-tab-layout__item-text">
                 <span class="new-tab-layout__item-label">网格</span>
-                <span class="new-tab-layout__item-hint">九宫格排列</span>
+                <span class="new-tab-layout__item-hint">等宽排成几行</span>
               </span>
-              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
             </button>
-            <button
-              class="new-tab-layout__item"
-              type="button"
-              role="menuitemradio"
-              aria-checked="false"
-              tabindex="-1"
-              data-layout-option="stack"
-            >
-              <span class="new-tab-layout__item-icon"><Layers class="h-4 w-4" aria-hidden="true" /></span>
+            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-layout-option="stack">
+              <span class="new-tab-layout__item-icon"><Layers aria-hidden="true" /></span>
               <span class="new-tab-layout__item-text">
                 <span class="new-tab-layout__item-label">堆叠</span>
-                <span class="new-tab-layout__item-hint">竖向叠成一摞</span>
+                <span class="new-tab-layout__item-hint">叠成一摞，悬停铺开</span>
               </span>
-              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
             </button>
-            <button
-              class="new-tab-layout__item"
-              type="button"
-              role="menuitemradio"
-              aria-checked="false"
-              tabindex="-1"
-              data-layout-option="ring"
-            >
-              <span class="new-tab-layout__item-icon"><Spline class="h-4 w-4" aria-hidden="true" /></span>
+            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-layout-option="ring">
+              <span class="new-tab-layout__item-icon"><Spline aria-hidden="true" /></span>
               <span class="new-tab-layout__item-text">
                 <span class="new-tab-layout__item-label">弧形</span>
-                <span class="new-tab-layout__item-hint">沿弧线排开</span>
+                <span class="new-tab-layout__item-hint">沿一条弧线排开</span>
               </span>
-              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
             </button>
-            <button
-              class="new-tab-layout__item"
-              type="button"
-              role="menuitemradio"
-              aria-checked="false"
-              tabindex="-1"
-              data-layout-option="scatter"
-            >
-              <span class="new-tab-layout__item-icon"><Dices class="h-4 w-4" aria-hidden="true" /></span>
+            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-layout-option="scatter">
+              <span class="new-tab-layout__item-icon"><Dices aria-hidden="true" /></span>
               <span class="new-tab-layout__item-text">
                 <span class="new-tab-layout__item-label">随机</span>
-                <span class="new-tab-layout__item-hint">每次点击重新散布</span>
+                <span class="new-tab-layout__item-hint">每次点击重新散开</span>
               </span>
-              <span class="new-tab-layout__item-check"><Check class="h-4 w-4" aria-hidden="true" /></span>
+              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
             </button>
           </div>
         </div>
-        <div>
-          <ThemeToggle
-            mobile={true}
-            triggerClass="h-8 min-h-8 w-8 p-0 [&_svg]:h-[1.05rem] [&_svg]:w-[1.05rem]"
-            colorTarget="navigation"
-          />
-        </div>
+
+        <ThemeToggle
+          mobile={false}
+          triggerClass="new-tab-btn"
+          colorTarget="navigation"
+        />
+
         <a
-          class="btn btn-ghost btn-sm h-8 min-h-8 gap-1.5 px-3 text-[0.82rem] font-medium transition-colors"
+          class="new-tab-btn new-tab-btn--ghost"
           href={newTabConfig.homeLink.href}
           data-home-link
           data-new-tab-color-target="navigation"
         >
           {newTabConfig.homeLink.label && <span data-home-link-label>{newTabConfig.homeLink.label}</span>}
-          <ArrowUpRight class="h-3.5 w-3.5 opacity-55" aria-hidden="true" />
+          <ArrowUpRight aria-hidden="true" />
         </a>
+
         <button
-          class="btn btn-ghost btn-sm h-8 min-h-8 gap-1.5 px-3 text-[0.82rem] font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5"
+          class="new-tab-btn new-tab-btn--ghost"
           type="button"
           data-shortcut-add
           data-new-tab-color-target="navigation"
-          aria-label={newTabConfig.settings.addShortcutLabel}
-          title={newTabConfig.settings.addShortcutLabel}
         >
           <Plus aria-hidden="true" />
-          <span class="max-sm:hidden">{newTabConfig.settings.addShortcutLabel}</span>
+          <span>{newTabConfig.settings.addShortcutLabel}</span>
         </button>
+
         <button
-          class="btn btn-ghost btn-sm h-8 min-h-8 px-3.5 text-[0.82rem] font-medium transition-colors"
+          class="new-tab-btn new-tab-btn--outline"
           type="button"
           data-config-open
           aria-haspopup="dialog"
@@ -265,22 +248,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           aria-controls="new-tab-config-panel"
           data-new-tab-color-target="navigation"
         >
-          {newTabConfig.settings.openLabel}
+          <Settings aria-hidden="true" />
+          <span>{newTabConfig.settings.openLabel}</span>
         </button>
+
         <button
-          class="btn btn-ghost btn-sm h-8 min-h-8 w-8 p-0 transition-colors [&_svg]:h-4 [&_svg]:w-4"
-          type="button"
-          title={newTabConfig.settings.notesLabel}
-          aria-label={newTabConfig.settings.notesLabel}
-          aria-haspopup="dialog"
-          aria-expanded="false"
-          data-notes-open
-          data-new-tab-color-target="navigation"
-        >
-          <Info aria-hidden="true" />
-        </button>
-        <button
-          class="btn btn-ghost btn-sm h-8 min-h-8 w-8 p-0 transition-colors [&_svg]:h-4 [&_svg]:w-4"
+          class="new-tab-btn new-tab-btn--icon new-tab-btn--ghost"
           type="button"
           title="收起问候"
           aria-label="收起问候"
@@ -289,41 +262,60 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           data-new-tab-color-target="navigation"
         >
           <ChevronUp aria-hidden="true" />
+          <span>收起问候</span>
         </button>
-      </div>
+          </div>
+        </div>
+      </details>
+    </header>
+
+    <div class="new-tab-search-row">
+      <form
+        class="new-tab-search"
+        role="search"
+        data-new-tab-search
+      >
+        <label class="sr-only" for="new-tab-query">搜索关键词</label>
+        <span class="new-tab-search__icon" aria-hidden="true">
+          <Search />
+        </span>
+        <input
+          id="new-tab-query"
+          class="new-tab-search__input"
+          type="search"
+          name="q"
+          autocomplete="off"
+          placeholder={newTabConfig.search.placeholder}
+          data-search-query
+        />
+        <button
+          class="new-tab-search__submit"
+          type="submit"
+          aria-label={newTabConfig.search.submitLabel}
+          title={newTabConfig.search.submitLabel}
+        >
+          <Search aria-hidden="true" />
+          <span class="new-tab-search__submit-label">{newTabConfig.search.submitLabel}</span>
+        </button>
+      </form>
+      <p class="new-tab-search-hint">
+        按 Enter 搜索 · <span data-search-engine-label>Google</span>
+      </p>
     </div>
 
-    <form
-      class="new-tab-search flex w-full min-w-[16rem] max-w-[70rem] items-stretch border border-base-content/10 bg-base-100 transition-colors duration-200 focus-within:border-base-content/30"
-      role="search"
-      data-new-tab-search
-    >
-      <label class="sr-only" for="new-tab-query">搜索关键词</label>
-      <span class="grid w-10 shrink-0 place-items-center pl-3 text-ink-3" aria-hidden="true">
-        <Search class="h-[1.05rem] w-[1.05rem]" />
-      </span>
-      <input
-        id="new-tab-query"
-        class="new-tab-search__input h-12 min-w-0 flex-1 border-0 bg-transparent px-2.5 text-base text-base-content outline-none placeholder:text-ink-2 sm:text-[0.95rem]"
-        type="search"
-        name="q"
-        autocomplete="off"
-        placeholder={newTabConfig.search.placeholder}
-        data-search-query
-      />
-      <span class="new-tab-search__divider my-[0.7rem] w-px shrink-0 bg-base-content/10" aria-hidden="true"></span>
+    <section class="new-tab-board" aria-label="快捷网站">
+      <div class="shortcut-stack" aria-label="快捷网站" data-shortcut-stack></div>
       <button
-        class="btn h-auto min-h-0 w-12 shrink-0 rounded-none border-0 bg-base-content text-base-100 hover:bg-base-content/85 focus-visible:bg-base-content/85 sm:w-auto sm:px-5"
-        type="submit"
-        aria-label={newTabConfig.search.submitLabel}
-        title={newTabConfig.search.submitLabel}
+        class="new-tab-group-add"
+        type="button"
+        data-group-add
+        aria-haspopup="dialog"
+        aria-expanded="false"
       >
-        <Search class="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
-        <span class="new-tab-search__submit-label hidden text-[0.82rem] font-medium sm:inline">{newTabConfig.search.submitLabel}</span>
+        <Plus aria-hidden="true" />
+        <span>{newTabConfig.settings.addGroupLabel}</span>
       </button>
-    </form>
-
-    <div class="shortcut-stack grid gap-6 max-sm:gap-5" aria-label="快捷网站" data-shortcut-stack></div>
+    </section>
   </section>
 
   {/* 恢复按钮同样移出 shell：它是 fixed，留在里面会被 shell 的入场缩放当成包含块。 */}
@@ -336,6 +328,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   >
     <ChevronUp aria-hidden="true" />
   </button>
+
+  <div class="new-tab-toast" role="status" aria-live="polite" data-new-tab-toast hidden></div>
 
   {/* 两个抽屉共用一套开合规则：data-open 是唯一开关。
       进出都走同一条 transition——进场 translate-x-full → 0，出场 0 → translate-x-full，
@@ -465,6 +459,15 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         <button class="btn btn-sm btn-ghost" type="button" data-config-reset>
           {newTabConfig.settings.resetLabel}
         </button>
+        <button
+          class="new-tab-config__notes-link"
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          data-notes-open
+        >
+          {newTabConfig.settings.notesLabel}
+        </button>
       </div>
     </aside>
   </div>
@@ -537,166 +540,1086 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   <script is:inline type="application/json" id="new-tab-defaults" set:html={serializedDefaultNewTabPayload} />
 
   <style is:inline>
+    /* Hallmark · macrostructure: Index-First (launcher surface) · tone: quiet utilitarian · anchor hue: Tencent Blue
+       UISpecs 基准规范：TDesign。取值记录见 docs/设计取值记录.md，缺口见 docs/设计缺口.md。 */
+
     /* new-tab 是单屏工具页，不走 BaseLayout 的阅读宽度：main 的 max-w-5xl 会把 shell
-       自己的 70rem 卡回 928px，lg:px-12 又会再吃掉左右各 48px——用户要「左右空隙少一点」。
-       注意 max-width 不能设成 none：main 靠 mx-auto + max-width 居中，置 none 会让它
-       贴左（1512 屏实测 x=0、右侧空 392px）。改成 100% 保持弹性宽度，居中交给 shell 自己。 */
+       自己的 70rem 卡回 928px，lg:px-12 又会再吃掉左右各 48px。 */
     main:has([data-new-tab-page]) {
       padding: 0;
       max-width: 100%;
     }
 
-    /* 滚动条交给浏览器默认行为：内容放不下才出现、能滚，放得下就不出现。
-       不要用 scrollbar-gutter 固定占槽，也不要 overflow: clip 剪掉溢出内容——
-       那会造成"占着滚动条区域却不能滚"。 */
-
-    /* new-tab 动效（全局样式，绕过 Tailwind purge）：布局补间 / 入场 / 问候与搜索收起、挂起 */
-    [data-new-tab-page].new-tab-shell {
-      align-items: end;
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-areas:
-        "toolbar"
-        "search"
-        "stack";
-      transition: padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    /* 宽屏（≥640px）：问候语与日期独占最顶一行，搜索框与功能按钮并排第二行，快捷区垫底——
-       用户原话「搜索栏和操作的那几个功能在一行内，那个 xx好，Ethanz888 再往上移」。
-       工具栏在宽屏始终 display: contents，让 greeting-block 与 actions 各自成为 shell 的
-       直接网格项。关键是「始终」：以前只有展开态拆、收起态收回 flex，折叠第一帧
-       display 从 contents 跳成 flex，工具栏凭空长出 446px 的盒，用户原话
-       「折叠过程中操作栏区域过渡有一点卡顿僵硬」——实测就是这一下。
-
-       列宽一律写 minmax(0, Xrem)，不用 fit-content：fit-content 与 minmax 是不同类型的
-       轨道，二者之间 transition: grid-template-columns 不生效，浏览器直接一步跳到终值
-       （实测 t=56ms cols=734px → t=63ms cols=352px，actions 同步从 x=763 瞬移到 x=380）。
-       同类型轨道才能逐帧补间。areas 也全程不变，同理——areas 变了元素的行列映射立即重算，
-       同样不补间（实测 search 宽度 658 → 1120 一步跳）。
-       收起态靠问候语自己的 max-height 归零让位，搜索框与功能按钮的位置都不动。
-       封顶值分三档：宽屏 28rem（七个控件带文字全展开约 448px）常规桌面单行放得下；
-       640~899px 收 22rem、640~699px 再收 18rem，逼 flex-wrap 折成两行，
-       否则搜索框被挤到和功能行重叠（实测 640px 重叠 110px、700px 重叠 50px）。
-       提醒：grid-template-areas 每行 token 数必须等于列数（这里是 2），写成单 token 的
-       跨行形状会被浏览器整条静默丢弃。 */
-    @media (min-width: 640px) {
-      [data-new-tab-page].new-tab-shell {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
-        grid-template-areas:
-          "greeting greeting"
-          "search actions"
-          "stack stack";
-        transition:
-          padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-          grid-template-columns 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
-      @media (min-width: 640px) and (max-width: 899px) {
-        [data-new-tab-page].new-tab-shell {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
-        }
-      }
-
-      /* 640 这一档 shell 只有约 592px：搜索框保底 16rem(256px) + 列间距 32px 后，
-         功能行只剩约 300px。22rem(352px) 还会重叠 16px，收到 18rem(288px) 刚好放下
-         四个图标钮，带文字的按钮折到第二行。 */
-      @media (min-width: 640px) and (max-width: 699px) {
-        [data-new-tab-page].new-tab-shell {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
-        }
-      }
-
-      [data-new-tab-page] .new-tab-toolbar {
-        display: contents;
-        gap: 0;
-      }
-
-      [data-new-tab-page] .new-tab-greeting-block {
-        grid-area: greeting;
-      }
-
-      [data-new-tab-page] .new-tab-actions {
-        grid-area: actions;
-        align-self: center;
-        justify-content: flex-end;
-      }
-
-      /* 聚焦即撑满，但功能按钮不许换行：搜索框在自己的格子里从 22rem 过渡到 100%，
-         按钮留在第二列原位。这里刻意不切单列网格——切成单列 actions 会被推到下一行
-         （用户原话「不要让右侧功能换行」），而且 areas 变形不补间、位置是瞬移。 */
-      [data-new-tab-page]:has(.new-tab-search:focus-within) .new-tab-search {
-        max-width: 100%;
-      }
-    }
-
-    /* ── 布局选择弹窗（选型）────────────────────────────────────────
-       四选一的单选菜单，不是操作菜单：role=menu + menuitemradio。
-       数值全部来自 TDesign，出处见 reports/portfolios-newtab-ui-20261115/LEDGER.md；
-       圆角 8 / 4 为派生档，菜单宽度按两行说明实测取整。 */
-    [data-layout-switcher] {
-      --ntab-menu-surface: #ffffff;
-      --ntab-menu-border: #e8e8e8;
-      --ntab-menu-hover: #f3f3f3;
-      --ntab-menu-active: #f3f3f3;
-      --ntab-menu-ink: rgba(0, 0, 0, 0.9);
-      --ntab-menu-ink-2: rgba(0, 0, 0, 0.6);
-      --ntab-menu-accent: #0052d9;
-      --ntab-menu-shadow: 0 12px 32px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.08);
-      --ntab-menu-enter: 240ms;
-      --ntab-menu-exit: 200ms;
+    [data-new-tab-page] {
+      /* 跟全站同一套墨色，不引入组件库品牌色。 */
+      --ntab-accent: var(--ink-1);
+      --ntab-focus: var(--ink-1);
+      --ntab-radius-control: 2px;
+      --ntab-radius-card: 8px;
+      --ntab-radius-panel: var(--radius-panel);
+      --ntab-duration-fast: 200ms;
+      --ntab-duration-base: 240ms;
+      --ntab-duration-slow: 280ms;
+      --ntab-ease-standard: cubic-bezier(0.38, 0, 0.24, 1);
       --ntab-ease-enter: cubic-bezier(0, 0, 0.15, 1);
       --ntab-ease-exit: cubic-bezier(0.82, 0, 1, 0.9);
+      --ntab-line-strong: color-mix(in srgb, var(--ink-1) 26%, transparent);
+      --ntab-card-bg: color-mix(in srgb, var(--ink-1) 6%, var(--surface-1));
+      --ntab-card-border: transparent;
+      --ntab-card-ink: var(--ink-1);
+      --ntab-card-ink-2: var(--ink-2);
+      --ntab-card-label-shadow: none;
     }
 
-    [data-theme="black"] [data-layout-switcher] {
-      --ntab-menu-surface: #181818;
-      --ntab-menu-border: #2c2c2c;
-      --ntab-menu-hover: #242424;
-      --ntab-menu-active: #242424;
-      --ntab-menu-ink: rgba(255, 255, 255, 0.9);
-      --ntab-menu-ink-2: rgba(255, 255, 255, 0.6);
-      --ntab-menu-accent: #2174ff;
-      --ntab-menu-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.45);
+    [data-theme="black"] [data-new-tab-page] {
+      --ntab-accent: var(--ink-1);
+      --ntab-focus: var(--ink-1);
     }
 
-    [data-layout-switcher] .new-tab-layout__trigger:focus-visible {
-      outline: 2px solid var(--ntab-menu-accent);
+    /* ── 工具入口：所有管理动作收进一个「…」面板 ───────────────────── */
+    .new-tab-tools {
+      position: relative;
+      flex: none;
+      margin-left: auto;
+    }
+
+    .new-tab-tools__trigger {
+      width: auto;
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .new-tab-tools__label {
+      font: 500 12px/20px var(--font-sans);
+    }
+
+    .new-tab-tools__trigger::-webkit-details-marker {
+      display: none;
+    }
+
+    .new-tab-tools__trigger::marker {
+      content: "";
+    }
+
+    .new-tab-tools__trigger:focus-visible {
+      outline: 2px solid var(--ntab-focus);
       outline-offset: 2px;
     }
 
-    [data-layout-switcher] .new-tab-layout__chevron {
-      transition: transform var(--ntab-menu-exit) var(--ntab-ease-exit);
+    .new-tab-tools:not([open]) .new-tab-tools__panel {
+      display: none;
+    }
+
+    .new-tab-tools__panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 60;
+      width: 15rem;
+      padding: 6px;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-panel);
+      background: var(--surface-1);
+      box-shadow: var(--shadow-pop);
+    }
+
+    .new-tab-tools__panel .new-tab-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-height: none;
+      transition: none;
+    }
+
+    .new-tab-tools__panel .new-tab-btn,
+    .new-tab-tools__panel .new-tab-actions .btn,
+    .new-tab-tools__panel [data-home-link] {
+      justify-content: flex-start;
+      width: 100%;
+      height: 34px;
+      min-height: 34px;
+      padding: 0 9px;
+      border-color: transparent;
+      text-align: left;
+    }
+
+    .new-tab-tools__panel .new-tab-layout,
+    .new-tab-tools__panel .theme-switcher {
+      grid-column: 1 / -1;
+      justify-self: stretch;
+      width: 100%;
+    }
+
+    .new-tab-tools__panel .new-tab-layout__trigger {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .new-tab-tools__panel [data-layout-trigger-label],
+    .new-tab-tools__panel [data-home-link] span {
+      display: inline;
+    }
+
+    .new-tab-tools__panel .new-tab-layout__menu {
+      top: calc(100% + 6px);
+      right: 0;
+      left: auto;
+    }
+
+    .new-tab-tools__panel .new-tab-actions .btn:hover,
+    .new-tab-tools__panel .new-tab-btn:hover,
+    .new-tab-tools__panel [data-home-link]:hover {
+      background: color-mix(in srgb, var(--ink-1) 6%, transparent);
+    }
+
+    @media (max-width: 767px) {
+      .new-tab-tools {
+        align-self: flex-end;
+      }
+
+      .new-tab-tools__trigger {
+        width: 30px;
+        padding: 0;
+      }
+
+      .new-tab-tools__label {
+        display: none;
+      }
+
+      .new-tab-tools__panel {
+        right: 0;
+        width: min(15rem, calc(100vw - 32px));
+      }
+    }
+
+    /* 页面骨架：问候、搜索、快捷区三段纵向排。首屏整页缩放上浮入场；
+       弧形档在下方单独降级，避免固定坞被 transform 当成包含块。 */
+    [data-new-tab-page].new-tab-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      padding: clamp(2rem, 9vh, 5.5rem) 24px 3rem;
+      animation: ntab-page-in 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    /* 刷新/首次加载：整页像窗口打开一样突到眼前，再带一点上浮。
+       缩放收底边、上浮压顶边，中间态不会把文档顶高闪滚动条，结束即释放 transform。 */
+    @keyframes ntab-page-in {
+      from {
+        opacity: 0;
+        transform: translateY(0.9rem) scale(0.94);
+      }
+    }
+
+    /* 背景层与页面同一口气入场；宿主在 shell 外，缩放不会影响 fixed 布局。 */
+    [data-new-tab-background-host] {
+      animation: ntab-bg-in 600ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    @keyframes ntab-bg-in {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+    }
+
+    /* 弧形坞固定在视口底部，shell 一旦有 transform 会被当成包含块拽进内容区；
+       这一档把入场拆给问候、工具、搜索和坞本身。 */
+    html[data-new-tab-layout="ring"] [data-new-tab-page].new-tab-shell {
+      animation: none;
+    }
+
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-greeting-block,
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-actions,
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search-row {
+      animation: ntab-rise 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-actions {
+      animation-delay: 40ms;
+    }
+
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search-row {
+      animation-delay: 80ms;
+    }
+
+    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-arc-dock {
+      animation: ntab-dock-in 550ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    @keyframes ntab-rise {
+      from {
+        opacity: 0;
+        transform: translateY(0.7rem);
+      }
+    }
+
+    @keyframes ntab-dock-in {
+      from {
+        opacity: 0;
+        transform: translateY(1.4rem);
+      }
+    }
+
+    /* ── 问候与工具行 ─────────────────────────────────────────────── */
+    .new-tab-masthead {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      min-width: 0;
+      max-height: 12rem;
+      transition:
+        opacity var(--ntab-duration-fast) ease,
+        transform var(--ntab-duration-base) var(--ntab-ease-standard),
+        max-height var(--ntab-duration-base) var(--ntab-ease-standard);
+    }
+
+    .new-tab-greeting-block {
+      display: grid;
+      min-width: 0;
+      gap: 4px;
+      max-height: 6rem;
+      transition:
+        opacity var(--ntab-duration-fast) ease,
+        transform var(--ntab-duration-base) var(--ntab-ease-standard),
+        max-height var(--ntab-duration-base) var(--ntab-ease-standard);
+    }
+
+    .new-tab-greeting {
+      color: var(--ink-1);
+      font: 400 clamp(1.45rem, 3vw, 1.9rem) / 1.18 var(--font-reading);
+      letter-spacing: -0.015em;
+      overflow-wrap: anywhere;
+    }
+
+    .new-tab-date {
+      color: var(--ink-2);
+      font: 500 0.82rem / 1.4 var(--font-sans);
+      letter-spacing: 0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .new-tab-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 0;
+      max-height: 10rem;
+      transition:
+        opacity 300ms ease,
+        transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
+        max-height 420ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 0s;
+    }
+
+    /* 工具行沿用项目的低对比按钮：30px 高、2px 圆角、默认无描边。 */
+    [data-new-tab-page] .new-tab-btn,
+    [data-new-tab-page] .new-tab-actions .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 30px;
+      min-height: 30px;
+      padding: 0 8px;
+      border: 1px solid transparent;
+      border-radius: var(--ntab-radius-control);
+      background: transparent;
+      color: color-mix(in srgb, var(--ink-1) 62%, transparent);
+      font: 500 13px/20px var(--font-sans);
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+      transition:
+        background-color var(--ntab-duration-fast) var(--ntab-ease-standard),
+        border-color var(--ntab-duration-fast) var(--ntab-ease-standard),
+        color var(--ntab-duration-fast) var(--ntab-ease-standard);
+    }
+
+    [data-new-tab-page] .new-tab-btn svg,
+    [data-new-tab-page] .new-tab-actions .btn svg {
+      width: 16px;
+      height: 16px;
+      flex: none;
+    }
+
+    [data-new-tab-page] .new-tab-btn:hover,
+    [data-new-tab-page] .new-tab-actions .btn:hover {
+      background: color-mix(in srgb, var(--ink-1) 7%, transparent);
+      color: var(--ink-1);
+    }
+
+    [data-new-tab-page] .new-tab-btn--outline {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    [data-new-tab-page] .new-tab-btn--outline:hover {
+      border-color: transparent;
+      background: color-mix(in srgb, var(--ink-1) 6%, transparent);
+    }
+
+    [data-new-tab-page] .new-tab-btn--ghost {
+      color: var(--ink-2);
+    }
+
+    [data-new-tab-page] .new-tab-btn--ghost:hover {
+      color: var(--ink-1);
+    }
+
+    [data-new-tab-page] .new-tab-btn--icon {
+      width: 30px;
+      padding: 0;
+    }
+
+    [data-new-tab-page] .new-tab-btn:focus-visible,
+    [data-new-tab-page] .new-tab-actions .btn:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: 2px;
+    }
+
+    .new-tab-layout__chevron {
+      width: 14px;
+      height: 14px;
+      opacity: 0.6;
+      transition: transform var(--ntab-duration-fast) var(--ntab-ease-exit);
     }
 
     [data-layout-switcher][data-open] .new-tab-layout__chevron {
       transform: rotate(180deg);
-      transition-duration: var(--ntab-menu-enter);
+      transition-duration: var(--ntab-duration-base);
       transition-timing-function: var(--ntab-ease-enter);
     }
 
+    /* ── 搜索 ─────────────────────────────────────────────────────── */
+    .new-tab-search-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+      max-height: 7rem;
+      transition:
+        opacity var(--ntab-duration-fast) ease,
+        transform var(--ntab-duration-base) var(--ntab-ease-standard),
+        max-height var(--ntab-duration-base) var(--ntab-ease-standard);
+    }
+
+    [data-new-tab-page] .new-tab-search {
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+      max-width: 22rem;
+      height: 48px;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line-1);
+      border-radius: 0;
+      background: var(--surface-1);
+      transition:
+        max-width var(--ntab-duration-base) var(--ntab-ease-standard),
+        border-color var(--ntab-duration-fast) ease;
+    }
+
+    [data-new-tab-page] .new-tab-search:focus-within {
+      max-width: 100%;
+      border-color: var(--ntab-line-strong);
+    }
+
+    .new-tab-search__icon {
+      display: grid;
+      width: 40px;
+      flex: none;
+      place-items: center;
+      color: var(--ink-2);
+    }
+
+    .new-tab-search__icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    [data-new-tab-page] .new-tab-search__input {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      border: 0;
+      background: transparent;
+      padding: 0 4px;
+      color: var(--ink-1);
+      font: 400 16px/24px var(--font-sans);
+      outline: none;
+    }
+
+    [data-new-tab-page] .new-tab-search__input::placeholder {
+      color: var(--ink-2);
+    }
+
+    [data-new-tab-page] .new-tab-search__input::-webkit-search-cancel-button {
+      margin-right: 8px;
+    }
+
+    [data-new-tab-page] .new-tab-search__submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex: none;
+      height: 100%;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 0;
+      background: var(--ink-1);
+      color: var(--surface-1);
+      font: 500 13px/20px var(--font-sans);
+      cursor: pointer;
+      transition: background-color var(--ntab-duration-fast) var(--ntab-ease-standard);
+    }
+
+    [data-new-tab-page] .new-tab-search__submit svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    [data-new-tab-page] .new-tab-search__submit:hover {
+      background: color-mix(in srgb, var(--ink-1) 86%, var(--surface-1));
+    }
+
+    [data-new-tab-page] .new-tab-search__submit:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: -4px;
+    }
+
+    .new-tab-search-hint {
+      margin: 0;
+      color: var(--ink-2);
+      font: 400 12px/20px var(--font-sans);
+      white-space: nowrap;
+    }
+
+    /* ── 快捷区 ───────────────────────────────────────────────────── */
+    .new-tab-board {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      min-width: 0;
+    }
+
+    [data-new-tab-page] .new-tab-group-add {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px dashed var(--line-1);
+      border-radius: var(--ntab-radius-control);
+      background: transparent;
+      color: var(--ink-2);
+      font: 500 13px/20px var(--font-sans);
+      cursor: pointer;
+      transition:
+        border-color var(--ntab-duration-fast) ease,
+        color var(--ntab-duration-fast) ease,
+        background-color var(--ntab-duration-fast) ease;
+    }
+
+    [data-new-tab-page] .new-tab-group-add svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    [data-new-tab-page] .new-tab-group-add:hover {
+      border-color: var(--ntab-line-strong);
+      background: color-mix(in srgb, var(--ink-1) 4%, transparent);
+      color: var(--ink-1);
+    }
+
+    [data-new-tab-page][data-has-groups="false"] .new-tab-group-add {
+      display: none;
+    }
+
+    .new-tab-board__bar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line-1);
+    }
+
+    .new-tab-board__heading {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .new-tab-board__title {
+      margin: 0;
+      color: var(--ink-1);
+      font: 600 16px/24px var(--font-sans);
+    }
+
+    .new-tab-board__summary {
+      margin: 0;
+      color: var(--ink-2);
+      font: 400 12px/20px var(--font-sans);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .new-tab-board__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    [data-new-tab-page][data-has-groups="false"] .new-tab-board__bar {
+      display: none;
+    }
+
+    [data-shortcut-stack] {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      min-width: 0;
+    }
+
+    .shortcut-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .shortcut-group__summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .shortcut-group__title {
+      color: var(--ink-2);
+      font: 600 14px/20px var(--font-sans);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .shortcut-group__count {
+      color: var(--ink-2);
+      font: 500 11px/18px var(--font-sans);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .shortcut-group__empty {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      width: fit-content;
+      padding: 2px 0 4px;
+      border: 0;
+      background: transparent;
+      color: var(--ink-3);
+      font: 400 12px/18px var(--font-sans);
+      cursor: pointer;
+      transition: color var(--ntab-duration-fast) ease;
+    }
+
+    .shortcut-group__empty svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .shortcut-group__empty:hover {
+      color: var(--ink-1);
+    }
+
+    .shortcut-group__rule {
+      height: 1px;
+      min-width: 24px;
+      flex: 1;
+      background: var(--line-1);
+    }
+
+    .shortcut-group__actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: none;
+    }
+
+    [data-new-tab-page] .new-tab-group-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      border-radius: var(--ntab-radius-control);
+      background: transparent;
+      color: var(--ink-2);
+      font: 500 12px/20px var(--font-sans);
+      opacity: 0;
+      cursor: pointer;
+      transition:
+        opacity var(--ntab-duration-fast) ease,
+        background-color var(--ntab-duration-fast) ease,
+        color var(--ntab-duration-fast) ease;
+    }
+
+    [data-new-tab-page] .new-tab-group-action svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .shortcut-group__summary:hover .new-tab-group-action,
+    .shortcut-group__summary:focus-within .new-tab-group-action,
+    [data-new-tab-page] .new-tab-group-action:focus-visible {
+      opacity: 1;
+    }
+
+    [data-new-tab-page] .new-tab-group-action:hover {
+      background: color-mix(in srgb, var(--ink-1) 6%, transparent);
+      color: var(--ink-1);
+    }
+
+    [data-new-tab-page] .new-tab-group-action:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: 2px;
+    }
+
+    [data-new-tab-page] .shortcut-drag-handle {
+      display: grid;
+      width: 16px;
+      height: 20px;
+      place-items: center;
+      flex: none;
+      border: 0;
+      background: transparent;
+      color: var(--ink-3);
+      opacity: 0;
+      cursor: grab;
+      transition: opacity var(--ntab-duration-fast) ease, color var(--ntab-duration-fast) ease;
+    }
+
+    [data-new-tab-page] .shortcut-drag-handle svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .shortcut-group__summary:hover .shortcut-drag-handle,
+    .new-tab-group-action:focus-visible + .shortcut-drag-handle,
+    [data-new-tab-page] .shortcut-drag-handle:focus-visible {
+      opacity: 1;
+    }
+
+    [data-new-tab-page] .shortcut-drag-handle:hover {
+      color: var(--ink-2);
+    }
+
+    [data-new-tab-page] .shortcut-group__menu {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      min-height: 28px;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      border-radius: var(--ntab-radius-control);
+      background: transparent;
+      color: var(--ink-2);
+      opacity: 0;
+      cursor: pointer;
+      transition: opacity var(--ntab-duration-fast) ease, background-color var(--ntab-duration-fast) ease;
+    }
+
+    [data-new-tab-page] .shortcut-group__menu svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .shortcut-group__summary:hover .shortcut-group__menu,
+    [data-new-tab-page] .shortcut-group__menu:focus-visible {
+      opacity: 1;
+    }
+
+    [data-new-tab-page] .shortcut-group__menu:hover {
+      background: color-mix(in srgb, var(--ink-1) 6%, transparent);
+      color: var(--ink-1);
+    }
+
+    @media (max-width: 767px) {
+      [data-new-tab-page] .shortcut-group__menu {
+        opacity: 1;
+      }
+
+      [data-new-tab-page] .shortcut-group__actions .new-tab-group-action {
+        width: 32px;
+        height: 32px;
+        justify-content: center;
+        padding: 0;
+        opacity: 1;
+      }
+
+      [data-new-tab-page] .shortcut-group__actions .new-tab-group-action span:last-child {
+        display: none;
+      }
+
+      [data-new-tab-page] .shortcut-group__menu {
+        width: 32px;
+        height: 32px;
+      }
+
+      [data-new-tab-page] .shortcut-drag-handle {
+        display: none;
+      }
+    }
+
+    [data-shortcut-stack] .shortcut-group__items {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 10px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    /* 卡片：跟原页面一致，浅灰底、直角、无描边，悬停只提亮。 */
+    [data-shortcut-stack] .shortcut-item-shell {
+      position: relative;
+      z-index: 0;
+      width: 80px;
+      height: 96px;
+      flex: none;
+      cursor: grab;
+      transition:
+        transform 550ms cubic-bezier(0.22, 1, 0.36, 1),
+        z-index 0s;
+    }
+
+    /* 首帧画布直接落位，不补间；data-booting 在两帧后摘掉。 */
+    [data-new-tab-page][data-booting="true"] [data-shortcut-stack] .shortcut-item-shell {
+      transition: none;
+    }
+
+    [data-shortcut-stack] .shortcut-item-shell:hover,
+    [data-shortcut-stack] .shortcut-item-shell:focus-within {
+      z-index: 30;
+    }
+
+    [data-shortcut-stack] .shortcut-item-shell:active {
+      cursor: grabbing;
+    }
+
+    [data-shortcut-stack] .shortcut-item {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      overflow: hidden;
+      border: 1px solid var(--ntab-card-border);
+      border-radius: 0;
+      background: var(--ntab-card-bg);
+      color: var(--ntab-card-ink);
+      padding: 10px 6px;
+      font: inherit;
+      text-align: center;
+      text-decoration: none;
+      transition:
+        transform var(--ntab-duration-fast) var(--ntab-ease-standard),
+        background-color var(--ntab-duration-fast) var(--ntab-ease-standard),
+        border-color var(--ntab-duration-fast) var(--ntab-ease-standard);
+    }
+
+    [data-shortcut-stack] .shortcut-item:hover,
+    [data-shortcut-stack] .shortcut-item:focus-visible {
+      transform: translateY(-2px);
+      border-color: transparent;
+      background: color-mix(in srgb, var(--ink-1) 8%, var(--surface-1));
+    }
+
+    [data-shortcut-stack] .shortcut-item:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: 2px;
+    }
+
+    [data-shortcut-stack] .shortcut-item:active {
+      transform: translateY(0);
+      transition-duration: 100ms;
+    }
+
+    [data-shortcut-stack] .shortcut-item__icon {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      flex: none;
+      place-items: center;
+      overflow: hidden;
+      background: transparent;
+      transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    [data-shortcut-stack] .shortcut-item:hover .shortcut-item__icon,
+    [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__icon {
+      transform: scale(1.05);
+    }
+
+    [data-shortcut-stack] .shortcut-item__icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
+    }
+
+    [data-shortcut-stack] .shortcut-item__initial {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      color: var(--ntab-card-ink-2);
+      font: 600 16px/1 var(--font-sans);
+      font-variant-numeric: tabular-nums;
+    }
+
+    [data-shortcut-stack] .shortcut-item__initial.hidden {
+      display: none;
+    }
+
+    [data-shortcut-stack] .shortcut-item__label {
+      display: grid;
+      width: 100%;
+      min-width: 0;
+      gap: 1px;
+      justify-items: center;
+    }
+
+    /* 堆叠模式只露出卡片左侧一条：内容靠左，标题从第一个字开始可见。 */
+    html[data-new-tab-layout="stack"] [data-shortcut-stack] .shortcut-item {
+      align-items: flex-start;
+      padding-left: 12px;
+      text-align: left;
+    }
+
+    html[data-new-tab-layout="stack"] [data-shortcut-stack] .shortcut-item__label {
+      justify-items: start;
+    }
+
+    [data-shortcut-stack] .shortcut-item__label strong {
+      display: block;
+      width: 100%;
+      overflow: hidden;
+      color: var(--ntab-card-ink);
+      font: 500 13px/18px var(--font-sans);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-shadow: var(--ntab-card-label-shadow);
+    }
+
+    [data-shortcut-stack] .shortcut-item__label small {
+      display: block;
+      width: 100%;
+      overflow: hidden;
+      color: var(--ntab-card-ink-2);
+      font: 400 11px/15px var(--font-sans);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* 深浅色文字模式：卡片跟着换底，保证真实 favicon 与文字都看得清。 */
+    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item {
+      --ntab-card-bg: #0f1013;
+      --ntab-card-border: rgba(255, 255, 255, 0.14);
+      --ntab-card-ink: #f8fafc;
+      --ntab-card-ink-2: rgba(248, 250, 252, 0.68);
+    }
+
+    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item:hover,
+    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item:focus-visible {
+      background: #1a1c21;
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item {
+      --ntab-card-bg: #f4f4f6;
+      --ntab-card-border: rgba(0, 0, 0, 0.12);
+      --ntab-card-ink: #111827;
+      --ntab-card-ink-2: rgba(17, 24, 39, 0.66);
+    }
+
+    html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item:hover,
+    html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item:focus-visible {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.22);
+    }
+
+    /* 有背景图时卡片改成半透明底，照片上文字补一道投影。 */
+    html[data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item {
+      --ntab-card-label-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(10px);
+    }
+
+    html[data-new-tab-background="true"][data-item-tone="dark"] [data-shortcut-stack] .shortcut-item {
+      --ntab-card-bg: rgba(8, 10, 14, 0.66);
+      --ntab-card-border: rgba(255, 255, 255, 0.2);
+    }
+
+    html[data-new-tab-background="true"][data-item-tone="light"] [data-shortcut-stack] .shortcut-item {
+      --ntab-card-bg: rgba(255, 255, 255, 0.76);
+      --ntab-card-border: rgba(0, 0, 0, 0.14);
+    }
+
+    [data-shortcut-stack] .shortcut-item__tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      z-index: 40;
+      display: grid;
+      min-width: 9rem;
+      max-width: 16rem;
+      gap: 2px;
+      padding: 8px 12px;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-control);
+      background: var(--surface-1);
+      color: var(--ink-1);
+      box-shadow: var(--shadow-pop);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(4px);
+      transition:
+        opacity 150ms ease,
+        transform 150ms ease;
+    }
+
+    [data-shortcut-stack] .shortcut-item__tooltip::after {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: 8px;
+      height: 8px;
+      border-right: 1px solid var(--line-1);
+      border-bottom: 1px solid var(--line-1);
+      background: var(--surface-1);
+      content: "";
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    [data-shortcut-stack] .shortcut-item__tooltip strong {
+      overflow: hidden;
+      color: var(--ink-1);
+      font: 600 14px/20px var(--font-sans);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    [data-shortcut-stack] .shortcut-item__tooltip small {
+      overflow: hidden;
+      color: var(--ink-2);
+      font: 400 12px/18px var(--font-sans);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .shortcut-item-shell:hover .shortcut-item__tooltip,
+    .shortcut-item-shell:focus-within .shortcut-item__tooltip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 639px) {
+      [data-shortcut-stack] .shortcut-item__tooltip {
+        display: none;
+      }
+    }
+
+    /* ── 空态 ─────────────────────────────────────────────────────── */
+    .shortcut-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 40rem;
+      margin-inline: auto;
+      padding: 40px 24px;
+      border: 1px dashed var(--line-1);
+      border-radius: 0;
+      background: transparent;
+      text-align: center;
+    }
+
+    .shortcut-empty__title {
+      margin: 0;
+      color: var(--ink-1);
+      font: 400 24px/1.3 var(--font-reading);
+      letter-spacing: -0.01em;
+    }
+
+    .shortcut-empty__hint {
+      margin: 0;
+      color: var(--ink-2);
+      font: 400 14px/22px var(--font-sans);
+      max-width: 34em;
+    }
+
+    [data-new-tab-page] .shortcut-empty__action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--ink-1);
+      border-radius: var(--ntab-radius-control);
+      background: var(--ink-1);
+      color: var(--surface-1);
+      font: 500 13px/20px var(--font-sans);
+      cursor: pointer;
+      transition: background-color var(--ntab-duration-fast) ease;
+    }
+
+    [data-new-tab-page] .shortcut-empty__action:hover {
+      background: color-mix(in srgb, var(--ink-1) 86%, var(--surface-1));
+    }
+
+    [data-new-tab-page] .shortcut-empty__action:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: 2px;
+    }
+
+    /* ── 布局选择菜单 ─────────────────────────────────────────────── */
     [data-layout-switcher] .new-tab-layout__menu {
       position: absolute;
-      top: calc(100% + 0.5rem);
+      top: calc(100% + 6px);
       right: 0;
-      z-index: 60;
+      z-index: 70;
       display: grid;
-      gap: 0.25rem;
+      gap: 2px;
       width: min(15rem, calc(100vw - 1rem));
-      padding: 0.5rem;
-      border: 1px solid var(--ntab-menu-border);
-      border-radius: 0.5rem;
-      background: var(--ntab-menu-surface);
-      box-shadow: var(--ntab-menu-shadow);
+      padding: 4px;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-panel);
+      background: var(--surface-1);
+      box-shadow: var(--shadow-pop);
       opacity: 0;
-      transform: translateY(-0.375rem) scale(0.97);
+      transform: translateY(-4px) scale(0.98);
       transform-origin: top right;
       pointer-events: none;
       transition:
-        opacity var(--ntab-menu-exit) var(--ntab-ease-exit),
-        transform var(--ntab-menu-exit) var(--ntab-ease-exit);
+        opacity var(--ntab-duration-fast) var(--ntab-ease-exit),
+        transform var(--ntab-duration-fast) var(--ntab-ease-exit);
     }
 
-    /* 窄屏触发器贴左：右对齐会整块捅出视口左边，改从左边缘展开 */
     [data-layout-switcher] .new-tab-layout__menu[data-align="start"] {
       left: 0;
       right: auto;
@@ -707,67 +1630,67 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       opacity: 1;
       transform: none;
       pointer-events: auto;
-      transition-duration: var(--ntab-menu-enter);
+      transition-duration: var(--ntab-duration-base);
       transition-timing-function: var(--ntab-ease-enter);
     }
 
     [data-layout-switcher] .new-tab-layout__item {
       display: grid;
-      grid-template-columns: 1.25rem minmax(0, 1fr) 1rem;
+      grid-template-columns: 20px minmax(0, 1fr) 20px;
       align-items: center;
-      gap: 0.625rem;
+      gap: 10px;
       width: 100%;
-      padding: 0.5rem 0.625rem;
+      padding: 8px 10px;
       border: 0;
-      border-radius: 0.25rem;
+      border-radius: var(--ntab-radius-control);
       background: transparent;
-      color: var(--ntab-menu-ink);
+      color: var(--ink-1);
       text-align: left;
       cursor: pointer;
-      transition: background-color 0.12s linear;
+      transition: background-color 120ms linear;
     }
 
-    [data-layout-switcher] .new-tab-layout__item:hover {
-      background: var(--ntab-menu-hover);
+    [data-layout-switcher] .new-tab-layout__item:hover,
+    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] {
+      background: color-mix(in srgb, var(--ink-1) 6%, transparent);
     }
 
     [data-layout-switcher] .new-tab-layout__item:focus-visible {
-      outline: 2px solid var(--ntab-menu-accent);
+      outline: 2px solid var(--ntab-focus);
       outline-offset: -2px;
-    }
-
-    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] {
-      background: var(--ntab-menu-active);
     }
 
     [data-layout-switcher] .new-tab-layout__item-icon {
       display: grid;
       place-items: center;
-      color: var(--ntab-menu-ink-2);
+      color: var(--ink-2);
+    }
+
+    [data-layout-switcher] .new-tab-layout__item-icon svg,
+    [data-layout-switcher] .new-tab-layout__item-check svg {
+      width: 16px;
+      height: 16px;
     }
 
     [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] .new-tab-layout__item-icon {
-      color: var(--ntab-menu-accent);
+      color: var(--ntab-accent);
     }
 
     [data-layout-switcher] .new-tab-layout__item-label {
       display: block;
-      font-size: 0.875rem;
-      line-height: 1.375rem;
-      font-weight: 500;
+      font: 500 14px/20px var(--font-sans);
     }
 
     [data-layout-switcher] .new-tab-layout__item-hint {
       display: block;
-      font-size: 0.75rem;
-      line-height: 1.25rem;
-      color: var(--ntab-menu-ink-2);
+      color: var(--ink-2);
+      font: 400 12px/18px var(--font-sans);
     }
 
     [data-layout-switcher] .new-tab-layout__item-check {
       display: grid;
       place-items: center;
-      color: var(--ntab-menu-accent);
+      color: var(--ntab-accent);
       opacity: 0;
     }
 
@@ -775,49 +1698,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       opacity: 1;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      [data-layout-switcher] .new-tab-layout__menu,
-      [data-layout-switcher] .new-tab-layout__chevron {
-        transition: none;
-      }
-    }
-
-    /* 刷新/首次加载入场：整页像窗口打开一样「突」到眼前（缩放是 new-tab 的语言），
-       并带一点自下而上的上浮。缩放收底边、上浮压顶边，中间态不会把文档顶高闪滚动条，
-       结束即释放 transform。背景层与恢复按钮已移出 shell，不会被当成 fixed 的包含块。 */
-    [data-new-tab-page].new-tab-shell {
-      animation: ntab-page-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    }
-
-    @keyframes ntab-page-in {
-      from {
-        opacity: 0;
-        transform: translateY(0.9rem) scale(0.94);
-      }
-    }
-
-    /* 背景与页面同一口气入场：轻微缩放 + 淡入（宿主在 shell 外，transform 动画不影响任何 fixed 布局）。
-       没配背景图时宿主里只有同色兜底层，动画无感、无副作用。 */
-    [data-new-tab-background-host] {
-      animation: ntab-bg-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    }
-
-    @keyframes ntab-bg-in {
-      from {
-        opacity: 0;
-        transform: scale(0.96);
-      }
-    }
-
-    /* ── 抽屉（配置 / 图标说明）开合 ─────────────────────────────────
-       唯一开关是宿主上的 data-open。hidden 也进了过渡列表（allow-discrete），
-       所以进场：hidden 摘掉 → 遮罩淡入 + 抽屉从右滑到位；出场：反向走完再落 hidden，
-       不再靠 JS setTimeout 猜时长。duration 280ms 比原 200ms 稍长，滑动手感更完整。 */
+    /* ── 抽屉（配置 / 图标说明） ──────────────────────────────────── */
     [data-config-drawer],
     [data-notes-panel] {
       transition:
-        opacity 0.2s ease,
-        display 0.28s allow-discrete;
+        opacity 200ms ease,
+        display 240ms allow-discrete;
     }
 
     [data-config-drawer][data-open],
@@ -828,7 +1714,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     [data-config-drawer] .new-tab-config__backdrop,
     [data-notes-panel] .new-tab-notes__backdrop {
       opacity: 0;
-      transition: opacity 0.24s ease;
+      background: color-mix(in srgb, var(--ink-1) 24%, transparent);
+      backdrop-filter: blur(4px);
+      transition: opacity 200ms ease;
     }
 
     [data-config-drawer][data-open] .new-tab-config__backdrop,
@@ -838,8 +1726,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     [data-config-drawer] .new-tab-config__sheet,
     [data-notes-panel] .new-tab-notes__sheet {
+      border-left: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-panel) 0 0 var(--ntab-radius-panel);
+      background: var(--surface-1);
+      box-shadow: -8px 0 24px rgb(15 23 42 / 0.1);
       transform: translateX(100%);
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 240ms var(--ntab-ease-standard);
     }
 
     [data-config-drawer][data-open] .new-tab-config__sheet,
@@ -847,258 +1739,471 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       transform: translateX(0);
     }
 
-    /* 弧形布局的瓦片钉在 fixed 坞上（贴着屏幕底部）：shell 一旦有 transform，坞会被当成包含块
-       参照拽进内容区，整页缩放/上浮会破坏布局。这一档把动效拆到壳内区块自己做：
-       工具栏/搜索上浮淡入、弧形坞自身从底部略沉淡入、缩放交给坞内瓦片自己的弹入。
-       判据挂在 html 上——布局存 localStorage，由 shell 前的内联脚本在首帧前写入。 */
-    html[data-new-tab-layout="ring"] [data-new-tab-page].new-tab-shell {
-      animation: none;
+    .new-tab-config__header,
+    .new-tab-notes__header {
+      padding: 16px;
+      border-bottom: 1px solid var(--line-1);
     }
 
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-toolbar,
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search {
-      animation: ntab-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    .new-tab-config__body {
+      display: grid;
+      align-content: start;
+      gap: 24px;
+      padding: 16px;
+      overflow-y: auto;
     }
 
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search {
-      animation-delay: 60ms;
+    .new-tab-config__section {
+      display: grid;
+      gap: 12px;
     }
 
-    @keyframes ntab-rise {
-      from {
-        opacity: 0;
-        transform: translateY(0.7rem);
-      }
+    .new-tab-config__section-title {
+      color: var(--ink-1);
+      font: 600 14px/22px var(--font-sans);
     }
 
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-arc-dock {
-      animation: ntab-dock-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    .new-tab-config__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
     }
 
-    @keyframes ntab-dock-in {
-      from {
-        opacity: 0;
-        transform: translateY(1.4rem);
-      }
+    .new-tab-config .form-control {
+      display: grid;
+      min-width: 0;
+      gap: 6px;
     }
 
-    /* 首屏 padding 从展开态滑到收起态要 0.45s，而快捷方式正好在这条过渡刚开始时插入，
-       被撑在旧 padding 上把整页顶高约 60px，右侧就闪出滚动条。首帧先不起过渡，
-       等布局落定再放行——入场 keyframe 动画不受影响，只有 padding 补间在首屏被跳过。 */
-    [data-new-tab-page][data-booting="true"].new-tab-shell,
-    [data-new-tab-page][data-booting="true"] .new-tab-search,
-    [data-new-tab-page][data-booting="true"] .new-tab-greeting-block,
-    [data-new-tab-page][data-booting="true"] .new-tab-toolbar {
-      transition: none;
+    .new-tab-config .label {
+      padding: 0;
+      min-height: 0;
     }
 
-    /* toolbar 在宽屏是 display: contents，本身不占格；窄屏仍是普通 flex 流里的第一块，
-       grid-area 由基础规则（"toolbar" 单列区）兜住，不需要按 header 状态切换。 */
-    [data-new-tab-page] .new-tab-search {
-      grid-area: search;
+    .new-tab-config .label-text,
+    .new-tab-config .label-text-alt,
+    .new-tab-dialog .field-label {
+      color: var(--ink-2);
+      font: 400 12px/18px var(--font-sans);
     }
 
-    [data-new-tab-page] [data-shortcut-stack] {
-      grid-area: stack;
+    .new-tab-config .input,
+    .new-tab-config .select,
+    .new-tab-dialog .input,
+    .new-tab-dialog .select {
+      height: 36px;
+      min-height: 36px;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-control);
+      background-color: var(--surface-1);
+      color: var(--ink-1);
+      font: 400 14px/20px var(--font-sans);
     }
 
-    /* 工具栏图标与文字统一跟一个基准色走：默认模式用 55% 不透明度的正文色，
-       选了颜色模式（浅色/深色文字）时 applyTextColors 会给每个带
-       data-new-tab-color-target 的元素内联写 color，图标用 currentColor 自然跟上。
-       之前图标和文字各写一档透明度，两档灰度不一致；
-       背景图 + 颜色模式组合下图标还会比文字暗一截，用户反馈「图标看不到」。
-       hover 提亮用 filter 而不是 color，避免覆盖内联色让颜色模式失效。 */
-    [data-new-tab-page] .new-tab-actions .btn {
-      color: color-mix(in oklab, currentColor 55%, transparent);
+    .new-tab-config .input:focus,
+    .new-tab-config .select:focus,
+    .new-tab-dialog .input:focus,
+    .new-tab-dialog .select:focus {
+      border-color: var(--ntab-focus);
+      outline: 2px solid color-mix(in srgb, var(--ntab-focus) 22%, transparent);
+      outline-offset: 0;
     }
 
-    [data-new-tab-page] .new-tab-actions .btn:hover {
-      filter: brightness(1.6);
+    .new-tab-config__footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 16px;
+      border-top: 1px solid var(--line-1);
     }
 
-    [data-new-tab-page] .new-tab-actions .btn[aria-expanded="true"] {
-      filter: brightness(1.6);
+    .new-tab-config__notes-link {
+      margin-left: auto;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink-2);
+      font: 400 12px/20px var(--font-sans);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
     }
 
-    /* 常态（normal）搜索框就是短的：22rem 上限，右侧功能按钮留在原位不换行。
-       聚焦时由上面的 :focus-within 规则过渡到 100%，两端都是长度值所以能逐帧补间。
-       之前这里写 max-width: none 让常态就顶满整列，用户原话
-       「我其实希望输入框本来很短的，然后点击后就有过渡撑满当前宽度」。
-       分档与列宽对齐：第一列比 22rem 还窄的档位（640~899px 实测 316~437px）
-       若沿用 22rem，常态就已顶满、聚焦时看不出过渡，所以按第一列可用宽度逐档收窄，
-       保证每一档都有「短 → 撑满」的可见过程。 */
-    [data-new-tab-page]:not([data-header-state]) .new-tab-search {
-      max-width: 22rem;
+    .new-tab-config__notes-link:hover {
+      color: var(--ink-1);
     }
 
-    @media (min-width: 640px) and (max-width: 899px) {
-      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
-        max-width: 18rem;
-      }
+    .new-tab-config__notes-link:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: 2px;
     }
 
-    @media (min-width: 640px) and (max-width: 979px) {
-      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
-        max-width: 20rem;
-      }
+    .new-tab-notes__body {
+      display: grid;
+      align-content: start;
+      gap: 20px;
+      padding: 16px;
+      overflow-y: auto;
+      color: var(--ink-2);
+      font: 400 14px/22px var(--font-sans);
     }
 
-    /* 700 这一档第一列只剩 316px，20rem(320px) 会逼得常态就顶满、看不出过渡；
-       收到 18rem(288px)，给聚焦留出可见的撑满过程。 */
-    @media (min-width: 640px) and (max-width: 759px) {
-      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
-        max-width: 18rem;
-      }
+    .new-tab-notes__body h3 {
+      margin: 0;
+      color: var(--ink-1);
+      font: 600 14px/22px var(--font-sans);
     }
 
-    @media (min-width: 640px) and (max-width: 699px) {
-      [data-new-tab-page]:not([data-header-state]) .new-tab-search {
-        max-width: 16rem;
-      }
+    .new-tab-notes__body p {
+      margin: 0;
     }
 
-    /* 一段收起：问候语缩到 0 让位，搜索框吃掉它空出来的宽度。
-       刻意不改 areas、也不改列数——areas 一变，元素的行列映射立即重算、不补间
-       （实测 search 宽度 658 → 1120 一步跳，actions 从 x=886 瞬移到 x=580）。
-       这里只把第二列从 28rem 收到 22rem，与展开态同为 minmax 轨道，
-       列宽补间照常生效，搜索框与功能按钮的位置连续变化。
-       收起态功能按钮改贴左：第一行问候语已归零，第二行按钮与搜索框同行，
-       贴左才和搜索框左边缘对齐，不会孤零零挂在右边。 */
-    @media (min-width: 640px) {
-      [data-new-tab-page][data-header-state="collapsed"].new-tab-shell,
-      [data-new-tab-page][data-header-state="suspended"].new-tab-shell {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
-        transition:
-          padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-          grid-template-columns 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
-      [data-new-tab-page][data-header-state="collapsed"] .new-tab-actions,
-      [data-new-tab-page][data-header-state="suspended"] .new-tab-actions {
-        justify-content: flex-start;
-      }
+    .new-tab-notes__code {
+      margin: 0;
+      overflow-x: auto;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-control);
+      background: var(--surface-2);
+      padding: 12px;
+      color: var(--ink-1);
+      font: 400 12px/20px var(--font-mono);
     }
 
-    [data-new-tab-page] .new-tab-toolbar {
-      max-height: 10rem;
-      transition:
-        opacity 0.3s ease,
-        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-        max-height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    [data-new-tab-page] .new-tab-greeting-block {
-      max-height: 8rem;
-      transition:
-        opacity 0.32s ease,
-        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-        max-height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    [data-new-tab-page] .new-tab-search {
-      max-height: 8rem;
-      transition:
-        max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-        max-height 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.3s ease,
-        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-        border-color 0.2s ease;
-    }
-
-    [data-new-tab-page] .new-tab-search__input {
-      transition: height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    [data-new-tab-page] [data-header-collapse] svg,
-    html:has([data-new-tab-page]) .new-tab-restore svg {
-      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    /* 恢复按钮已移出 shell（fixed，免疫入场缩放的包含块），选择器改挂 html:has */
-    html:has([data-new-tab-page]) .new-tab-restore {
+    /* ── 站点 / 分组弹窗 ──────────────────────────────────────────── */
+    dialog.new-tab-dialog {
+      position: fixed;
+      inset: 0;
+      width: min(92vw, 26rem);
+      height: fit-content;
+      max-height: min(88dvh, 42rem);
+      margin: auto;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink-1);
+      overflow: visible;
       opacity: 0;
-      visibility: hidden;
-      transform: translateY(-0.4rem);
+      transform: translateY(8px) scale(0.98);
       transition:
-        opacity 0.25s ease,
-        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-        visibility 0s linear 0.35s;
+        opacity var(--ntab-duration-fast) var(--ntab-ease-exit),
+        transform var(--ntab-duration-fast) var(--ntab-ease-exit),
+        display var(--ntab-duration-fast) allow-discrete,
+        overlay var(--ntab-duration-fast) allow-discrete;
     }
 
-    [data-new-tab-page][data-header-state="collapsed"].new-tab-shell {
-      padding-top: clamp(1.25rem, 4vh, 2.25rem);
+    dialog.new-tab-dialog[open] {
+      opacity: 1;
+      transform: none;
+      transition-duration: var(--ntab-duration-base);
+      transition-timing-function: var(--ntab-ease-enter);
     }
 
-    /* 挂起态沿用收起态的问候语压缩：suspended 是 collapsed 的下一级，
-       第一行必须继续是 0 高。之前这条只写 collapsed，suspended 下问候语回到
-       自然高度，第二行被顶下去、搜索框跟着位移——用户原话「第二次折叠的时候
-       那个大的搜索框闪了一下」。 */
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-greeting-block,
-    [data-new-tab-page][data-header-state="suspended"] .new-tab-greeting-block {
-      /* 只压高度，不压宽度。一旦同时把 max-width 也归零，overflow: hidden 里内部 grid
-         子元素会按极窄宽度重新换行，盒子反而被撑高（实测 62px → 97px），
-         把第二行在折叠第一帧顶下去 36px。宽度让位交给 grid 列宽自己过渡，
-         问候语跨满整行、宽度根本不参与折叠。 */
-      max-height: 0;
+    @starting-style {
+      dialog.new-tab-dialog[open] {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+      }
+    }
+
+    dialog.new-tab-dialog::backdrop {
+      background: color-mix(in srgb, var(--ink-1) 26%, transparent);
+      backdrop-filter: blur(4px);
       opacity: 0;
+      transition:
+        opacity var(--ntab-duration-fast) var(--ntab-ease-exit),
+        display var(--ntab-duration-fast) allow-discrete,
+        overlay var(--ntab-duration-fast) allow-discrete;
+    }
+
+    dialog.new-tab-dialog[open]::backdrop {
+      opacity: 1;
+      transition-duration: var(--ntab-duration-base);
+      transition-timing-function: var(--ntab-ease-enter);
+    }
+
+    @starting-style {
+      dialog.new-tab-dialog[open]::backdrop {
+        opacity: 0;
+      }
+    }
+
+    .new-tab-dialog__panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      max-height: inherit;
       overflow: hidden;
-      transform: translateY(-0.75rem);
-      pointer-events: none;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-panel);
+      background: var(--surface-1);
+      box-shadow: var(--shadow-pop);
     }
 
-    /* 聚焦即撑满：收起态定的 22rem 在 focus-within 时作废，搜索框在自己的格子里
-       过渡到 100%，功能按钮留在第二列原位不换行（与展开态同一套做法）。
-       注意这里不能写 max-width: none——none 不是长度值，浏览器不插值，
-       实测 max-width: 22rem → none 直接一步跳到终值，没有过渡。 */
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search:focus-within {
-      max-width: 100%;
+    .new-tab-dialog__header {
+      padding: 20px;
+      border-bottom: 1px solid var(--line-1);
     }
 
-    /* 挂起态沿用收起态的搜索框压缩：高度、分隔线边距、文字标签都不许弹回完整尺寸。
-       这些是 collapsed 专属的「变小」规则，漏了 suspended 就会在第二次折叠时
-       把大号搜索框的内容重新铺开（搜索框正处于 max-height: 0 的折叠过程中，
-       内容反而被撑出来闪一下）。 */
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__input,
-    [data-new-tab-page][data-header-state="suspended"] .new-tab-search__input {
-      height: 2.5rem;
+    .new-tab-dialog__header h2 {
+      margin: 0;
+      color: var(--ink-1);
+      font: 600 16px/24px var(--font-sans);
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__divider,
-    [data-new-tab-page][data-header-state="suspended"] .new-tab-search__divider {
-      margin-top: 0.55rem;
-      margin-bottom: 0.55rem;
+    .new-tab-dialog__header p {
+      margin: 4px 0 0;
+      color: var(--ink-2);
+      font: 400 12px/18px var(--font-sans);
     }
 
-    [data-new-tab-page][data-header-state="collapsed"] .new-tab-search__submit-label,
-    [data-new-tab-page][data-header-state="suspended"] .new-tab-search__submit-label {
+    .new-tab-dialog__body {
+      display: grid;
+      align-content: start;
+      gap: 16px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .new-tab-dialog__footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 16px 20px;
+      border-top: 1px solid var(--line-1);
+    }
+
+    .new-tab-dialog .field-row {
+      display: grid;
+      min-width: 0;
+      gap: 6px;
+    }
+
+    .new-tab-dialog .field-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .new-tab-dialog .inline-link {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink-2);
+      font: 500 12px/20px var(--font-sans);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+
+    .new-tab-dialog .inline-link:hover {
+      color: var(--ink-1);
+    }
+
+    .new-tab-dialog .inline-link:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: 2px;
+    }
+
+    .new-tab-dialog .dialog-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-control);
+      background: var(--surface-2);
+    }
+
+    .new-tab-dialog .dialog-preview__icon {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      flex: none;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-control);
+      background: var(--surface-1);
+    }
+
+    .new-tab-dialog .dialog-preview__icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
+    }
+
+    .new-tab-dialog .dialog-preview__title {
+      margin: 0;
+      color: var(--ink-1);
+      font: 500 14px/20px var(--font-sans);
+    }
+
+    .new-tab-dialog .dialog-preview__hint {
+      margin: 0;
+      color: var(--ink-2);
+      font: 400 12px/18px var(--font-sans);
+    }
+
+    .new-tab-dialog .form-error {
+      margin: 0;
+      color: #ad352f;
+      font: 400 12px/18px var(--font-sans);
+    }
+
+    [data-theme="black"] .new-tab-dialog .form-error {
+      color: #ff9285;
+    }
+
+    .new-tab-dialog .form-error.hidden {
       display: none;
     }
 
-    /* 箭头指向「点下去之后内容往哪走」，与标题文字同向，不要按状态字面猜：
-       normal 朝上（问候与搜索收上去）、collapsed/suspended 朝下（再收一级 / 展开回来）。
-       之前只有 collapsed 一条 rotate 且方向搞反，用户原话「刚开始的时候那个箭头方向不对」——
-       首屏正是 normal 态，一眼就看到箭头朝下却写着「收起」。 */
-    [data-new-tab-page][data-header-state="collapsed"] [data-header-collapse] svg,
-    [data-new-tab-page][data-header-state="suspended"] [data-header-collapse] svg,
-    html:has([data-new-tab-page][data-header-state="suspended"]) .new-tab-restore svg {
-      transform: rotate(180deg);
+    .new-tab-dialog__footer .btn-primary {
+      border: 1px solid var(--ink-1);
+      background: var(--ink-1);
+      color: var(--surface-1);
     }
 
-    [data-new-tab-page][data-header-state="suspended"].new-tab-shell {
-      padding-top: clamp(0.75rem, 2vh, 1.5rem);
+    .new-tab-dialog__footer .btn-primary:hover {
+      background: color-mix(in srgb, var(--ink-1) 86%, var(--surface-1));
     }
 
-    [data-new-tab-page][data-header-state="suspended"] .new-tab-toolbar,
-    [data-new-tab-page][data-header-state="suspended"] .new-tab-search {
+    .new-tab-dialog__footer .btn-ghost {
+      color: var(--ink-2);
+    }
+
+    .new-tab-dialog__footer .btn-ghost:hover {
+      color: var(--ink-1);
+    }
+
+    /* ── 提示条 ───────────────────────────────────────────────────── */
+    .new-tab-toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(1.5rem + env(safe-area-inset-bottom));
+      z-index: 95;
+      max-width: min(90vw, 26rem);
+      padding: 8px 14px;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-card);
+      background: var(--surface-1);
+      color: var(--ink-1);
+      box-shadow: var(--shadow-pop);
+      font: 400 14px/20px var(--font-sans);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(8px);
+      transition:
+        opacity var(--ntab-duration-fast) ease,
+        transform var(--ntab-duration-base) var(--ntab-ease-standard);
+    }
+
+    .new-tab-toast[data-visible] {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── 右键菜单 ─────────────────────────────────────────────────── */
+    .shortcut-context-menu {
+      animation: ntab-menu-in 160ms var(--ntab-ease-enter) both;
+      transform-origin: top left;
+    }
+
+    .shortcut-context-menu.ntab-menu-vanish {
+      animation: ntab-menu-out 130ms cubic-bezier(0.4, 0, 1, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes ntab-menu-in {
+      from {
+        opacity: 0;
+        transform: scale(0.97) translateY(-3px);
+      }
+    }
+
+    @keyframes ntab-menu-out {
+      to {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+    }
+
+    /* ── 弧形布局的底部坞 ─────────────────────────────────────────── */
+    [data-new-tab-page] .new-tab-arc-dock {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      padding: 0 6px 4px;
+    }
+
+    /* ── 收起 / 挂起 ─────────────────────────────────────────────── */
+    [data-new-tab-page][data-header-state="collapsed"] .new-tab-greeting-block,
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-greeting-block {
       max-height: 0;
       opacity: 0;
       overflow: hidden;
-      transform: translateY(-1rem);
+      transform: translateY(-6px);
       pointer-events: none;
+    }
+
+    [data-new-tab-page][data-header-state="collapsed"].new-tab-shell {
+      padding-top: 24px;
+    }
+
+    [data-new-tab-page][data-header-state="suspended"].new-tab-shell {
+      padding-top: 16px;
+      gap: 0;
+    }
+
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-masthead,
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-search-row {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transform: translateY(-8px);
+      pointer-events: none;
+    }
+
+    [data-new-tab-page][data-header-state="suspended"] .new-tab-actions {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transform: translateY(-8px);
+      pointer-events: none;
+      visibility: hidden;
+      transition:
+        opacity 300ms ease,
+        transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
+        max-height 420ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 420ms;
     }
 
     [data-new-tab-page][data-header-state="suspended"] .new-tab-search {
       border-color: transparent;
+    }
+
+    [data-new-tab-page][data-header-state="collapsed"] [data-header-collapse] svg,
+    [data-new-tab-page][data-header-state="suspended"] [data-header-collapse] svg {
+      transform: rotate(180deg);
+    }
+
+    [data-header-collapse] svg {
+      transition: transform 240ms var(--ntab-ease-standard);
+    }
+
+    html:has([data-new-tab-page]) .new-tab-restore {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-4px);
+      transition:
+        opacity 200ms ease,
+        transform 240ms var(--ntab-ease-standard),
+        visibility 0s linear 240ms;
     }
 
     html:has([data-new-tab-page][data-header-state="suspended"]) .new-tab-restore {
@@ -1106,276 +2211,16 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       visibility: visible;
       transform: translateY(0);
       transition:
-        opacity 0.25s ease 0.12s,
-        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.12s,
+        opacity 200ms ease 80ms,
+        transform 240ms var(--ntab-ease-standard) 80ms,
         visibility 0s;
     }
 
-    [data-shortcut-stack] .shortcut-item-shell {
-      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    /* 还没有分组时工具栏的添加入口先收起来——没有「加进哪个分组」的概念，空态里已有引导按钮 */
-    [data-new-tab-page][data-has-groups="false"] [data-shortcut-add] {
-      display: none;
-    }
-
-    /* 添加站点面板：从快捷方式区顶部落下来，缓动与全站同一条曲线 */
-    [data-new-tab-page] .shortcut-item-add-form {
-      animation: ntab-add-form-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    @keyframes ntab-add-form-in {
-      from {
-        opacity: 0;
-        transform: translateY(-0.45rem);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* 右键菜单：从指针处弹出（缩放起点略偏左上，像从指尖长出来）。
-       退场走 .ntab-menu-vanish，播完才 remove，否则菜单会啪地消失。 */
-    .shortcut-context-menu {
-      animation: ntab-menu-in 0.16s cubic-bezier(0.22, 1, 0.36, 1) both;
-      transform-origin: top left;
-    }
-
-    .shortcut-context-menu.ntab-menu-vanish {
-      animation: ntab-menu-out 0.13s cubic-bezier(0.4, 0, 1, 1) forwards;
-      pointer-events: none;
-    }
-
-    @keyframes ntab-menu-in {
-      from {
-        opacity: 0;
-        transform: scale(0.94) translateY(-0.2rem);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-
-    @keyframes ntab-menu-out {
-      to {
-        opacity: 0;
-        transform: scale(0.97);
-      }
-    }
-
-    /* 弧形布局：拼接画布固定为底部弧形坞，吃满视口全宽 */
-    [data-new-tab-page] .new-tab-arc-dock {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 30;
-      padding: 0 0.375rem 0.25rem;
-    }
-
-    /* ── item 卡片材质 ────────────────────────────────────────────────
-       四层阴影叠出实物感：顶部受光边 + 1px 内描边 + 接触阴影 + 环境阴影。
-       深浅仍由 data-item-tone 驱动（浅色文字配黑卡、深色文字配浅卡、默认跟随主题），
-       但 tone / 主题 / 背景图只改写 --ntab-card-* 变量，材质与 hover 各只有一份规则，
-       不再每个变体各写一套 background-color / border-color。 */
-    [data-shortcut-stack] .shortcut-item {
-      --ntab-card-bg: rgba(0, 0, 0, 0.05);
-      --ntab-card-sheen: none;
-      --ntab-card-ring: rgba(0, 0, 0, 0.08);
-      --ntab-card-edge: rgba(255, 255, 255, 0.85);
-      --ntab-card-contact: rgba(15, 23, 42, 0.05);
-      --ntab-card-ambient: rgba(15, 23, 42, 0.1);
-      --ntab-card-lift: 1;
-      --ntab-card-focus: rgba(15, 23, 42, 0.55);
-      --ntab-card-label-shadow: none;
-
-      background-color: var(--ntab-card-bg);
-      background-image: var(--ntab-card-sheen);
-      border-color: transparent;
-      box-shadow:
-        inset 0 1px 0 0 var(--ntab-card-edge),
-        inset 0 0 0 1px var(--ntab-card-ring),
-        0 1px 2px -1px var(--ntab-card-contact),
-        0 calc(13px * var(--ntab-card-lift)) calc(26px * var(--ntab-card-lift)) calc(-17px * var(--ntab-card-lift)) var(--ntab-card-ambient);
-    }
-
-    /* 悬停 / 聚焦：环境阴影放大做出「抬起来」的高度变化。
-       下面是亮色页面浅灰卡的配色，深色变体各自覆盖。 */
-    [data-shortcut-stack] .shortcut-item:hover,
-    [data-shortcut-stack] .shortcut-item:focus-visible {
-      --ntab-card-lift: 1.45;
-      --ntab-card-bg: rgba(0, 0, 0, 0.075);
-      --ntab-card-ring: rgba(0, 0, 0, 0.14);
-      --ntab-card-edge: rgba(255, 255, 255, 1);
-      --ntab-card-ambient: rgba(15, 23, 42, 0.17);
-    }
-
-    /* 键盘聚焦补一道轮廓环：走 outline，不参与阴影插值 */
-    [data-shortcut-stack] .shortcut-item:focus-visible {
-      outline: 1px solid var(--ntab-card-focus);
-      outline-offset: 3px;
-    }
-
-    /* 按下回弹：位移归零 + 轻微缩小，模拟实体按键 */
-    [data-shortcut-stack] .shortcut-item:active {
-      transition-duration: 0.09s;
-    }
-
-    /* 图标不加底板：favicon 真实透出（用户定稿），hover 时只放大图标本身 */
-    [data-shortcut-stack] .shortcut-item__icon {
-      background-color: transparent;
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    [data-shortcut-stack] .shortcut-item:hover .shortcut-item__icon,
-    [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__icon {
-      transform: scale(1.05);
-    }
-
-    [data-shortcut-stack] .shortcut-item__label {
-      text-shadow: var(--ntab-card-label-shadow);
-    }
-
-    /* 纯黑页面：深灰卡靠提亮与受光边分层，黑色阴影在纯黑上不可见，故留空 */
-    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item {
-      --ntab-card-bg: rgba(255, 255, 255, 0.07);
-      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 72%);
-      --ntab-card-ring: rgba(255, 255, 255, 0.09);
-      --ntab-card-edge: rgba(255, 255, 255, 0.1);
-      --ntab-card-contact: rgba(0, 0, 0, 0);
-      --ntab-card-ambient: rgba(0, 0, 0, 0);
-      --ntab-card-focus: rgba(255, 255, 255, 0.6);
-    }
-
-    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item:hover,
-    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      --ntab-card-bg: rgba(255, 255, 255, 0.13);
-      --ntab-card-ring: rgba(255, 255, 255, 0.26);
-      --ntab-card-edge: rgba(255, 255, 255, 0.16);
-    }
-
-    /* 亮色页面上的黑卡用实底近纯黑，顶部一道受光渐变；阴影落回浅色背景 */
-    html[data-item-tone="dark"][data-theme="light"] [data-shortcut-stack] .shortcut-item {
-      --ntab-card-bg: rgba(8, 9, 12, 0.97);
-      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0) 68%);
-      --ntab-card-ring: rgba(255, 255, 255, 0.1);
-      --ntab-card-edge: rgba(255, 255, 255, 0.11);
-      --ntab-card-contact: rgba(8, 9, 12, 0.16);
-      --ntab-card-ambient: rgba(8, 9, 12, 0.26);
-      --ntab-card-focus: rgba(8, 9, 12, 0.6);
-    }
-
-    html[data-item-tone="dark"][data-theme="light"] [data-shortcut-stack] .shortcut-item:hover,
-    html[data-item-tone="dark"][data-theme="light"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      --ntab-card-bg: rgba(24, 26, 32, 0.98);
-      --ntab-card-ring: rgba(255, 255, 255, 0.22);
-      --ntab-card-edge: rgba(255, 255, 255, 0.15);
-      --ntab-card-ambient: rgba(8, 9, 12, 0.36);
-    }
-
-    /* 暗色页面上的浅卡用白色提亮，黑 5% 在纯黑上不可见 */
-    html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item {
-      --ntab-card-bg: rgba(255, 255, 255, 0.08);
-      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 72%);
-      --ntab-card-ring: rgba(255, 255, 255, 0.1);
-      --ntab-card-edge: rgba(255, 255, 255, 0.12);
-      --ntab-card-contact: rgba(0, 0, 0, 0);
-      --ntab-card-ambient: rgba(0, 0, 0, 0);
-      --ntab-card-focus: rgba(255, 255, 255, 0.6);
-    }
-
-    html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item:hover,
-    html[data-item-tone="light"][data-theme="black"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      --ntab-card-bg: rgba(255, 255, 255, 0.13);
-      --ntab-card-ring: rgba(255, 255, 255, 0.28);
-      --ntab-card-edge: rgba(255, 255, 255, 0.18);
-    }
-
-    /* 黑卡上的副标题改浅色，避免深灰小字压深卡看不清 */
-    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item__label small {
-      color: rgba(255, 255, 255, 0.6) !important;
-    }
-
-    /* 有背景图时改为半透明卡片：黑卡压暗照片、白卡提亮照片；
-       照片上文字补一道投影，标题与说明都保住可读性 */
-    html[data-item-tone="dark"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item {
-      --ntab-card-bg: rgba(0, 0, 0, 0.58);
-      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 70%);
-      --ntab-card-ring: rgba(255, 255, 255, 0.14);
-      --ntab-card-edge: rgba(255, 255, 255, 0.16);
-      --ntab-card-contact: rgba(0, 0, 0, 0.28);
-      --ntab-card-ambient: rgba(0, 0, 0, 0.34);
-      --ntab-card-focus: rgba(255, 255, 255, 0.65);
-      --ntab-card-label-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-    }
-
-    html[data-item-tone="dark"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:hover,
-    html[data-item-tone="dark"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      --ntab-card-bg: rgba(0, 0, 0, 0.74);
-      --ntab-card-ring: rgba(255, 255, 255, 0.3);
-      --ntab-card-edge: rgba(255, 255, 255, 0.22);
-      --ntab-card-ambient: rgba(0, 0, 0, 0.44);
-    }
-
-    html[data-item-tone="light"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item {
-      --ntab-card-bg: rgba(255, 255, 255, 0.62);
-      --ntab-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 70%);
-      --ntab-card-ring: rgba(0, 0, 0, 0.08);
-      --ntab-card-edge: rgba(255, 255, 255, 0.9);
-      --ntab-card-contact: rgba(15, 23, 42, 0.08);
-      --ntab-card-ambient: rgba(15, 23, 42, 0.18);
-      --ntab-card-focus: rgba(15, 23, 42, 0.6);
-    }
-
-    html[data-item-tone="light"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:hover,
-    html[data-item-tone="light"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item:focus-visible {
-      --ntab-card-bg: rgba(255, 255, 255, 0.78);
-      --ntab-card-ring: rgba(0, 0, 0, 0.16);
-      --ntab-card-ambient: rgba(15, 23, 42, 0.24);
-    }
-
-    /* 悬浮提示跟随 item 卡片深浅：文字颜色模式强制换色后，浮层底色同步切换，标题和说明都保持可读 */
-    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item__tooltip {
-      background-color: rgba(8, 9, 12, 0.97) !important;
-      border-color: rgba(255, 255, 255, 0.16) !important;
-      color: rgba(255, 255, 255, 0.92) !important;
-    }
-
-    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item__tooltip::after {
-      background-color: rgba(8, 9, 12, 0.97) !important;
-      border-color: rgba(255, 255, 255, 0.16) !important;
-    }
-
-    html[data-item-tone="dark"] [data-shortcut-stack] .shortcut-item__tooltip small {
-      color: rgba(255, 255, 255, 0.6) !important;
-    }
-
-    html[data-item-tone="light"] [data-shortcut-stack] .shortcut-item__tooltip {
-      background-color: rgba(255, 255, 255, 0.97) !important;
-      border-color: rgba(0, 0, 0, 0.12) !important;
-      color: rgba(17, 24, 39, 0.92) !important;
-    }
-
-    html[data-item-tone="light"] [data-shortcut-stack] .shortcut-item__tooltip::after {
-      background-color: rgba(255, 255, 255, 0.97) !important;
-      border-color: rgba(0, 0, 0, 0.12) !important;
-    }
-
-    html[data-item-tone="light"] [data-shortcut-stack] .shortcut-item__tooltip small {
-      color: rgba(17, 24, 39, 0.6) !important;
-    }
-
-    /* 刷新入场：快捷方式瓦片逐个弹出（序号 × 24ms 错峰，上限 360ms），自下而上浮到位并带轻微缩放——
-       new-tab 的"窗"感来源。backwards 只在动画期间生效，结束后交还给常规级联，
-       避免盖掉 FLIP 与收起态的行内 transform。 */
+    /* 刷新入场：瓦片逐个弹出（序号 × 24ms，上限 360ms），自下而上浮到位并轻微缩放。
+       backwards 只在动画期间生效，结束后交还给常规级联，不盖掉布局补间。 */
     [data-shortcut-stack] .ntab-pop > .shortcut-item,
     [data-shortcut-stack] .shortcut-item.ntab-pop {
-      animation: ntab-pop-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      animation: ntab-pop-in 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
       animation-delay: var(--ntab-delay, 0ms);
     }
 
@@ -1386,11 +2231,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     }
 
-    /* 移除退场：与 ntab-pop-in 对称的反向过程——瓦片缩小淡出，被遮罩按住不响应点击。
-       动画播完才真正从数据里删（见 removeShortcutWithTransition），
-       否则 DOM 全量重建会把动画一刀斩断。 */
     [data-shortcut-stack] .shortcut-item-shell.ntab-vanish > .shortcut-item {
-      animation: ntab-pop-out 0.26s cubic-bezier(0.4, 0, 1, 1) forwards;
+      animation: ntab-pop-out 260ms cubic-bezier(0.4, 0, 1, 1) forwards;
       pointer-events: none;
     }
 
@@ -1401,16 +2243,151 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     }
 
+    /* ── 响应式 ───────────────────────────────────────────────────── */
+    @media (max-width: 991px) {
+      [data-new-tab-page].new-tab-shell {
+        gap: 28px;
+      }
+
+      .new-tab-search-hint {
+        display: none;
+      }
+    }
+
+    @media (max-width: 767px) {
+      [data-new-tab-page].new-tab-shell {
+        gap: 24px;
+        padding-top: 32px;
+        padding-bottom: 40px;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .new-tab-masthead {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .new-tab-actions {
+        justify-content: flex-start;
+      }
+
+      [data-home-link] {
+        width: 36px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      [data-home-link] span {
+        display: none;
+      }
+
+      .new-tab-greeting {
+        font-size: 24px;
+        line-height: 32px;
+      }
+
+      [data-new-tab-page] .new-tab-search {
+        max-width: 100%;
+      }
+
+      [data-new-tab-page] .new-tab-search__submit {
+        width: 56px;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      .new-tab-search__submit-label {
+        display: none;
+      }
+
+      .new-tab-board__bar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .new-tab-board__actions {
+        width: 100%;
+      }
+
+      .new-tab-board__actions .new-tab-btn {
+        flex: 1;
+      }
+
+      .shortcut-empty {
+        padding: 24px;
+      }
+
+      [data-shortcut-stack] {
+        gap: 28px;
+      }
+
+      [data-shortcut-stack] .shortcut-item-shell {
+        width: 80px;
+        height: 88px;
+      }
+
+      [data-new-tab-page] .new-tab-config__grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 420px) {
+      dialog.new-tab-dialog {
+        width: calc(100vw - 2rem);
+      }
+
+      .new-tab-dialog__header,
+      .new-tab-dialog__body,
+      .new-tab-dialog__footer {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .new-tab-tools__panel [data-layout-switcher] .new-tab-layout__menu,
+      .new-tab-tools__panel .theme-switcher__menu {
+        top: 0;
+        right: calc(100% + 8px);
+        left: auto;
+        transform-origin: top right;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .new-tab-tools__panel [data-layout-switcher] .new-tab-layout__menu,
+      .new-tab-tools__panel .theme-switcher__menu {
+        position: static;
+        width: 100%;
+        margin-top: 4px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        transform: none;
+      }
+
+      .new-tab-tools__panel [data-layout-switcher]:not([data-open]) .new-tab-layout__menu,
+      .new-tab-tools__panel .theme-switcher:not([data-open]) .theme-switcher__menu {
+        display: none;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
+      [data-new-tab-page],
       [data-new-tab-page] *,
       [data-new-tab-page] *::before,
-      [data-new-tab-page] *::after {
+      [data-new-tab-page] *::after,
+      [data-new-tab-background-host] {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
         animation-delay: 0ms !important;
       }
     }
-  </style>
+</style>
 
   <script>
     // @ts-nocheck
@@ -1581,7 +2558,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       return normalized.length ? normalized : cloneValue(fallback);
     };
 
-    // 同一份页面会挂在 itcox.cn/portfolio、hey-yx.com 根路径或本地预览下。
+    // 同一份页面会挂在 hey-yx.com/portfolio 或本地预览下。
     // 首页链接按当前地址推算站点根，不写死域名和部署路径。
     const siteBase = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
     const currentPath = window.location.pathname.replace(/\/+$/, "");
@@ -1767,7 +2744,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     const createInlineFormError = () => {
       const error = document.createElement("p");
       error.id = `inline-form-error-${++inlineFormErrorSeq}`;
-      error.className = "hidden text-[0.72rem] leading-snug text-error";
+      error.className = "form-error hidden";
       error.setAttribute("role", "alert");
       return error;
     };
@@ -1785,6 +2762,32 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     const clearInlineFormError = (target) => {
       target.textContent = "";
       target.classList.add("hidden");
+    };
+
+    // 轻提示：保存成功这类反馈不占布局，也不抢焦点。
+    let newTabToastTimer = 0;
+
+    const showNewTabToast = (message) => {
+      const toast = document.querySelector("[data-new-tab-toast]");
+
+      if (!(toast instanceof HTMLElement) || !message) {
+        return;
+      }
+
+      toast.textContent = message;
+      toast.hidden = false;
+      window.clearTimeout(newTabToastTimer);
+      window.requestAnimationFrame(() => {
+        toast.setAttribute("data-visible", "");
+      });
+      newTabToastTimer = window.setTimeout(() => {
+        toast.removeAttribute("data-visible");
+        window.setTimeout(() => {
+          if (!toast.hasAttribute("data-visible")) {
+            toast.hidden = true;
+          }
+        }, 240);
+      }, 2200);
     };
 
     const getIconMarkup = (name) => {
@@ -1900,23 +2903,25 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     const createShortcutEmptyState = () => {
       const empty = document.createElement("div");
-      empty.className = "shortcut-empty grid place-items-center gap-3.5 border border-dashed border-base-content/15 px-6 py-12 text-center";
+      empty.className = "shortcut-empty";
 
       const title = document.createElement("p");
-      title.className = "m-0 text-sm font-medium leading-relaxed text-ink-2";
-      title.textContent = "还没有快捷入口，先把常用的网站加进来";
+      title.className = "shortcut-empty__title";
+      title.textContent = "还没有快捷入口";
+
+      const hint = document.createElement("p");
+      hint.className = "shortcut-empty__hint";
+      hint.textContent = "先新建一个分组，再把常用的网站放进来。分组只用来归类，之后可以随时改名。";
 
       const action = document.createElement("button");
-      action.className = "btn btn-sm h-9 min-h-9 gap-1.5 border border-base-content/20 bg-transparent px-4 text-[0.82rem] font-medium text-ink-2 hover:border-base-content/40 hover:bg-transparent hover:text-base-content";
+      action.className = "shortcut-empty__action";
       action.type = "button";
-      action.innerHTML = `<span class="grid h-3.5 w-3.5 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5">${getIconMarkup("plus")}</span><span>开始添加</span>`;
+      action.innerHTML = `<span class="grid h-4 w-4 place-items-center [&_svg]:h-4 [&_svg]:w-4">${getIconMarkup("plus")}</span><span>${settingsLabels.addGroupLabel ?? "新建分组"}</span>`;
       action.addEventListener("click", () => {
-        const form = createGroupAddForm();
-        empty.replaceWith(form);
-        focusFirstInput(form);
+        openGroupDialog({ mode: "create" });
       });
 
-      empty.append(title, action);
+      empty.append(title, hint, action);
       return empty;
     };
 
@@ -1946,63 +2951,323 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       document.documentElement.dataset.newTabContextMenuBound = "true";
     };
 
+    // 新建 / 修改分组走同一个弹窗。以前表单内联在空态和每组下方，既占标准流，
+    // 又没有浮层的定位与焦点管理，看起来像「凭空多出一行」。
+    let groupDialogApi = null;
+
+    const createGroupDialog = () => {
+      const dialog = document.createElement("dialog");
+      dialog.className = "new-tab-dialog";
+      dialog.id = "new-tab-group-dialog";
+      dialog.setAttribute("aria-labelledby", "new-tab-group-dialog-title");
+
+      const form = document.createElement("form");
+      form.className = "new-tab-dialog__panel";
+      form.noValidate = true;
+
+      const header = document.createElement("div");
+      header.className = "new-tab-dialog__header flex items-start justify-between gap-3";
+      const headerText = document.createElement("div");
+      headerText.className = "min-w-0";
+      const heading = document.createElement("h2");
+      heading.id = "new-tab-group-dialog-title";
+      heading.textContent = settingsLabels.groupDialogCreateTitle ?? "新建分组";
+      const subtitle = document.createElement("p");
+      subtitle.textContent = settingsLabels.groupDialogHint ?? "分组只用来归类站点，创建后可以随时改名。";
+      headerText.append(heading, subtitle);
+
+      const dismissButton = document.createElement("button");
+      dismissButton.className = "btn btn-square btn-ghost btn-sm h-8 min-h-8 w-8 shrink-0 p-0 text-ink-2 transition hover:text-base-content";
+      dismissButton.type = "button";
+      dismissButton.setAttribute("aria-label", settingsLabels.closeLabel ?? "关闭");
+      dismissButton.title = settingsLabels.closeLabel ?? "关闭";
+      dismissButton.innerHTML = getIconMarkup("close");
+      header.append(headerText, dismissButton);
+
+      const fields = document.createElement("div");
+      fields.className = "new-tab-dialog__body";
+
+      const field = document.createElement("label");
+      field.className = "field-row";
+      const fieldLabel = document.createElement("span");
+      fieldLabel.className = "field-label";
+      fieldLabel.textContent = settingsLabels.groupTitleLabel ?? "分组名";
+      const input = document.createElement("input");
+      input.className = "input input-bordered";
+      input.type = "text";
+      input.autocomplete = "off";
+      input.placeholder = settingsLabels.groupNamePlaceholder ?? "例如：工作、工具、常看的站";
+      input.setAttribute("aria-label", settingsLabels.groupTitleLabel ?? "分组名");
+      const error = createInlineFormError();
+      field.append(fieldLabel, input, error);
+      fields.append(field);
+
+      const footer = document.createElement("div");
+      footer.className = "new-tab-dialog__footer";
+      const cancelButton = document.createElement("button");
+      cancelButton.className = "btn btn-ghost btn-sm";
+      cancelButton.type = "button";
+      cancelButton.textContent = "取消";
+      const submitButton = document.createElement("button");
+      submitButton.className = "btn btn-primary btn-sm";
+      submitButton.type = "submit";
+      submitButton.textContent = settingsLabels.groupCreateSubmitLabel ?? "创建";
+      footer.append(cancelButton, submitButton);
+
+      form.append(header, fields, footer);
+      dialog.append(form);
+
+      let editorMode = "create";
+      let editingGroup = null;
+      let createdCallback = null;
+      let savedCallback = null;
+      let returnFocus = null;
+
+      const applyMode = ({ mode = "create", group = null, onCreated = null, onSaved = null } = {}) => {
+        editorMode = mode;
+        editingGroup = mode === "edit" ? group : null;
+        createdCallback = onCreated;
+        savedCallback = onSaved;
+
+        const editing = editorMode === "edit" && editingGroup;
+        heading.textContent = editing
+          ? (settingsLabels.groupDialogEditTitle ?? "修改分组")
+          : (settingsLabels.groupDialogCreateTitle ?? "新建分组");
+        subtitle.textContent = settingsLabels.groupDialogHint ?? "分组只用来归类站点，创建后可以随时改名。";
+        submitButton.textContent = editing
+          ? (settingsLabels.groupSaveSubmitLabel ?? "保存")
+          : (settingsLabels.groupCreateSubmitLabel ?? "创建");
+        input.value = editing ? editingGroup.title : "";
+        clearInlineFormError(error);
+        input.removeAttribute("aria-invalid");
+      };
+
+      const restoreReturnFocus = () => {
+        const target = returnFocus;
+        returnFocus = null;
+
+        if (target instanceof HTMLElement && target.isConnected) {
+          window.requestAnimationFrame(() => {
+            target.focus({ preventScroll: true });
+          });
+        }
+      };
+
+      const dismiss = () => {
+        dialog.close();
+        document.querySelector("[data-group-add]")?.setAttribute("aria-expanded", "false");
+        restoreReturnFocus();
+      };
+
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        dismiss();
+      });
+
+      dismissButton.addEventListener("click", dismiss);
+      cancelButton.addEventListener("click", dismiss);
+
+      let backdropPointerDown = false;
+
+      dialog.addEventListener("pointerdown", (event) => {
+        backdropPointerDown = event.target === dialog;
+      });
+
+      dialog.addEventListener("click", (event) => {
+        if (backdropPointerDown && event.target === dialog) {
+          backdropPointerDown = false;
+          dismiss();
+        }
+      });
+
+      input.addEventListener("input", () => {
+        clearInlineFormError(error);
+        input.removeAttribute("aria-invalid");
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const title = normalizeText(input.value);
+
+        if (!title) {
+          markFieldInvalid(error, "先输入分组名", input);
+          input.focus();
+          return;
+        }
+
+        const duplicate = newTabState.shortcutGroups.find((item) => item !== editingGroup && item.title === title);
+
+        if (duplicate) {
+          markFieldInvalid(error, settingsLabels.groupDuplicateError ?? "已有同名分组", input);
+          input.focus();
+          return;
+        }
+
+        if (editorMode === "edit" && editingGroup) {
+          const previousTitle = editingGroup.title;
+          editingGroup.title = title;
+          if (lastShortcutAddGroupTitle === previousTitle) {
+            lastShortcutAddGroupTitle = title;
+          }
+          persistConfigChange("已修改");
+          returnFocus = null;
+          dismiss();
+          showNewTabToast("分组已改名");
+          savedCallback?.(editingGroup);
+          window.requestAnimationFrame(() => {
+            const renamedSection = document.querySelector(`[data-group-title="${CSS.escape(title)}"]`);
+            renamedSection?.querySelector(".shortcut-group__menu")?.focus({ preventScroll: true });
+          });
+          return;
+        }
+
+        const group = { title, shortcuts: [] };
+        newTabState.shortcutGroups.push(group);
+        persistConfigChange("已添加");
+        returnFocus = null;
+        dismiss();
+        showNewTabToast(`已创建「${title}」`);
+
+        if (createdCallback) {
+          createdCallback(group);
+        }
+      });
+
+      const open = (options = {}) => {
+        applyMode(options);
+
+        if (!dialog.isConnected) {
+          document.body.append(dialog);
+        }
+
+        if (!dialog.open) {
+          returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          document.querySelector("[data-group-add]")?.setAttribute("aria-expanded", "true");
+          dialog.showModal();
+        }
+
+        input.focus({ preventScroll: true });
+        input.select();
+      };
+
+      return { dialog, open };
+    };
+
+    const openGroupDialog = (options = {}) => {
+      if (!groupDialogApi) {
+        groupDialogApi = createGroupDialog();
+      }
+
+      groupDialogApi.open(options);
+    };
+
     // 记住上次加进哪个分组，下次从工具栏进来默认还是它
     let lastShortcutAddGroupTitle = "";
 
-    const createShortcutAddForm = (group) => {
-      const form = document.createElement("form");
-      form.className = "shortcut-item-add-form col-span-full grid w-full max-w-[min(100%,24rem)] gap-3 border border-base-content/10 bg-base-100/95 p-3.5 shadow-[0_10px_36px_rgba(0,0,0,0.12)] backdrop-blur";
+    // 添加站点弹窗：单实例原生 <dialog>，首次打开时挂到 body。
+    // 以前这块表单插在快捷方式区顶部，占整整一行、把下面的分组顶开，看起来像浮层
+    // 却没有浮层的定位（用户原话「还占用标准流位置」）。showModal() 进顶层后
+    // 不参与页面布局，自带焦点陷阱与 Esc 关闭，背景滚动也不受影响。
+    let shortcutAddDialogApi = null;
 
-      // 标题栏：一句话说明 + 关闭钮，让这块面板自己会说话
+    const createShortcutAddForm = () => {
+      const dialog = document.createElement("dialog");
+      dialog.className = "new-tab-dialog";
+      dialog.id = "new-tab-add-dialog";
+      dialog.setAttribute("aria-labelledby", "new-tab-add-dialog-title");
+
+      const form = document.createElement("form");
+      form.className = "new-tab-dialog__panel";
+      form.noValidate = true;
+
       const header = document.createElement("div");
-      header.className = "flex items-center justify-between gap-2";
-      const heading = document.createElement("p");
-      heading.className = "m-0 text-[0.82rem] font-semibold leading-tight";
+      header.className = "new-tab-dialog__header flex items-start justify-between gap-3";
+      const headerText = document.createElement("div");
+      headerText.className = "min-w-0";
+      const heading = document.createElement("h2");
+      heading.className = "m-0 text-[0.95rem] font-bold leading-tight";
+      heading.id = "new-tab-add-dialog-title";
       heading.textContent = settingsLabels.addShortcutLabel ?? "添加站点";
+      const subtitle = document.createElement("p");
+      subtitle.className = "mt-1 truncate text-xs leading-snug text-ink-2";
+      headerText.append(heading, subtitle);
       const dismissButton = document.createElement("button");
-      dismissButton.className = "btn btn-square btn-ghost btn-xs h-7 min-h-7 w-7 p-0 text-ink-2 transition hover:text-base-content";
+      dismissButton.className = "btn btn-square btn-ghost btn-sm h-8 min-h-8 w-8 shrink-0 p-0 text-ink-2 transition hover:text-base-content";
       dismissButton.type = "button";
-      dismissButton.setAttribute("aria-label", "取消添加");
-      dismissButton.title = "取消";
+      dismissButton.setAttribute("aria-label", "关闭");
+      dismissButton.title = "关闭";
       dismissButton.innerHTML = getIconMarkup("close");
-      header.append(heading, dismissButton);
+      header.append(headerText, dismissButton);
 
       const fields = document.createElement("div");
-      fields.className = "grid min-w-0 gap-2.5";
+      fields.className = "new-tab-dialog__body grid min-w-0 content-start gap-4";
 
-      let targetGroup = group;
+      let targetGroup = null;
+      let shortcutMetadataRequestId = 0;
+      let shortcutMetadataTimer = 0;
+      let shortcutMetadata = null;
+
       const syncAddTarget = () => {
-        form.setAttribute("aria-label", `${settingsLabels.addShortcutLabel ?? "添加站点"}：${targetGroup.title}`);
+        if (!targetGroup) {
+          return;
+        }
+
+        subtitle.textContent = `加进「${targetGroup.title}」`;
         lastShortcutAddGroupTitle = targetGroup.title;
       };
 
-      // 有多个分组时表单自带分组选择：入口在工具栏，得让用户看得见加进哪一组
-      if (newTabState.shortcutGroups.length > 1) {
-        const groupSelectLabel = document.createElement("label");
-        groupSelectLabel.className = "sr-only";
-        groupSelectLabel.textContent = "所属分组";
+      // 分组选择始终显示：它同时是「加进哪一组」和「现场新建一组」的入口
+      const groupField = document.createElement("div");
+      groupField.className = "field-row";
+      const groupHead = document.createElement("div");
+      groupHead.className = "field-head";
+      const groupFieldLabel = document.createElement("span");
+      groupFieldLabel.className = "field-label";
+      groupFieldLabel.textContent = settingsLabels.addShortcutToGroupLabel ?? "所属分组";
+      const groupCreateButton = document.createElement("button");
+      groupCreateButton.className = "inline-link";
+      groupCreateButton.type = "button";
+      groupCreateButton.textContent = `+ ${settingsLabels.addShortcutNewGroupLabel ?? "新建分组"}`;
+      groupHead.append(groupFieldLabel, groupCreateButton);
+      const groupSelect = document.createElement("select");
+      groupSelect.className = "select select-bordered";
+      groupSelect.setAttribute("aria-label", settingsLabels.addShortcutToGroupLabel ?? "所属分组");
+      groupField.append(groupHead, groupSelect);
+      groupField.style.display = "none";
+      groupSelect.addEventListener("change", () => {
+        targetGroup = newTabState.shortcutGroups[Number(groupSelect.value)] ?? targetGroup;
+        syncAddTarget();
+      });
 
-        const groupSelect = document.createElement("select");
-        groupSelect.className = "select select-bordered select-sm h-9 min-h-9 w-full bg-base-100/80 text-xs";
-        groupSelect.setAttribute("aria-label", "所属分组");
-
-        newTabState.shortcutGroups.forEach((item, index) => {
+      const rebuildGroupOptions = (selectedTitle = targetGroup?.title ?? "") => {
+        const groups = newTabState.shortcutGroups;
+        const selected = targetGroup && groups.includes(targetGroup)
+          ? targetGroup
+          : groups.find((item) => item.title === selectedTitle) ?? groups[0];
+        groupSelect.textContent = "";
+        groups.forEach((item, index) => {
           const option = document.createElement("option");
           option.value = String(index);
           option.textContent = item.title;
           groupSelect.append(option);
         });
+        groupSelect.value = String(Math.max(0, groups.indexOf(selected)));
+        targetGroup = selected ?? null;
+        groupField.style.display = groups.length ? "grid" : "none";
+        syncAddTarget();
+      };
 
-        groupSelect.value = String(Math.max(0, newTabState.shortcutGroups.indexOf(group)));
-        groupSelect.addEventListener("change", () => {
-          targetGroup = newTabState.shortcutGroups[Number(groupSelect.value)] ?? targetGroup;
-          syncAddTarget();
+      groupCreateButton.addEventListener("click", () => {
+        openGroupDialog({
+          mode: "create",
+          onCreated: (group) => {
+            targetGroup = group;
+            lastShortcutAddGroupTitle = group.title;
+            rebuildGroupOptions(group.title);
+            groupSelect.focus();
+          },
         });
-
-        fields.append(groupSelectLabel, groupSelect);
-      }
-
-      syncAddTarget();
+      });
 
       // 图标预览：地址解析出 logo 前先显示站点首字母，拿到后真实透出 favicon
       const preview = document.createElement("div");
@@ -2016,7 +3281,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       previewImage.referrerPolicy = "no-referrer";
       const previewInitial = document.createElement("span");
       previewInitial.className = "text-[0.95rem] font-bold leading-none text-ink-2";
-      previewInitial.textContent = "?";
+      previewInitial.textContent = "站";
       previewIcon.append(previewImage, previewInitial);
       const previewText = document.createElement("div");
       previewText.className = "grid min-w-0 gap-0.5";
@@ -2030,9 +3295,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       preview.append(previewIcon, previewText);
       fields.append(preview);
 
+      const resetPreview = () => {
+        previewImage.classList.add("hidden");
+        previewImage.removeAttribute("src");
+        previewInitial.classList.remove("hidden");
+        previewInitial.textContent = "站";
+        previewTitle.textContent = "新站点";
+        previewHint.textContent = "填地址后自动识别名称与图标";
+      };
+
       const fieldRow = (labelText, inputEl) => {
         const row = document.createElement("label");
-        row.className = "grid min-w-0 gap-1";
+        row.className = "grid min-w-0 gap-1.5";
         const rowLabel = document.createElement("span");
         rowLabel.className = "text-[0.72rem] font-medium text-ink-2";
         rowLabel.textContent = labelText;
@@ -2041,24 +3315,25 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       };
 
       const titleInput = document.createElement("input");
-      titleInput.className = "input input-bordered input-sm h-9 min-h-9 w-full min-w-0 bg-base-100/80 text-xs";
+      titleInput.className = "input input-bordered input-sm h-9 min-h-9 w-full min-w-0 bg-base-100 text-xs";
       titleInput.type = "text";
       titleInput.autocomplete = "off";
       titleInput.setAttribute("aria-label", settingsLabels.shortcutTitleLabel ?? "名称");
-      titleInput.placeholder = settingsLabels.shortcutTitleLabel ?? "名称";
+      titleInput.placeholder = "留空自动识别";
 
       const urlInput = document.createElement("input");
-      urlInput.className = "input input-bordered input-sm h-9 min-h-9 w-full min-w-0 bg-base-100/80 text-xs";
+      urlInput.className = "input input-bordered input-sm h-9 min-h-9 w-full min-w-0 bg-base-100 text-xs";
       urlInput.type = "text";
       urlInput.inputMode = "url";
       urlInput.autocomplete = "off";
       urlInput.setAttribute("aria-label", settingsLabels.shortcutUrlLabel ?? "地址");
       urlInput.placeholder = "example.com";
 
-      fields.append(fieldRow(settingsLabels.shortcutTitleLabel ?? "名称", titleInput));
-      fields.append(fieldRow(settingsLabels.shortcutUrlLabel ?? "地址", urlInput));
-
       const error = createInlineFormError();
+      // 先地址后名称：贴地址进来的用户不用先跳过名称；解析出的标题会自动填回名称框
+      fields.append(fieldRow(settingsLabels.shortcutUrlLabel ?? "地址", urlInput));
+      fields.append(fieldRow(settingsLabels.shortcutTitleLabel ?? "名称", titleInput));
+      fields.append(groupField, error);
 
       form.addEventListener("input", (event) => {
         if (event.target instanceof HTMLElement) {
@@ -2066,12 +3341,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         }
       });
 
-      let shortcutMetadataRequestId = 0;
-      let shortcutMetadataTimer = 0;
-      let shortcutMetadata = null;
-
       const footer = document.createElement("div");
-      footer.className = "flex items-center justify-end gap-1.5";
+      footer.className = "new-tab-dialog__footer flex items-center justify-end gap-1.5";
       const cancelButton = document.createElement("button");
       cancelButton.className = "btn btn-ghost btn-sm h-8 min-h-8 px-3 text-xs text-ink-2 transition hover:text-base-content";
       cancelButton.type = "button";
@@ -2132,12 +3403,28 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         shortcutMetadataTimer = window.setTimeout(syncShortcutMetadata, 550);
       };
 
+      // 弹窗自己就是关闭入口，不再需要重渲染列表来「收掉表单」
       const dismiss = () => {
-        renderShortcutGroups();
+        dialog.close();
       };
 
       dismissButton.addEventListener("click", dismiss);
       cancelButton.addEventListener("click", dismiss);
+
+      // 点遮罩关闭：面板在 form 里，事件目标落在 dialog 本身才算点到外面。
+      // 起点也必须在遮罩上：输入框里选中文字、拖到框外松手不该把弹窗关掉。
+      let backdropPointerDown = false;
+
+      dialog.addEventListener("pointerdown", (event) => {
+        backdropPointerDown = event.target === dialog;
+      });
+
+      dialog.addEventListener("click", (event) => {
+        if (backdropPointerDown && event.target === dialog) {
+          backdropPointerDown = false;
+          dismiss();
+        }
+      });
 
       titleInput.addEventListener("input", () => {
         previewTitle.textContent = normalizeText(titleInput.value) || "新站点";
@@ -2178,6 +3465,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           return;
         }
 
+        if (!targetGroup) {
+          return;
+        }
+
         const logo = metadata?.logoUrl;
         const description = metadata?.description;
         targetGroup.shortcuts.push({
@@ -2186,16 +3477,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           ...(description ? { description } : {}),
           ...(logo ? { logo } : {}),
         });
+        dialog.close();
         persistConfigChange("已添加");
-      });
-
-      [titleInput, urlInput].forEach((input) => {
-        input.addEventListener("keydown", (event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            dismiss();
-          }
-        });
+        showNewTabToast(`已添加「${title}」`);
       });
 
       // 地址框回车：先去补名称（元数据还没到就停在原地），别直接提交半成品
@@ -2213,133 +3497,238 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       urlInput.addEventListener("input", () => {
         shortcutMetadata = null;
-        previewImage.classList.add("hidden");
-        previewImage.removeAttribute("src");
-        previewInitial.classList.remove("hidden");
-        previewInitial.textContent = "?";
-        previewHint.textContent = "填地址后自动识别名称与图标";
+        resetPreview();
         scheduleShortcutMetadataSync();
       });
       urlInput.addEventListener("blur", syncShortcutMetadata);
       urlInput.addEventListener("change", syncShortcutMetadata);
 
-      form.append(header, fields, error, footer);
-      return form;
-    };
+      form.append(header, fields, footer);
+      dialog.append(form);
 
-    // 添加入口只有工具栏一处（原先挂在每组末尾、悬停才浮现的「+」瓦片已去掉）：
-    // 表单统一插到快捷方式区顶部，避免在弧形/随机画布里被绝对定位的瓦片压住。
-    const openShortcutAddForm = (group) => {
-      const stack = document.querySelector("[data-shortcut-stack]");
+      const openFor = (group) => {
+        const groups = newTabState.shortcutGroups;
+        const target = group && groups.includes(group)
+          ? group
+          : groups.find((item) => item.title === lastShortcutAddGroupTitle) ?? groups[0];
 
-      if (!(stack instanceof HTMLElement)) {
-        return;
-      }
-
-      // 入口常驻，重复点很容易：已经开着就只改目标分组 + 送回焦点，不叠第二份表单
-      const existing = stack.querySelector(".shortcut-item-add-form");
-
-      if (existing instanceof HTMLFormElement) {
-        const targetIndex = group ? newTabState.shortcutGroups.indexOf(group) : -1;
-        const existingSelect = existing.querySelector("select");
-
-        if (targetIndex >= 0 && existingSelect instanceof HTMLSelectElement) {
-          existingSelect.value = String(targetIndex);
-          existingSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        if (!target) {
+          return;
         }
 
-        existing.scrollIntoView({ block: "nearest" });
-        focusFirstInput(existing);
-        return;
-      }
+        targetGroup = target;
 
-      const groups = newTabState.shortcutGroups;
-      const target = group ?? groups.find((item) => item.title === lastShortcutAddGroupTitle) ?? groups[0];
+        // 已经开着就只切目标分组、送回焦点，不把用户填了一半的内容清掉
+        if (dialog.open) {
+          if (group) {
+            groupSelect.value = String(Math.max(0, groups.indexOf(group)));
+            syncAddTarget();
+          }
+          focusFirstInput(form);
+          return;
+        }
 
-      if (!target) {
-        return;
-      }
+        // 每次打开都从干净状态开始：上次的输入、报错、图标解析结果都不带进来
+        titleInput.value = "";
+        urlInput.value = "";
+        clearInlineFormError(error);
+        shortcutMetadata = null;
+        shortcutMetadataRequestId += 1;
+        window.clearTimeout(shortcutMetadataTimer);
+        resetPreview();
 
-      const form = createShortcutAddForm(target);
-      stack.prepend(form);
-      form.scrollIntoView({ block: "nearest" });
-      focusFirstInput(form);
-    };
+        // 分组可能在两次打开之间增删，选项和当前分组都按数据重算
+        rebuildGroupOptions(target.title);
 
-    const createShortcutEditForm = (group, shortcut) => {
-      const form = document.createElement("form");
-      form.className = "shortcut-item-edit-form grid w-full max-w-[min(100%,24rem)] grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-1.5 border border-base-content/10 bg-base-100/90 p-2 backdrop-blur";
-      form.setAttribute("aria-label", `修改 item：${shortcut.title}`);
+        if (!dialog.isConnected) {
+          document.body.append(dialog);
+        }
 
-      const fields = document.createElement("div");
-      fields.className = "grid min-w-0 gap-1";
-
-      const createInput = (label, value, inputMode = "text") => {
-        const inputLabel = document.createElement("label");
-        inputLabel.className = "sr-only";
-        inputLabel.textContent = label;
-        const input = document.createElement("input");
-        input.className = "input input-bordered input-xs h-8 min-w-0 bg-base-100/80 text-xs";
-        input.type = "text";
-        input.inputMode = inputMode;
-        input.autocomplete = "off";
-        input.placeholder = label;
-        input.value = value ?? "";
-        input.setAttribute("aria-label", label);
-        fields.append(inputLabel, input);
-        return input;
+        dialog.showModal();
+        urlInput.focus();
       };
 
-      const titleInput = createInput(settingsLabels.shortcutTitleLabel ?? "名称", shortcut.title);
-      const urlInput = createInput(settingsLabels.shortcutUrlLabel ?? "地址", shortcut.url, "url");
-      const descriptionInput = createInput(settingsLabels.shortcutDescriptionLabel ?? "说明", shortcut.description ?? "");
-      const logoInput = createInput(settingsLabels.shortcutLogoLabel ?? "图标 URL", shortcut.logo ?? "", "url");
+      return { dialog, openFor };
+    };
+
+    // 添加入口只有工具栏一处（原先挂在每组末尾、悬停才浮现的「+」瓦片已去掉）。
+    // 表单是弹窗，不再插进快捷方式区；重复点只切目标分组并送回焦点。
+    const openShortcutAddForm = (group) => {
+      if (!shortcutAddDialogApi) {
+        shortcutAddDialogApi = createShortcutAddForm();
+      }
+
+      shortcutAddDialogApi.openFor(group);
+    };
+
+    // 修改站点同样走弹窗：内联表单会把 96px 的瓦片撑成一张大表单，
+    // 周围卡片被迫重排，视觉上像页面坏了。
+    let shortcutEditDialogApi = null;
+
+    const createShortcutEditDialog = () => {
+      const dialog = document.createElement("dialog");
+      dialog.className = "new-tab-dialog";
+      dialog.id = "new-tab-edit-dialog";
+      dialog.setAttribute("aria-labelledby", "new-tab-edit-dialog-title");
+
+      const form = document.createElement("form");
+      form.className = "new-tab-dialog__panel";
+      form.noValidate = true;
+
+      const header = document.createElement("div");
+      header.className = "new-tab-dialog__header flex items-start justify-between gap-3";
+      const headerText = document.createElement("div");
+      headerText.className = "min-w-0";
+      const heading = document.createElement("h2");
+      heading.id = "new-tab-edit-dialog-title";
+      heading.textContent = "修改站点";
+      const subtitle = document.createElement("p");
+      subtitle.className = "truncate";
+      headerText.append(heading, subtitle);
+
+      const dismissButton = document.createElement("button");
+      dismissButton.className = "btn btn-square btn-ghost btn-sm h-8 min-h-8 w-8 shrink-0 p-0 text-ink-2 transition hover:text-base-content";
+      dismissButton.type = "button";
+      dismissButton.setAttribute("aria-label", settingsLabels.closeLabel ?? "关闭");
+      dismissButton.title = settingsLabels.closeLabel ?? "关闭";
+      dismissButton.innerHTML = getIconMarkup("close");
+      header.append(headerText, dismissButton);
+
+      const fields = document.createElement("div");
+      fields.className = "new-tab-dialog__body";
+
+      const createField = (labelText, input) => {
+        const field = document.createElement("label");
+        field.className = "field-row";
+        const label = document.createElement("span");
+        label.className = "field-label";
+        label.textContent = labelText;
+        field.append(label, input);
+        return field;
+      };
+
+      const titleInput = document.createElement("input");
+      titleInput.className = "input input-bordered";
+      titleInput.type = "text";
+      titleInput.autocomplete = "off";
+      titleInput.setAttribute("aria-label", settingsLabels.shortcutTitleLabel ?? "名称");
+
+      const urlInput = document.createElement("input");
+      urlInput.className = "input input-bordered";
+      urlInput.type = "text";
+      urlInput.inputMode = "url";
+      urlInput.autocomplete = "off";
+      urlInput.setAttribute("aria-label", settingsLabels.shortcutUrlLabel ?? "地址");
+
+      const descriptionInput = document.createElement("input");
+      descriptionInput.className = "input input-bordered";
+      descriptionInput.type = "text";
+      descriptionInput.autocomplete = "off";
+      descriptionInput.setAttribute("aria-label", settingsLabels.shortcutDescriptionLabel ?? "说明");
+      descriptionInput.placeholder = "可留空，默认显示域名";
+
+      const logoInput = document.createElement("input");
+      logoInput.className = "input input-bordered";
+      logoInput.type = "text";
+      logoInput.inputMode = "url";
+      logoInput.autocomplete = "off";
+      logoInput.setAttribute("aria-label", settingsLabels.shortcutLogoLabel ?? "图标 URL");
+      logoInput.placeholder = "可留空，自动抓取";
 
       const error = createInlineFormError();
 
-      form.addEventListener("input", (event) => {
-        if (event.target instanceof HTMLElement) {
-          event.target.removeAttribute("aria-invalid");
-        }
-      });
-      fields.append(error);
+      fields.append(
+        createField(settingsLabels.shortcutUrlLabel ?? "地址", urlInput),
+        createField(settingsLabels.shortcutTitleLabel ?? "名称", titleInput),
+        createField(settingsLabels.shortcutDescriptionLabel ?? "说明", descriptionInput),
+        createField(settingsLabels.shortcutLogoLabel ?? "图标 URL", logoInput),
+        error,
+      );
 
-      const submitButton = createIconButton("保存", "check", "text-success/75 hover:text-success");
+      const footer = document.createElement("div");
+      footer.className = "new-tab-dialog__footer";
+      const cancelButton = document.createElement("button");
+      cancelButton.className = "btn btn-ghost btn-sm";
+      cancelButton.type = "button";
+      cancelButton.textContent = "取消";
+      const submitButton = document.createElement("button");
+      submitButton.className = "btn btn-primary btn-sm";
       submitButton.type = "submit";
-      const cancelButton = createIconButton("取消", "close");
-      let shortcutMetadataRequestId = 0;
-      let shortcutMetadata = null;
+      submitButton.textContent = "保存";
+      footer.append(cancelButton, submitButton);
 
-      const syncShortcutMetadata = () => {
+      form.append(header, fields, footer);
+      dialog.append(form);
+
+      let editingGroup = null;
+      let editingShortcut = null;
+      let metadata = null;
+      let metadataRequestId = 0;
+
+      const syncMetadata = () => {
         const url = normalizeShortcutUrlInput(urlInput.value);
 
         if (!url || !isValidShortcutUrl(url) || !isRemoteUrl(url)) {
           return Promise.resolve(null);
         }
 
-        const requestId = shortcutMetadataRequestId + 1;
-        shortcutMetadataRequestId = requestId;
+        const requestId = metadataRequestId + 1;
+        metadataRequestId = requestId;
 
-        return fetchShortcutMetadata({ url }).then((metadata) => {
-          if (requestId !== shortcutMetadataRequestId || normalizeShortcutUrlInput(urlInput.value) !== url) {
+        return fetchShortcutMetadata({ url }).then((result) => {
+          if (requestId !== metadataRequestId || normalizeShortcutUrlInput(urlInput.value) !== url) {
             return null;
           }
 
-          shortcutMetadata = metadata;
-          if (!normalizeText(titleInput.value)) {
-            const suggestedTitle = metadata?.title || getShortcutHostname(normalizeShortcutUrlInput(urlInput.value));
-            if (suggestedTitle) {
-              titleInput.value = suggestedTitle;
-              clearInlineFormError(error);
-            }
+          metadata = result;
+
+          if (!normalizeText(titleInput.value) && result?.title) {
+            titleInput.value = result.title;
           }
-          return metadata;
+
+          if (!normalizeText(logoInput.value) && result?.logoUrl) {
+            logoInput.value = result.logoUrl;
+          }
+
+          if (!normalizeText(descriptionInput.value) && result?.description) {
+            descriptionInput.value = result.description;
+          }
+
+          return result;
         });
       };
 
-      cancelButton.addEventListener("click", () => {
-        renderShortcutGroups();
+      const dismiss = () => {
+        dialog.close();
+      };
+
+      dismissButton.addEventListener("click", dismiss);
+      cancelButton.addEventListener("click", dismiss);
+
+      let backdropPointerDown = false;
+
+      dialog.addEventListener("pointerdown", (event) => {
+        backdropPointerDown = event.target === dialog;
       });
+
+      dialog.addEventListener("click", (event) => {
+        if (backdropPointerDown && event.target === dialog) {
+          backdropPointerDown = false;
+          dismiss();
+        }
+      });
+
+      form.addEventListener("input", (event) => {
+        if (event.target instanceof HTMLElement) {
+          event.target.removeAttribute("aria-invalid");
+        }
+        clearInlineFormError(error);
+      });
+
+      urlInput.addEventListener("input", () => {
+        metadata = null;
+      });
+      urlInput.addEventListener("blur", syncMetadata);
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -2358,12 +3747,11 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         }
 
         let title = normalizeText(titleInput.value);
-        let metadata = shortcutMetadata;
 
-        if (isRemoteUrl(url) && (!title || (!normalizeText(logoInput.value) && url !== shortcut.url))) {
+        if (isRemoteUrl(url) && (!title || !normalizeText(logoInput.value))) {
           submitButton.disabled = true;
           setInlineFormError(error, title ? "正在解析图标" : "正在解析标题");
-          metadata = await syncShortcutMetadata();
+          await syncMetadata();
           title = normalizeText(titleInput.value, metadata?.title ?? "");
           submitButton.disabled = false;
         }
@@ -2374,167 +3762,71 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           return;
         }
 
-        shortcut.title = title;
-        shortcut.url = url;
+        if (!editingGroup || !editingShortcut) {
+          dialog.close();
+          return;
+        }
+
+        editingShortcut.title = title;
+        editingShortcut.url = url;
 
         const description = normalizeText(descriptionInput.value, metadata?.description ?? "");
         const logo = normalizeText(logoInput.value, metadata?.logoUrl ?? "");
 
         if (description) {
-          shortcut.description = description;
+          editingShortcut.description = description;
         } else {
-          delete shortcut.description;
+          delete editingShortcut.description;
         }
 
         if (logo) {
-          shortcut.logo = logo;
+          editingShortcut.logo = logo;
         } else {
-          delete shortcut.logo;
+          delete editingShortcut.logo;
         }
 
+        const savedTitle = title;
+        dialog.close();
         persistConfigChange("已修改");
+        showNewTabToast(`已保存「${savedTitle}」`);
       });
 
-      [titleInput, urlInput, descriptionInput, logoInput].forEach((input) => {
-        input.addEventListener("input", () => {
-          clearInlineFormError(error);
+      const openFor = (group, shortcut) => {
+        editingGroup = group;
+        editingShortcut = shortcut;
+        metadata = null;
+        metadataRequestId += 1;
+        subtitle.textContent = `在「${group.title}」里`;
+        titleInput.value = shortcut.title;
+        urlInput.value = shortcut.url;
+        descriptionInput.value = shortcut.description ?? "";
+        logoInput.value = shortcut.logo ?? "";
+        clearInlineFormError(error);
+        [titleInput, urlInput, descriptionInput, logoInput].forEach((input) => {
+          input.removeAttribute("aria-invalid");
         });
-        input.addEventListener("keydown", (event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            renderShortcutGroups();
-          }
-        });
-      });
 
-      urlInput.addEventListener("input", () => {
-        shortcutMetadata = null;
-      });
-      urlInput.addEventListener("blur", syncShortcutMetadata);
-      urlInput.addEventListener("change", syncShortcutMetadata);
+        if (!dialog.isConnected) {
+          document.body.append(dialog);
+        }
 
-      form.append(fields, submitButton, cancelButton);
-      return form;
+        if (!dialog.open) {
+          dialog.showModal();
+        }
+
+        titleInput.focus({ preventScroll: true });
+        titleInput.select();
+      };
+
+      return { dialog, openFor };
     };
 
-    const createGroupAddForm = () => {
-      const form = document.createElement("form");
-      form.className = "shortcut-group shortcut-group--add-form flex items-start gap-2 py-1";
-      form.setAttribute("aria-label", settingsLabels.addGroupLabel ?? "添加分组");
+    const openShortcutEditDialog = (group, shortcut) => {
+      if (!shortcutEditDialogApi) {
+        shortcutEditDialogApi = createShortcutEditDialog();
+      }
 
-      const field = document.createElement("label");
-      field.className = "grid min-w-0 gap-1";
-      const srLabel = document.createElement("span");
-      srLabel.className = "sr-only";
-      srLabel.textContent = settingsLabels.groupTitleLabel ?? "分组名";
-      const input = document.createElement("input");
-      input.className = "input input-bordered input-xs h-8 w-56 bg-base-100 text-xs";
-      input.type = "text";
-      input.autocomplete = "off";
-      input.placeholder = settingsLabels.groupTitleLabel ?? "分组名";
-      const error = document.createElement("span");
-      error.className = "hidden text-[0.72rem] leading-snug text-error";
-      field.append(srLabel, input, error);
-
-      const actions = document.createElement("span");
-      actions.className = "inline-flex items-center gap-1.5";
-      const submitButton = createIconButton("创建", "check", "text-success/75 hover:text-success");
-      submitButton.type = "submit";
-      const cancelButton = createIconButton("取消", "close");
-      actions.append(submitButton, cancelButton);
-
-      cancelButton.addEventListener("click", () => {
-        renderShortcutGroups();
-      });
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const title = normalizeText(input.value);
-
-        if (!title) {
-          setInlineFormError(error, "先输入分组名");
-          input.focus();
-          return;
-        }
-
-        newTabState.shortcutGroups.push({
-          title,
-          shortcuts: [],
-        });
-        persistConfigChange("已添加");
-      });
-
-      input.addEventListener("input", () => {
-        clearInlineFormError(error);
-      });
-      input.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          renderShortcutGroups();
-        }
-      });
-
-      form.append(field, actions);
-      return form;
-    };
-
-    const createGroupEditForm = (group) => {
-      const form = document.createElement("form");
-      form.className = "shortcut-group shortcut-group--edit-form flex items-start gap-2 py-1";
-      form.setAttribute("aria-label", `修改分组：${group.title}`);
-
-      const field = document.createElement("label");
-      field.className = "grid min-w-0 gap-1";
-      const srLabel = document.createElement("span");
-      srLabel.className = "sr-only";
-      srLabel.textContent = settingsLabels.groupTitleLabel ?? "分组名";
-      const input = document.createElement("input");
-      input.className = "input input-bordered input-xs h-8 w-56 bg-base-100 text-xs";
-      input.type = "text";
-      input.autocomplete = "off";
-      input.placeholder = settingsLabels.groupTitleLabel ?? "分组名";
-      input.value = group.title;
-      const error = document.createElement("span");
-      error.className = "hidden text-[0.72rem] leading-snug text-error";
-      field.append(srLabel, input, error);
-
-      const actions = document.createElement("span");
-      actions.className = "inline-flex items-center gap-1.5";
-      const submitButton = createIconButton("保存", "check", "text-success/75 hover:text-success");
-      submitButton.type = "submit";
-      const cancelButton = createIconButton("取消", "close");
-      actions.append(submitButton, cancelButton);
-
-      cancelButton.addEventListener("click", () => {
-        renderShortcutGroups();
-      });
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const title = normalizeText(input.value);
-
-        if (!title) {
-          setInlineFormError(error, "先输入分组名");
-          input.focus();
-          return;
-        }
-
-        group.title = title;
-        persistConfigChange("已修改");
-      });
-
-      input.addEventListener("input", () => {
-        clearInlineFormError(error);
-      });
-      input.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          renderShortcutGroups();
-        }
-      });
-
-      form.append(field, actions);
-      return form;
+      shortcutEditDialogApi.openFor(group, shortcut);
     };
 
     const moveArrayItem = (items, fromIndex, toIndex) => {
@@ -3449,7 +4741,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     };
 
     const layoutShortcutCanvas = (itemsEl, mode, placements) => {
-      const children = Array.from(itemsEl.children).filter((child) => child instanceof HTMLElement);
+      const children = Array.from(itemsEl.children).filter(
+        (child) => child instanceof HTMLElement && !child.classList.contains("shortcut-group__empty"),
+      );
 
       if (mode === "grid" || !children.length) {
         itemsEl.style.removeProperty("height");
@@ -3480,7 +4774,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         // dataset.fanTransform 存悬停时向右铺开成完整间距的位置。
         // 每行容量按铺开后的间距算，保证铺开时不会顶出容器。
         const rowGap = 10;
-        const collapsedStepX = Math.max(tileWidth * 0.6, 1);
+        const collapsedStepX = Math.max(tileWidth * 0.78, 1);
         const expandedStepX = Math.max(tileWidth + rowGap, collapsedStepX);
         const perRow = Math.max(1, Math.floor((width - tileWidth) / expandedStepX) + 1);
         const random = createScatterRandom(newTabState.scatterSeed + 17);
@@ -3644,6 +4938,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
 
       const mode = newTabState.shortcutLayout;
+      // 首屏让瓦片逐个弹出（序号 × 24ms，上限 360ms）；新增站点也播同样的弹入。
       const stagger = animate && previousPlacements.size === 0;
       let globalIndex = 0;
 
@@ -3657,7 +4952,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         layoutShortcutCanvas(itemsEl, mode, placements);
 
         Array.from(itemsEl.children).forEach((child) => {
-          if (!(child instanceof HTMLElement)) {
+          if (!(child instanceof HTMLElement) || child.classList.contains("shortcut-group__empty")) {
             return;
           }
 
@@ -3732,6 +5027,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       });
 
       select.value = newTabState.defaultSearchEngineId;
+
+      const engineLabel = document.querySelector("[data-search-engine-label]");
+      const activeEngine = newTabState.searchEngines.find((engine) => engine.id === newTabState.defaultSearchEngineId);
+
+      if (engineLabel instanceof HTMLElement && activeEngine) {
+        engineLabel.textContent = activeEngine.label;
+      }
     };
 
     const renderGreeting = () => {
@@ -3805,6 +5107,21 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       stack.textContent = "";
       closeShortcutContextMenu();
 
+      const board = document.querySelector("[data-shortcut-board]");
+      const boardSummary = document.querySelector("[data-shortcut-summary]");
+      const page = document.querySelector("[data-new-tab-page]");
+      const groupCount = newTabState.shortcutGroups.length;
+      const siteCount = newTabState.shortcutGroups.reduce((total, group) => total + group.shortcuts.length, 0);
+
+      page?.setAttribute("data-has-groups", String(groupCount > 0));
+      board?.toggleAttribute("data-empty", groupCount === 0);
+
+      if (boardSummary instanceof HTMLElement) {
+        boardSummary.textContent = groupCount
+          ? `${groupCount} ${settingsLabels.boardSummaryGroupsLabel ?? "个分组"} · ${siteCount} ${settingsLabels.boardSummarySitesLabel ?? "个站点"}`
+          : (settingsLabels.boardSummaryEmptyLabel ?? "还没有分组");
+      }
+
       if (!newTabState.shortcutGroups.length) {
         stack.append(createShortcutEmptyState());
         applyTextColors();
@@ -3815,21 +5132,27 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       newTabState.shortcutGroups.forEach((group, groupIndex) => {
         const section = document.createElement("section");
-        section.className = "shortcut-group group/section relative flex flex-col gap-2.5 py-1";
+        section.className = "shortcut-group";
+        section.dataset.groupTitle = group.title;
         section.setAttribute("aria-label", `${group.title}快捷方式`);
 
         const summary = document.createElement("div");
-        summary.className = "shortcut-group__summary flex min-w-0 items-center gap-3";
+        summary.className = "shortcut-group__summary";
 
         const title = document.createElement("span");
-        title.className = "min-w-0 whitespace-nowrap text-[0.82rem] font-semibold tracking-[0.02em] text-ink-2";
+        title.className = "shortcut-group__title";
         title.dataset.newTabColorTarget = "itemLabel";
         title.textContent = group.title;
 
         const openGroupEditForm = () => {
-          const form = createGroupEditForm(group);
-          section.replaceWith(form);
-          focusFirstInput(form);
+          openGroupDialog({
+            mode: "edit",
+            group,
+            onSaved: (savedGroup) => {
+              const target = stack.querySelector(`[data-group-title="${CSS.escape(savedGroup.title)}"]`);
+              target?.scrollIntoView({ block: "nearest" });
+            },
+          });
         };
         const removeGroup = () => {
           const currentGroupIndex = newTabState.shortcutGroups.indexOf(group);
@@ -3840,6 +5163,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
           newTabState.shortcutGroups.splice(currentGroupIndex, 1);
           persistConfigChange("已删除");
+          showNewTabToast(`已删除「${group.title}」`);
         };
         const openGroupMenu = (event) => {
           openShortcutContextMenu({
@@ -3871,10 +5195,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         };
 
         const titleWrap = document.createElement("span");
-        titleWrap.className = "group/title flex min-w-0 items-center gap-2";
+        titleWrap.className = "flex min-w-0 items-center gap-2";
 
         const groupDragHandle = document.createElement("span");
-        groupDragHandle.className = "shortcut-drag-handle grid h-5 w-4 shrink-0 cursor-grab place-items-center border border-base-content/10 bg-base-100 text-ink-3 opacity-0 transition hover:text-ink-2 focus-visible:opacity-100 active:cursor-grabbing group-hover/title:opacity-100 max-sm:hidden";
+        groupDragHandle.className = "shortcut-drag-handle";
         groupDragHandle.draggable = true;
         groupDragHandle.title = "拖拽排序";
         groupDragHandle.setAttribute("aria-label", `拖拽排序：${group.title}`);
@@ -3896,28 +5220,42 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           clearDropIndicators(stack);
           clearDragPayload();
         });
-        titleWrap.append(groupDragHandle, title);
+        titleWrap.append(title);
 
         const groupMenuButton = document.createElement("button");
-        groupMenuButton.className = "btn btn-square btn-ghost btn-xs shortcut-group__menu h-6 min-h-6 w-6 shrink-0 p-0 text-ink-2 opacity-0 transition hover:text-ink-2 focus-visible:text-ink-2 focus-visible:opacity-100 group-hover/title:opacity-100 max-sm:opacity-100 [&_svg]:h-3.5 [&_svg]:w-3.5";
+        groupMenuButton.className = "shortcut-group__menu";
         groupMenuButton.type = "button";
         groupMenuButton.title = "分组操作";
         groupMenuButton.setAttribute("aria-label", `分组操作：${group.title}`);
+        groupMenuButton.setAttribute("aria-haspopup", "menu");
         groupMenuButton.innerHTML = getIconMarkup("more");
         groupMenuButton.addEventListener("click", openGroupMenu);
 
-        titleWrap.append(groupMenuButton);
         titleWrap.addEventListener("contextmenu", openGroupMenu);
 
         const count = document.createElement("span");
-        count.className = "shrink-0 text-[0.68rem] font-medium text-ink-2";
+        count.className = "shortcut-group__count";
         count.textContent = String(group.shortcuts.length);
+        count.setAttribute("aria-label", `${group.shortcuts.length} 个站点`);
 
         const rule = document.createElement("span");
-        rule.className = "h-px min-w-6 flex-1 bg-base-content/10";
+        rule.className = "shortcut-group__rule";
         rule.setAttribute("aria-hidden", "true");
 
-        summary.append(titleWrap, count, rule);
+        const groupAddButton = document.createElement("button");
+        groupAddButton.className = "new-tab-group-action";
+        groupAddButton.type = "button";
+        groupAddButton.innerHTML = `<span class="grid h-3.5 w-3.5 place-items-center">${getIconMarkup("plus")}</span>`;
+        groupAddButton.setAttribute("aria-label", `向${group.title}添加站点`);
+        groupAddButton.addEventListener("click", () => {
+          openShortcutAddForm(group);
+        });
+
+        const groupActions = document.createElement("span");
+        groupActions.className = "shortcut-group__actions";
+        groupActions.append(groupDragHandle, groupAddButton, groupMenuButton);
+
+        summary.append(titleWrap, count, rule, groupActions);
 
         section.addEventListener("dragover", (event) => {
           const payload = readDragPayload(event);
@@ -4045,14 +5383,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
         group.shortcuts.forEach((shortcut, shortcutIndex) => {
           const itemShell = document.createElement("div");
-          itemShell.className = "shortcut-item-shell group relative z-0 h-[5.75rem] w-[5rem] cursor-grab hover:z-30 focus-within:z-30 active:cursor-grabbing sm:h-[6.2rem] sm:w-[6rem]";
+          itemShell.className = "shortcut-item-shell group select-none";
           itemShell.dataset.canvasKey = `${shortcut.url}\n${shortcut.title}`;
           itemShell.dataset.canvasIndex = String(shortcutIndex);
 
           const openShortcutEditForm = () => {
-            const form = createShortcutEditForm(group, shortcut);
-            itemShell.replaceWith(form);
-            focusFirstInput(form);
+            openShortcutEditDialog(group, shortcut);
           };
           const removeShortcut = () => {
             const currentShortcutIndex = group.shortcuts.indexOf(shortcut);
@@ -4084,7 +5420,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
               subtitle: getShortcutSubtitle(shortcut),
               actions: [
                 {
-                  label: "修改 item",
+                  label: settingsLabels.editShortcutLabel ?? "修改站点",
                   icon: "edit",
                   onSelect: openShortcutEditForm,
                 },
@@ -4225,7 +5561,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           });
 
           const item = document.createElement("a");
-          item.className = "shortcut-item group/item absolute inset-0 flex flex-col items-center justify-center gap-[0.4rem] overflow-hidden border border-transparent px-1 py-2 font-[inherit] text-inherit no-underline transition-[transform,background-color,box-shadow] duration-200 hover:z-20 hover:-translate-y-0.5 focus-visible:z-20 focus-visible:-translate-y-0.5 active:translate-y-0 active:scale-[0.985]";
+          item.className = "shortcut-item";
           item.href = shortcut.url;
           if (newTabState.shortcutOpenMode === "newTab") {
             item.target = "_blank";
@@ -4237,12 +5573,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           );
 
           const icon = document.createElement("span");
-          icon.className = "shortcut-item__icon relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden";
+          icon.className = "shortcut-item__icon";
           icon.setAttribute("aria-hidden", "true");
 
           const image = document.createElement("img");
           const logoUrls = getShortcutLogoUrls(shortcut);
-          image.className = "h-full w-full object-contain p-[0.3rem]";
+          image.className = "";
           image.src = logoUrls[0] ?? "";
           image.alt = "";
           image.loading = "lazy";
@@ -4254,37 +5590,37 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           discoverShortcutLogo(shortcut, image);
 
           const initial = document.createElement("span");
-          initial.className = "shortcut-item__initial hidden text-[0.95rem] font-bold leading-none text-ink-2";
+          initial.className = "shortcut-item__initial hidden";
           initial.textContent = getShortcutInitial(shortcut.title);
 
           icon.append(image, initial);
 
           const itemLabel = document.createElement("span");
-          itemLabel.className = "shortcut-item__label grid w-full min-w-0 justify-items-center gap-[0.12rem]";
+          itemLabel.className = "shortcut-item__label";
           itemLabel.setAttribute("aria-hidden", "true");
 
           const itemLabelTitle = document.createElement("strong");
-          itemLabelTitle.className = "block w-full truncate text-center text-[0.72rem] font-medium leading-tight sm:text-[0.76rem]";
+          itemLabelTitle.className = "";
           itemLabelTitle.dataset.newTabColorTarget = "itemLabel";
           itemLabelTitle.textContent = shortcut.title;
 
           const itemLabelText = document.createElement("small");
-          itemLabelText.className = "block w-full truncate text-center text-[0.63rem] font-medium leading-tight text-ink-2 sm:text-[0.66rem]";
+          itemLabelText.className = "";
           itemLabelText.textContent = getShortcutSubtitle(shortcut);
 
           itemLabel.append(itemLabelTitle, itemLabelText);
 
           const tooltip = document.createElement("span");
-          tooltip.className = "shortcut-item__tooltip pointer-events-none absolute bottom-[calc(100%+0.6rem)] left-1/2 z-40 grid min-w-36 max-w-64 -translate-x-1/2 translate-y-1.5 gap-[0.18rem] border border-base-content/15 bg-base-100 px-3 py-2 text-base-content opacity-0 shadow-[0_8px_28px_rgba(0,0,0,0.10)] transition duration-150 after:absolute after:left-1/2 after:top-full after:h-2 after:w-2 after:-translate-x-1/2 after:-translate-y-1/2 after:rotate-45 after:border-b after:border-r after:border-base-content/15 after:bg-base-100 after:content-[''] group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 max-sm:hidden";
+          tooltip.className = "shortcut-item__tooltip";
           tooltip.role = "tooltip";
 
           const tooltipTitle = document.createElement("strong");
-          tooltipTitle.className = "block overflow-hidden text-ellipsis whitespace-nowrap text-[0.8rem] font-semibold";
+          tooltipTitle.className = "";
           tooltipTitle.dataset.newTabColorTarget = "itemLabel";
           tooltipTitle.textContent = shortcut.title;
 
           const tooltipText = document.createElement("small");
-          tooltipText.className = "block overflow-hidden text-ellipsis whitespace-nowrap text-[0.72rem] leading-snug text-ink-2";
+          tooltipText.className = "";
           tooltipText.textContent = getShortcutSubtitle(shortcut);
 
           tooltip.append(tooltipTitle, tooltipText);
@@ -4293,6 +5629,16 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           itemShell.append(item, tooltip);
           items.append(itemShell);
         });
+
+        if (!group.shortcuts.length) {
+          const empty = document.createElement("button");
+          empty.type = "button";
+          empty.className = "shortcut-group__empty";
+          empty.setAttribute("aria-label", `在${group.title}添加站点`);
+          empty.innerHTML = `<span>还没有站点</span>${getIconMarkup("plus")}<span>添加站点</span>`;
+          empty.addEventListener("click", () => openShortcutAddForm(group));
+          items.append(empty);
+        }
 
         section.append(summary, items);
         groupSections.push(section);
@@ -4303,10 +5649,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         const lastGroupIndex = newTabState.shortcutGroups.length - 1;
         const lastGroup = newTabState.shortcutGroups[lastGroupIndex];
         const canvasSection = document.createElement("section");
-        canvasSection.className = "shortcut-group shortcut-group--canvas relative flex flex-col gap-2.5 py-1";
+        canvasSection.className = "shortcut-group shortcut-group--canvas";
         canvasSection.setAttribute("aria-label", "全部快捷方式");
         const canvasItems = document.createElement("div");
-        canvasItems.className = "shortcut-group__items relative flex w-full min-w-0 flex-wrap items-start justify-start gap-2 sm:gap-2.5";
+        canvasItems.className = "shortcut-group__items";
 
         canvasItems.addEventListener("dragover", (event) => {
           const payload = readDragPayload(event);
@@ -4349,7 +5695,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         });
 
         groupSections.forEach((section) => {
-          section.querySelectorAll(":scope > .shortcut-group__items > *").forEach((child) => {
+          section.querySelectorAll(":scope > .shortcut-group__items > .shortcut-item-shell").forEach((child) => {
             canvasItems.append(child);
           });
         });
@@ -4400,47 +5746,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             persistConfigChange("已排序");
           }
         });
-        stack.addEventListener("contextmenu", (event) => {
-          if (event.target !== stack) {
-            return;
-          }
-
-          event.preventDefault();
-          const addGroupButton = stack.querySelector(".shortcut-group--add");
-
-          if (!(addGroupButton instanceof HTMLElement) || !addGroupButton.isConnected) {
-            return;
-          }
-
-          const form = createGroupAddForm();
-          addGroupButton.replaceWith(form);
-          focusFirstInput(form);
-        });
         stack.dataset.groupDropBound = "true";
       }
-
-      const addGroupButton = document.createElement("button");
-      addGroupButton.className = "shortcut-group shortcut-group--add mt-1 flex w-fit items-center gap-2 border border-dashed border-base-content/15 bg-transparent px-3.5 py-2.5 font-[inherit] text-[0.8rem] font-semibold text-ink-2 transition-[transform,border-color,color,opacity] duration-200 hover:-translate-y-0.5 hover:border-base-content/35 hover:text-ink-2 hover:opacity-100 focus-visible:-translate-y-0.5 focus-visible:border-base-content/35 focus-visible:text-ink-2 focus-visible:opacity-100 focus-visible:outline-none";
-      addGroupButton.type = "button";
-      addGroupButton.setAttribute("aria-label", settingsLabels.addGroupLabel ?? "添加分组");
-      const addGroupSummary = document.createElement("span");
-      addGroupSummary.className = "shortcut-group__summary flex items-center gap-2 text-inherit";
-      const addGroupTitle = document.createElement("span");
-      addGroupTitle.textContent = settingsLabels.addGroupLabel ?? "添加分组";
-      const addGroupMark = document.createElement("span");
-      addGroupMark.className = "grid h-4 w-4 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5";
-      addGroupMark.setAttribute("aria-hidden", "true");
-      addGroupMark.innerHTML = getIconMarkup("plus");
-      addGroupSummary.append(addGroupTitle, addGroupMark);
-
-      addGroupButton.append(addGroupSummary);
-      addGroupButton.addEventListener("click", () => {
-        const form = createGroupAddForm();
-        addGroupButton.replaceWith(form);
-        focusFirstInput(form);
-      });
-
-      stack.append(addGroupButton);
 
       applyShortcutLayouts(previousPlacements);
       applyTextColors();
@@ -4790,7 +6097,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const triggerLabel = document.querySelector("[data-layout-trigger-label]");
 
       if (triggerLabel instanceof HTMLElement) {
-        triggerLabel.textContent = label;
+        triggerLabel.textContent = `布局：${label}`;
       }
 
       const trigger = document.querySelector("[data-layout-trigger]");
@@ -4983,6 +6290,20 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       });
 
       trigger.dataset.addBound = "true";
+    };
+
+    const bindGroupAdd = () => {
+      const trigger = document.querySelector("[data-group-add]");
+
+      if (!(trigger instanceof HTMLElement) || trigger.dataset.groupAddBound === "true") {
+        return;
+      }
+
+      trigger.addEventListener("click", () => {
+        openGroupDialog({ mode: "create" });
+      });
+
+      trigger.dataset.groupAddBound = "true";
     };
 
     const bindHeaderCollapse = () => {
@@ -5446,6 +6767,50 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     let shortcutKeysBound = false;
     let themeToneObserverBound = false;
 
+    const bindToolsMenu = () => {
+      const tools = document.querySelector("[data-tools-menu]");
+
+      if (!(tools instanceof HTMLDetailsElement) || tools.dataset.toolsBound === "true") {
+        return;
+      }
+
+      tools.dataset.toolsBound = "true";
+
+      document.addEventListener("click", (event) => {
+        if (!tools.open || !(event.target instanceof Node) || tools.contains(event.target)) {
+          return;
+        }
+
+        tools.open = false;
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || !tools.open) {
+          return;
+        }
+
+        tools.open = false;
+        tools.querySelector("summary")?.focus();
+      });
+
+      tools.addEventListener("click", (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+
+        if (
+          !target ||
+          target.closest("[data-layout-trigger]") ||
+          target.closest("[data-layout-menu]") ||
+          target.closest("[data-theme-trigger]")
+        ) {
+          return;
+        }
+
+        if (target.closest("button, a")) {
+          tools.open = false;
+        }
+      });
+    };
+
     const bindNewTab = () => {
       newTabState = readStoredState();
       shortcutLogoCache = readShortcutLogoCache();
@@ -5454,7 +6819,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       bindSettings();
       bindNotes();
       bindShortcutAdd();
+      bindGroupAdd();
       bindLayoutSwitcher();
+      bindToolsMenu();
       bindHeaderCollapse();
       bindHeaderRestore();
       bindShortcutContextMenuDismissal();
