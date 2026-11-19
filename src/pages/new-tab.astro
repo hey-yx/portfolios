@@ -8,6 +8,7 @@ import {
   Dices,
   EllipsisVertical,
   GripVertical,
+  Image as ImageIcon,
   Info,
   Layers,
   LayoutGrid,
@@ -137,97 +138,47 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           class="new-tab-btn new-tab-btn--ghost new-tab-tools__trigger"
           aria-label="更多工具"
           title="更多工具"
+          data-new-tab-color-target="navigation"
         >
           <EllipsisVertical aria-hidden="true" />
           <span class="new-tab-tools__label">更多</span>
         </summary>
         <div class="new-tab-tools__panel">
           <div class="new-tab-actions">
-            <div class="new-tab-layout relative" data-layout-switcher>
-          <button
-            class="new-tab-btn new-tab-btn--outline new-tab-layout__trigger"
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            aria-controls="new-tab-layout-menu"
-            aria-label="切换布局，当前网格"
-            title="切换布局"
-            data-layout-trigger
-            data-new-tab-color-target="navigation"
-          >
-            <span data-layout-trigger-icon="grid" class="grid place-items-center">
-              <LayoutGrid aria-hidden="true" />
-            </span>
-            <span data-layout-trigger-icon="stack" class="hidden place-items-center">
-              <Layers aria-hidden="true" />
-            </span>
-            <span data-layout-trigger-icon="ring" class="hidden place-items-center">
-              <Spline aria-hidden="true" />
-            </span>
-            <span data-layout-trigger-icon="scatter" class="hidden place-items-center">
-              <Dices aria-hidden="true" />
-            </span>
-            <span data-layout-trigger-label>布局：网格</span>
-            <ChevronDown class="new-tab-layout__chevron" aria-hidden="true" />
-          </button>
-          <div
-            id="new-tab-layout-menu"
-            class="new-tab-layout__menu"
-            role="menu"
-            aria-label="快捷区布局"
-            data-layout-menu
-            inert
-          >
-            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="true" tabindex="-1" data-layout-option="grid">
-              <span class="new-tab-layout__item-icon"><LayoutGrid aria-hidden="true" /></span>
-              <span class="new-tab-layout__item-text">
-                <span class="new-tab-layout__item-label">网格</span>
-                <span class="new-tab-layout__item-hint">等宽排成几行</span>
-              </span>
-              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
-            </button>
-            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-layout-option="stack">
-              <span class="new-tab-layout__item-icon"><Layers aria-hidden="true" /></span>
-              <span class="new-tab-layout__item-text">
-                <span class="new-tab-layout__item-label">堆叠</span>
-                <span class="new-tab-layout__item-hint">叠成一摞，悬停铺开</span>
-              </span>
-              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
-            </button>
-            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-layout-option="ring">
-              <span class="new-tab-layout__item-icon"><Spline aria-hidden="true" /></span>
-              <span class="new-tab-layout__item-text">
-                <span class="new-tab-layout__item-label">弧形</span>
-                <span class="new-tab-layout__item-hint">沿一条弧线排开</span>
-              </span>
-              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
-            </button>
-            <button class="new-tab-layout__item" type="button" role="menuitemradio" aria-checked="false" tabindex="-1" data-layout-option="scatter">
-              <span class="new-tab-layout__item-icon"><Dices aria-hidden="true" /></span>
-              <span class="new-tab-layout__item-text">
-                <span class="new-tab-layout__item-label">随机</span>
-                <span class="new-tab-layout__item-hint">每次点击重新散开</span>
-              </span>
-              <span class="new-tab-layout__item-check"><Check aria-hidden="true" /></span>
-            </button>
-          </div>
-        </div>
-
         <ThemeToggle
           mobile={false}
           triggerClass="new-tab-btn"
           colorTarget="navigation"
         />
 
-        <a
-          class="new-tab-btn new-tab-btn--ghost"
-          href={newTabConfig.homeLink.href}
-          data-home-link
-          data-new-tab-color-target="navigation"
-        >
-          {newTabConfig.homeLink.label && <span data-home-link-label>{newTabConfig.homeLink.label}</span>}
-          <ArrowUpRight aria-hidden="true" />
-        </a>
+        <div class="new-tab-submenu-group" data-wallpaper-group>
+          <button
+            class="new-tab-btn new-tab-btn--ghost"
+            type="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-wallpaper-trigger
+            data-new-tab-color-target="navigation"
+          >
+            <ImageIcon aria-hidden="true" />
+            <span>壁纸</span>
+            <ChevronDown class="new-tab-submenu__chevron" aria-hidden="true" />
+          </button>
+          <div class="new-tab-submenu" data-wallpaper-menu hidden role="menu" aria-label="壁纸">
+            <button class="new-tab-submenu__item" type="button" role="menuitemradio" aria-checked="false" data-wallpaper-source="bing">
+              <span class="new-tab-submenu__dot" aria-hidden="true"></span>
+              <span>必应每日</span>
+            </button>
+            <button class="new-tab-submenu__item" type="button" role="menuitemradio" aria-checked="false" data-wallpaper-source="custom">
+              <span class="new-tab-submenu__dot" aria-hidden="true"></span>
+              <span>自定义图片</span>
+            </button>
+            <button class="new-tab-submenu__item new-tab-submenu__item--action" type="button" data-wallpaper-shuffle-menu hidden>
+              <span class="new-tab-submenu__dot new-tab-submenu__dot--none" aria-hidden="true"></span>
+              <span>换一张</span>
+            </button>
+          </div>
+        </div>
 
         <button
           class="new-tab-btn new-tab-btn--ghost"
@@ -252,18 +203,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           <span>{newTabConfig.settings.openLabel}</span>
         </button>
 
-        <button
-          class="new-tab-btn new-tab-btn--icon new-tab-btn--ghost"
-          type="button"
-          title="收起问候"
-          aria-label="收起问候"
-          aria-expanded="true"
-          data-header-collapse
-          data-new-tab-color-target="navigation"
-        >
-          <ChevronUp aria-hidden="true" />
-          <span>收起问候</span>
-        </button>
           </div>
         </div>
       </details>
@@ -294,7 +233,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           aria-label={newTabConfig.search.submitLabel}
           title={newTabConfig.search.submitLabel}
         >
-          <Search aria-hidden="true" />
           <span class="new-tab-search__submit-label">{newTabConfig.search.submitLabel}</span>
         </button>
       </form>
@@ -357,18 +295,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
               </span>
               <input class="input input-bordered input-sm" type="text" autocomplete="off" data-config-name />
             </label>
-            <label class="form-control grid min-w-0 gap-1.5">
-              <span class="label">
-                <span class="label-text">{newTabConfig.settings.homeLinkLabel}</span>
-              </span>
-              <input class="input input-bordered input-sm" type="text" autocomplete="off" data-config-home-label />
-            </label>
-            <label class="form-control grid min-w-0 gap-1.5">
-              <span class="label">
-                <span class="label-text">{newTabConfig.settings.homeHrefLabel}</span>
-              </span>
-              <input class="input input-bordered input-sm" type="text" autocomplete="off" data-config-home-href />
-            </label>
             <label class="form-control grid min-w-0 gap-1.5 col-span-full">
               <span class="label">
                 <span class="label-text">{newTabConfig.settings.shortcutOpenModeLabel}</span>
@@ -384,7 +310,35 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
               </span>
               <select class="select select-bordered select-sm" data-config-search-engine></select>
             </label>
+          </div>
+        </section>
+
+        <section class="new-tab-config__section grid gap-3">
+          <div class="new-tab-config__section-title text-xs font-semibold tracking-[0.12em] text-ink-2">壁纸</div>
+          <div class="new-tab-config__grid grid grid-cols-2 gap-3 max-sm:grid-cols-1">
             <label class="form-control grid min-w-0 gap-1.5 col-span-full">
+              <span class="label">
+                <span class="label-text">每行显示几个</span>
+              </span>
+              <select class="select select-bordered select-sm" data-config-group-columns>
+                <option value="2">2 个</option>
+                <option value="3">3 个</option>
+                <option value="4">4 个</option>
+              </select>
+            </label>
+            <label class="form-control grid min-w-0 gap-1.5 col-span-full">
+              <span class="label">
+                <span class="label-text">壁纸来源</span>
+              </span>
+              <div class="flex min-w-0 items-center gap-2">
+                <select class="select select-bordered select-sm flex-1" data-config-background-source>
+                  <option value="custom">自定义图片</option>
+                  <option value="bing">必应每日壁纸</option>
+                </select>
+                <button class="btn btn-outline btn-sm" type="button" data-wallpaper-shuffle>换一张</button>
+              </div>
+            </label>
+            <label class="form-control grid min-w-0 gap-1.5 col-span-full" data-wallpaper-custom>
               <span class="label">
                 <span class="label-text">{newTabConfig.settings.backgroundUrlLabel}</span>
               </span>
@@ -395,7 +349,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
                 data-config-background
               />
             </label>
-            <label class="form-control grid min-w-0 gap-1.5 col-span-full">
+            <label class="form-control grid min-w-0 gap-1.5 col-span-full" data-wallpaper-custom>
               <span class="label">
                 <span class="label-text">{newTabConfig.settings.backgroundFileLabel}</span>
               </span>
@@ -421,9 +375,14 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
                 data-config-background-opacity
               />
             </label>
-            <div class="new-tab-config__wide new-tab-config__section-title col-span-full mt-1 border-t border-base-content/10 pt-4 text-xs font-semibold tracking-[0.12em] text-ink-2">
-              {newTabConfig.settings.textColorLabel}
-            </div>
+          </div>
+        </section>
+
+        <section class="new-tab-config__section grid gap-3">
+          <div class="new-tab-config__section-title text-xs font-semibold tracking-[0.12em] text-ink-2">
+            {newTabConfig.settings.textColorLabel}
+          </div>
+          <div class="new-tab-config__grid grid grid-cols-2 gap-3 max-sm:grid-cols-1">
             <label class="form-control grid min-w-0 gap-1.5 col-span-full">
               <span class="label">
                 <span class="label-text">{newTabConfig.settings.textColorModeLabel}</span>
@@ -550,11 +509,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       max-width: 100%;
     }
 
-    [data-new-tab-page] {
-      /* 跟全站同一套墨色，不引入组件库品牌色。 */
-      --ntab-accent: var(--ink-1);
-      --ntab-focus: var(--ink-1);
-      --ntab-radius-control: 2px;
+    /* 尺寸与动效 token 放 :root：配置/说明抽屉在 shell 之外，也要拿到同一套值。
+       只有颜色类 token 跟随 shell 的文本颜色模式。 */
+    :root {
+      --ntab-radius-control: 0.375rem;
       --ntab-radius-card: 8px;
       --ntab-radius-panel: var(--radius-panel);
       --ntab-duration-fast: 200ms;
@@ -563,6 +521,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       --ntab-ease-standard: cubic-bezier(0.38, 0, 0.24, 1);
       --ntab-ease-enter: cubic-bezier(0, 0, 0.15, 1);
       --ntab-ease-exit: cubic-bezier(0.82, 0, 1, 0.9);
+    }
+
+    [data-new-tab-page] {
+      /* 跟全站同一套墨色，不引入组件库品牌色。 */
+      --ntab-accent: var(--ink-1);
+      --ntab-focus: var(--ink-1);
       --ntab-line-strong: color-mix(in srgb, var(--ink-1) 26%, transparent);
       --ntab-card-bg: color-mix(in srgb, var(--ink-1) 6%, var(--surface-1));
       --ntab-card-border: transparent;
@@ -651,22 +615,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       width: 100%;
     }
 
-    .new-tab-tools__panel .new-tab-layout__trigger {
-      width: 100%;
-      justify-content: flex-start;
-    }
-
-    .new-tab-tools__panel [data-layout-trigger-label],
-    .new-tab-tools__panel [data-home-link] span {
-      display: inline;
-    }
-
-    .new-tab-tools__panel .new-tab-layout__menu {
-      top: calc(100% + 6px);
-      right: 0;
-      left: auto;
-    }
-
     .new-tab-tools__panel .new-tab-actions .btn:hover,
     .new-tab-tools__panel .new-tab-btn:hover,
     .new-tab-tools__panel [data-home-link]:hover {
@@ -700,54 +648,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       flex-direction: column;
       gap: 28px;
       padding: clamp(2rem, 9vh, 5.5rem) 24px 3rem;
-      animation: ntab-page-in 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
     }
 
-    /* 刷新/首次加载：整页像窗口打开一样突到眼前，再带一点上浮。
-       缩放收底边、上浮压顶边，中间态不会把文档顶高闪滚动条，结束即释放 transform。 */
-    @keyframes ntab-page-in {
-      from {
-        opacity: 0;
-        transform: translateY(0.9rem) scale(0.94);
-      }
-    }
-
-    /* 背景层与页面同一口气入场；宿主在 shell 外，缩放不会影响 fixed 布局。 */
-    [data-new-tab-background-host] {
-      animation: ntab-bg-in 600ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    }
-
-    @keyframes ntab-bg-in {
-      from {
-        opacity: 0;
-        transform: scale(0.96);
-      }
-    }
-
-    /* 弧形坞固定在视口底部，shell 一旦有 transform 会被当成包含块拽进内容区；
-       这一档把入场拆给问候、工具、搜索和坞本身。 */
-    html[data-new-tab-layout="ring"] [data-new-tab-page].new-tab-shell {
-      animation: none;
-    }
-
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-greeting-block,
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-actions,
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search-row {
-      animation: ntab-rise 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    }
-
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-actions {
-      animation-delay: 40ms;
-    }
-
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-search-row {
-      animation-delay: 80ms;
-    }
-
-    html[data-new-tab-layout="ring"] [data-new-tab-page] .new-tab-arc-dock {
-      animation: ntab-dock-in 550ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    }
-
+    /* 背景层不做入场动画，刷新时直接到位 */
     @keyframes ntab-rise {
       from {
         opacity: 0;
@@ -871,6 +774,36 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       color: var(--ink-1);
     }
 
+    /* 工具入口与索引行同一套材质：磨砂 + 细描边，别用实心白块抢焦点 */
+    [data-new-tab-page] .new-tab-tools__trigger {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+      border-radius: var(--ntab-radius-control);
+      background: color-mix(in srgb, currentColor 10%, transparent);
+      backdrop-filter: blur(10px);
+      color: var(--ink-1);
+      transition:
+        background-color var(--ntab-duration-fast) ease,
+        border-color var(--ntab-duration-fast) ease;
+    }
+
+    [data-new-tab-page] .new-tab-tools__trigger:hover,
+    [data-new-tab-page] .new-tab-tools__trigger:focus-visible {
+      border-color: color-mix(in srgb, currentColor 40%, transparent);
+      background: color-mix(in srgb, currentColor 16%, transparent);
+    }
+
+    [data-new-tab-page] .new-tab-tools__label {
+      display: none;
+    }
+
+    [data-new-tab-page] .new-tab-tools__trigger svg {
+      width: 16px;
+      height: 16px;
+    }
+
     [data-new-tab-page] .new-tab-btn--icon {
       width: 30px;
       padding: 0;
@@ -880,19 +813,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     [data-new-tab-page] .new-tab-actions .btn:focus-visible {
       outline: 2px solid var(--ntab-focus);
       outline-offset: 2px;
-    }
-
-    .new-tab-layout__chevron {
-      width: 14px;
-      height: 14px;
-      opacity: 0.6;
-      transition: transform var(--ntab-duration-fast) var(--ntab-ease-exit);
-    }
-
-    [data-layout-switcher][data-open] .new-tab-layout__chevron {
-      transform: rotate(180deg);
-      transition-duration: var(--ntab-duration-base);
-      transition-timing-function: var(--ntab-ease-enter);
     }
 
     /* ── 搜索 ─────────────────────────────────────────────────────── */
@@ -1404,17 +1324,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       justify-items: center;
     }
 
-    /* 堆叠模式只露出卡片左侧一条：内容靠左，标题从第一个字开始可见。 */
-    html[data-new-tab-layout="stack"] [data-shortcut-stack] .shortcut-item {
-      align-items: flex-start;
-      padding-left: 12px;
-      text-align: left;
-    }
-
-    html[data-new-tab-layout="stack"] [data-shortcut-stack] .shortcut-item__label {
-      justify-items: start;
-    }
-
     [data-shortcut-stack] .shortcut-item__label strong {
       display: block;
       width: 100%;
@@ -1595,107 +1504,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     [data-new-tab-page] .shortcut-empty__action:focus-visible {
       outline: 2px solid var(--ntab-focus);
       outline-offset: 2px;
-    }
-
-    /* ── 布局选择菜单 ─────────────────────────────────────────────── */
-    [data-layout-switcher] .new-tab-layout__menu {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      z-index: 70;
-      display: grid;
-      gap: 2px;
-      width: min(15rem, calc(100vw - 1rem));
-      padding: 4px;
-      border: 1px solid var(--line-1);
-      border-radius: var(--ntab-radius-panel);
-      background: var(--surface-1);
-      box-shadow: var(--shadow-pop);
-      opacity: 0;
-      transform: translateY(-4px) scale(0.98);
-      transform-origin: top right;
-      pointer-events: none;
-      transition:
-        opacity var(--ntab-duration-fast) var(--ntab-ease-exit),
-        transform var(--ntab-duration-fast) var(--ntab-ease-exit);
-    }
-
-    [data-layout-switcher] .new-tab-layout__menu[data-align="start"] {
-      left: 0;
-      right: auto;
-      transform-origin: top left;
-    }
-
-    [data-layout-switcher][data-open] .new-tab-layout__menu {
-      opacity: 1;
-      transform: none;
-      pointer-events: auto;
-      transition-duration: var(--ntab-duration-base);
-      transition-timing-function: var(--ntab-ease-enter);
-    }
-
-    [data-layout-switcher] .new-tab-layout__item {
-      display: grid;
-      grid-template-columns: 20px minmax(0, 1fr) 20px;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      padding: 8px 10px;
-      border: 0;
-      border-radius: var(--ntab-radius-control);
-      background: transparent;
-      color: var(--ink-1);
-      text-align: left;
-      cursor: pointer;
-      transition: background-color 120ms linear;
-    }
-
-    [data-layout-switcher] .new-tab-layout__item:hover,
-    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] {
-      background: color-mix(in srgb, var(--ink-1) 6%, transparent);
-    }
-
-    [data-layout-switcher] .new-tab-layout__item:focus-visible {
-      outline: 2px solid var(--ntab-focus);
-      outline-offset: -2px;
-    }
-
-    [data-layout-switcher] .new-tab-layout__item-icon {
-      display: grid;
-      place-items: center;
-      color: var(--ink-2);
-    }
-
-    [data-layout-switcher] .new-tab-layout__item-icon svg,
-    [data-layout-switcher] .new-tab-layout__item-check svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] .new-tab-layout__item-icon {
-      color: var(--ntab-accent);
-    }
-
-    [data-layout-switcher] .new-tab-layout__item-label {
-      display: block;
-      font: 500 14px/20px var(--font-sans);
-    }
-
-    [data-layout-switcher] .new-tab-layout__item-hint {
-      display: block;
-      color: var(--ink-2);
-      font: 400 12px/18px var(--font-sans);
-    }
-
-    [data-layout-switcher] .new-tab-layout__item-check {
-      display: grid;
-      place-items: center;
-      color: var(--ntab-accent);
-      opacity: 0;
-    }
-
-    [data-layout-switcher] .new-tab-layout__item[aria-checked="true"] .new-tab-layout__item-check {
-      opacity: 1;
     }
 
     /* ── 抽屉（配置 / 图标说明） ──────────────────────────────────── */
@@ -2131,16 +1939,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     }
 
-    /* ── 弧形布局的底部坞 ─────────────────────────────────────────── */
-    [data-new-tab-page] .new-tab-arc-dock {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 30;
-      padding: 0 6px 4px;
-    }
-
     /* ── 收起 / 挂起 ─────────────────────────────────────────────── */
     [data-new-tab-page][data-header-state="collapsed"] .new-tab-greeting-block,
     [data-new-tab-page][data-header-state="suspended"] .new-tab-greeting-block {
@@ -2214,21 +2012,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         opacity 200ms ease 80ms,
         transform 240ms var(--ntab-ease-standard) 80ms,
         visibility 0s;
-    }
-
-    /* 刷新入场：瓦片逐个弹出（序号 × 24ms，上限 360ms），自下而上浮到位并轻微缩放。
-       backwards 只在动画期间生效，结束后交还给常规级联，不盖掉布局补间。 */
-    [data-shortcut-stack] .ntab-pop > .shortcut-item,
-    [data-shortcut-stack] .shortcut-item.ntab-pop {
-      animation: ntab-pop-in 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-      animation-delay: var(--ntab-delay, 0ms);
-    }
-
-    @keyframes ntab-pop-in {
-      from {
-        opacity: 0;
-        transform: translateY(0.9rem) scale(0.94);
-      }
     }
 
     [data-shortcut-stack] .shortcut-item-shell.ntab-vanish > .shortcut-item {
@@ -2347,32 +2130,433 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
     }
 
-    @media (min-width: 768px) {
-      .new-tab-tools__panel [data-layout-switcher] .new-tab-layout__menu,
-      .new-tab-tools__panel .theme-switcher__menu {
-        top: 0;
-        right: calc(100% + 8px);
-        left: auto;
-        transform-origin: top right;
+    /* Hallmark · macrostructure: Index-First · tone: utilitarian · theme: project tokens
+     * page: new-tab · replaces the tile grid on the "grid" layout with two-column index rows
+     * pre-emit critique: P4 H4 E4 S4 R4 V4
+     */
+    html[data-new-tab-layout="grid"] [data-new-tab-page].new-tab-shell {
+      gap: 30px;
+      max-width: 62rem;
+      padding-bottom: 4.5rem;
+    }
+
+    html[data-new-tab-layout="grid"] .new-tab-masthead {
+      align-items: baseline;
+      gap: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line-1);
+    }
+
+    html[data-new-tab-layout="grid"] .new-tab-greeting-block {
+      gap: 2px;
+    }
+
+    html[data-new-tab-layout="grid"] .new-tab-greeting {
+      font: 400 clamp(1.12rem, 2vw, 1.32rem) / 1.3 var(--font-reading);
+      letter-spacing: -0.01em;
+    }
+
+    html[data-new-tab-layout="grid"] .new-tab-date {
+      font: 500 0.76rem / 1.4 var(--font-sans);
+    }
+
+    /* 搜索是一行输入，不是一块大按钮：下细线、无高光底 */
+    html[data-new-tab-layout="grid"] .new-tab-search-row {
+      /* 与左列同宽，搜索下划线正好收在列边界上 */
+      max-width: calc(50% - 22px);
+      gap: 12px;
+    }
+
+    html[data-new-tab-layout="grid"] [data-new-tab-page] .new-tab-search {
+      height: 38px;
+      max-width: 100%;
+      border: 0;
+      border-bottom: 1px solid var(--ntab-line-strong);
+      background: color-mix(in srgb, var(--surface-1) 90%, transparent);
+    }
+
+    html[data-new-tab-layout="grid"] [data-new-tab-page] .new-tab-search:focus-within {
+      border-bottom-color: var(--ntab-accent);
+    }
+
+    html[data-new-tab-layout="grid"] [data-new-tab-page] .new-tab-search__icon {
+      width: 34px;
+    }
+
+    html[data-new-tab-layout="grid"] [data-new-tab-page] .new-tab-search__input {
+      font: 400 15px/22px var(--font-sans);
+    }
+
+    html[data-new-tab-layout="grid"] [data-new-tab-page] .new-tab-search__submit {
+      height: 38px;
+      padding: 0 14px;
+      border-left: 1px solid color-mix(in srgb, var(--ink-1) 10%, transparent);
+      background: transparent;
+      color: var(--ink-1);
+    }
+
+    html[data-new-tab-layout="grid"] [data-new-tab-page] .new-tab-search__submit:hover {
+      background: color-mix(in srgb, var(--ink-1) 6%, transparent);
+    }
+
+    html[data-new-tab-layout="grid"] .new-tab-search-hint {
+      display: none;
+    }
+
+    /* 索引区：组标题当段落标题，条目当目录行，两栏排 */
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] {
+      gap: 34px;
+    }
+
+    html[data-new-tab-layout="grid"] .shortcut-group {
+      gap: 0;
+    }
+
+    html[data-new-tab-layout="grid"] .shortcut-group__summary {
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line-1);
+    }
+
+    /* 组标题不再自己画线，统一用 summary 的下边线 */
+    html[data-new-tab-layout="grid"] .shortcut-group__rule {
+      display: none;
+    }
+
+    html[data-new-tab-layout="grid"] .shortcut-group__title {
+      color: var(--ink-1);
+      font: 600 13px / 20px var(--font-sans);
+      letter-spacing: 0.06em;
+    }
+
+    html[data-new-tab-layout="grid"] .shortcut-group__count {
+      font: 500 11px / 20px var(--font-sans);
+      opacity: 0.55;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-group__items {
+      display: grid;
+      grid-template-columns: repeat(var(--ntab-group-columns, 3), minmax(0, 1fr));
+      align-items: stretch;
+      gap: 0 28px;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item-shell {
+      width: auto;
+      height: auto;
+      min-width: 0;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item {
+      position: static;
+      inset: auto;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      height: 52px;
+      min-height: 52px;
+      padding: 8px 10px 8px 14px;
+      overflow: hidden;
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--ntab-card-ink) 12%, transparent);
+      border-radius: 0;
+      background: transparent;
+      text-align: left;
+      transition: none;
+    }
+
+    /* 有壁纸时：每条都铺一层磨砂；浅色文字配深底，深色文字配浅底，压住高光 */
+    html[data-new-tab-layout="grid"][data-new-tab-background="true"]
+      [data-shortcut-stack]
+      .shortcut-item {
+      backdrop-filter: blur(10px);
+      background: color-mix(in srgb, currentColor 7%, transparent);
+    }
+
+    html[data-new-tab-layout="grid"][data-new-tab-background="true"][data-new-tab-text-colors="light"]
+      [data-shortcut-stack]
+      .shortcut-item {
+      background: rgb(8 10 14 / 38%);
+    }
+
+    html[data-new-tab-layout="grid"][data-new-tab-background="true"][data-new-tab-text-colors="dark"]
+      [data-shortcut-stack]
+      .shortcut-item {
+      background: rgb(255 255 255 / 44%);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible {
+      transform: none;
+      background: color-mix(in srgb, var(--ntab-card-ink) 7%, transparent);
+      border-color: color-mix(in srgb, var(--ntab-card-ink) 12%, transparent);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible {
+      outline: 2px solid var(--ntab-focus);
+      outline-offset: -2px;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:active {
+      transform: none;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__icon,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__initial {
+      width: 20px;
+      height: 20px;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__icon img {
+      padding: 0;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__initial {
+      font: 600 11px / 1 var(--font-sans);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover .shortcut-item__icon,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__icon {
+      transform: none;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__label {
+      display: block;
+      min-width: 0;
+      text-align: left;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__tooltip {
+      display: none;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__label strong {
+      font: 500 14px / 20px var(--font-sans);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__label small {
+      font: 400 12px / 16px var(--font-sans);
+      opacity: 0.92;
+    }
+
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .shortcut-group__title {
+      text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
+    }
+
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"]
+      .new-tab-greeting,
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .new-tab-date,
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .new-tab-group-add,
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .shortcut-group__count {
+      text-shadow: 0 1px 4px rgb(0 0 0 / 45%);
+    }
+
+    /* 浅色文字落在照片壁纸上，给行内文字一层极轻的影，别让高光吃掉 */
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"]
+      [data-shortcut-stack]
+      .shortcut-item__label
+      strong,
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"]
+      [data-shortcut-stack]
+      .shortcut-item__label
+      small {
+      text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
+    }
+
+    /* 「更多」面板：一行一项、图标左对齐、右端留给指示符 */
+    [data-new-tab-page] .new-tab-tools__panel {
+      width: 13rem;
+      padding: 6px;
+      border: 1px solid var(--line-1);
+      border-radius: var(--ntab-radius-panel);
+      background: var(--surface-1);
+      box-shadow: var(--shadow-pop);
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-btn,
+    [data-new-tab-page] .new-tab-tools__panel .btn,
+    [data-new-tab-page] .new-tab-tools__panel [data-home-link] {
+      justify-content: flex-start;
+      gap: 10px;
+      width: 100%;
+      height: 34px;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: var(--ntab-radius-control);
+      background: transparent;
+      color: var(--ink-1);
+      font: 500 13px / 20px var(--font-sans);
+      text-align: left;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-btn svg,
+    [data-new-tab-page] .new-tab-tools__panel .btn svg,
+    [data-new-tab-page] .new-tab-tools__panel [data-home-link] svg {
+      width: 16px;
+      height: 16px;
+      flex: none;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-btn:hover,
+    [data-new-tab-page] .new-tab-tools__panel .btn:hover,
+    [data-new-tab-page] .new-tab-tools__panel [data-home-link]:hover {
+      background: color-mix(in srgb, var(--ink-1) 8%, transparent);
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .theme-switcher,
+    [data-new-tab-page] .new-tab-tools__panel .theme-switcher > .btn {
+      width: 100%;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .theme-switcher > .btn {
+      justify-content: flex-start;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .theme-switcher__chevron {
+      margin-left: auto;
+    }
+
+    /* 没有左侧图标的项也留出图标槽，文字列对齐 */
+    [data-new-tab-page] .new-tab-tools__panel [data-home-link]::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      flex: none;
+    }
+
+    /* 必应来源下，自定义图的两个字段收起 */
+    [data-wallpaper-custom].is-collapsed {
+      display: none !important;
+    }
+
+    /* 壁纸子菜单：与主题同一套内联展开 */
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu {
+      display: none;
+      padding: 2px 0 4px 26px;
+      gap: 0;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu-group[data-open] .new-tab-submenu {
+      display: grid;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      height: 32px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: var(--ntab-radius-control);
+      background: transparent;
+      color: var(--ink-1);
+      font: 500 13px / 20px var(--font-sans);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__item:hover {
+      background: color-mix(in srgb, var(--ink-1) 8%, transparent);
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__dot {
+      display: grid;
+      place-items: center;
+      width: 12px;
+      height: 12px;
+      flex: none;
+      border: 1.5px solid color-mix(in srgb, var(--ink-1) 38%, transparent);
+      border-radius: 50%;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__dot::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: transparent;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__item[aria-checked="true"] .new-tab-submenu__dot {
+      border-color: var(--ink-1);
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__item[aria-checked="true"] .new-tab-submenu__dot::after {
+      background: var(--ink-1);
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__dot--none {
+      border-color: transparent;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu__chevron {
+      margin-left: auto;
+      transition: transform 160ms ease;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-submenu-group[data-open] .new-tab-submenu__chevron {
+      transform: rotate(180deg);
+    }
+
+    /* 主题子项在面板内展开，把下面的项推下去，而不是盖住 */
+    [data-new-tab-page] .new-tab-tools__panel .theme-switcher__menu {
+      position: static;
+      display: none;
+      width: 100%;
+      margin-top: 2px;
+      padding: 2px 0 2px 26px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      transform: none;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .theme-switcher[data-open] .theme-switcher__menu {
+      display: grid;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-btn--icon {
+      justify-content: flex-start;
+      width: 100%;
+      padding: 0 10px;
+    }
+
+    [data-new-tab-page] .new-tab-tools__panel .new-tab-actions > *:last-child {
+      width: calc(100% - 8px);
+      margin: 4px 4px 0;
+      border-top: 1px solid var(--line-1);
+      border-radius: 0 0 var(--ntab-radius-control) var(--ntab-radius-control);
+    }
+
+    @media (max-width: 1023px) {
+      html[data-new-tab-layout="grid"] .new-tab-search-row {
+        max-width: 100%;
+      }
+
+
+      html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-group__items {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 24px;
       }
     }
 
-    @media (max-width: 767px) {
-      .new-tab-tools__panel [data-layout-switcher] .new-tab-layout__menu,
-      .new-tab-tools__panel .theme-switcher__menu {
-        position: static;
-        width: 100%;
-        margin-top: 4px;
-        padding: 0;
-        border: 0;
-        background: transparent;
-        box-shadow: none;
-        transform: none;
-      }
-
-      .new-tab-tools__panel [data-layout-switcher]:not([data-open]) .new-tab-layout__menu,
-      .new-tab-tools__panel .theme-switcher:not([data-open]) .theme-switcher__menu {
-        display: none;
+    @media (max-width: 639px) {
+      html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-group__items {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
       }
     }
 
@@ -2418,6 +2602,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       userName: defaultPayload.config?.userName ?? "Ethanz888",
       backgroundImage: "",
       backgroundOpacity: defaultBackgroundOpacity,
+      backgroundSource: "custom",
+      wallpaperIndex: 0,
+      groupColumns: 3,
       textColors: cloneValue(defaultTextColors),
       defaultSearchEngineId: defaultPayload.config?.search?.defaultEngineId ?? "google",
       homeLink: cloneValue(defaultPayload.config?.homeLink ?? { label: "资料卡首页", href: "/" }),
@@ -2615,6 +2802,11 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         backgroundOpacity: Number.isFinite(Number(value.backgroundOpacity))
           ? Math.min(100, Math.max(0, Number(value.backgroundOpacity)))
           : fallback.backgroundOpacity,
+        backgroundSource: value.backgroundSource === "bing" ? "bing" : "custom",
+        wallpaperIndex: Number.isFinite(Number(value.wallpaperIndex))
+          ? Math.min(7, Math.max(0, Math.floor(Number(value.wallpaperIndex))))
+          : 0,
+        groupColumns: [2, 3, 4].includes(Number(value.groupColumns)) ? Number(value.groupColumns) : 3,
         textColors: normalizeTextColors(value.textColors, fallback.textColors),
         defaultSearchEngineId: searchEngines.some((engine) => engine.id === defaultSearchEngineId)
           ? defaultSearchEngineId
@@ -2624,10 +2816,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         greetings: normalizeGreetings(value.greetings, fallback.greetings),
         searchEngines,
         shortcutGroups: normalizeShortcutGroups(value.shortcutGroups, fallback.shortcutGroups),
-        shortcutLayout: normalizeShortcutLayout(value.shortcutLayout),
+        // 布局档位已下线，旧配置里的 ring/stack/scatter 一律归到索引
+        shortcutLayout: "grid",
         scatterSeed: normalizeScatterSeed(value.scatterSeed),
-        headerCollapsed: value.headerCollapsed === true,
-        headerSuspended: value.headerSuspended === true,
+        // 收起问候已下线，旧配置里残留的状态一律按展开处理
+        headerCollapsed: false,
+        headerSuspended: false,
       };
     };
 
@@ -5644,75 +5838,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         groupSections.push(section);
       });
 
-      // 弧形/随机是全画布布局：所有分组的 item 拼接进同一张画布（分组标题隐藏，item 的拖拽/右键/添加都保留）
-      if (newTabState.shortcutLayout === "ring" || newTabState.shortcutLayout === "scatter") {
-        const lastGroupIndex = newTabState.shortcutGroups.length - 1;
-        const lastGroup = newTabState.shortcutGroups[lastGroupIndex];
-        const canvasSection = document.createElement("section");
-        canvasSection.className = "shortcut-group shortcut-group--canvas";
-        canvasSection.setAttribute("aria-label", "全部快捷方式");
-        const canvasItems = document.createElement("div");
-        canvasItems.className = "shortcut-group__items";
-
-        canvasItems.addEventListener("dragover", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "shortcut") {
-            return;
-          }
-
-          event.preventDefault();
-          if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = "move";
-          }
-          clearDropIndicators(stack);
-          setDropContainer(canvasItems);
-        });
-        canvasItems.addEventListener("dragleave", () => {
-          clearDropElement(canvasItems);
-        });
-        canvasItems.addEventListener("drop", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "shortcut") {
-            return;
-          }
-
-          event.preventDefault();
-          clearDropIndicators(stack);
-
-          if (moveShortcutItem(Number(payload.groupIndex), Number(payload.shortcutIndex), lastGroupIndex, lastGroup.shortcuts.length)) {
-            persistConfigChange("已排序");
-          }
-        });
-        canvasItems.addEventListener("contextmenu", (event) => {
-          if (event.target !== canvasItems) {
-            return;
-          }
-
-          event.preventDefault();
-          openShortcutAddForm(lastGroup);
-        });
-
-        groupSections.forEach((section) => {
-          section.querySelectorAll(":scope > .shortcut-group__items > .shortcut-item-shell").forEach((child) => {
-            canvasItems.append(child);
-          });
-        });
-
-        canvasSection.append(canvasItems);
-
-        // 弧形是底部弧形坞：画布固定在视口底部、吃满全宽，item 沿弧线贴底排开
-        if (newTabState.shortcutLayout === "ring") {
-          canvasSection.classList.add("new-tab-arc-dock");
-        }
-
-        stack.append(canvasSection);
-      } else {
-        groupSections.forEach((section) => {
-          stack.append(section);
-        });
-      }
+      groupSections.forEach((section) => {
+        stack.append(section);
+      });
 
       if (stack.dataset.groupDropBound !== "true") {
         stack.addEventListener("dragover", (event) => {
@@ -5833,6 +5961,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const homeHrefInput = document.querySelector("[data-config-home-href]");
       const shortcutOpenModeInput = document.querySelector("[data-config-shortcut-open-mode]");
       const backgroundInput = document.querySelector("[data-config-background]");
+      const groupColumnsInput = document.querySelector("[data-config-group-columns]");
+      const backgroundSourceInput = document.querySelector("[data-config-background-source]");
+      const wallpaperShuffleButton = document.querySelector("[data-wallpaper-shuffle]");
       const backgroundOpacityInput = document.querySelector("[data-config-background-opacity]");
       const backgroundOpacityValue = document.querySelector("[data-config-background-opacity-value]");
       const backgroundStatus = document.querySelector("[data-config-background-status]");
@@ -5852,6 +5983,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       if (shortcutOpenModeInput instanceof HTMLSelectElement) {
         shortcutOpenModeInput.value = newTabState.shortcutOpenMode;
+      }
+
+      if (groupColumnsInput instanceof HTMLSelectElement) {
+        groupColumnsInput.value = String(newTabState.groupColumns);
+      }
+
+      if (backgroundSourceInput instanceof HTMLSelectElement) {
+        backgroundSourceInput.value = newTabState.backgroundSource;
+      }
+
+      if (wallpaperShuffleButton instanceof HTMLButtonElement) {
+        wallpaperShuffleButton.disabled = newTabState.backgroundSource !== "bing";
       }
 
       if (backgroundInput instanceof HTMLInputElement) {
@@ -5879,6 +6022,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             ? (settingsLabels.backgroundUrlStatusLabel ?? "使用背景 URL")
             : (settingsLabels.backgroundEmptyLabel ?? "未设置背景");
       }
+
+      syncWallpaperControls();
     };
 
     const persistConfigChange = (message = "已保存") => {
@@ -5889,6 +6034,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       renderShortcutGroups();
       applyBackground();
       applyTextColors();
+      applyGroupColumns();
+      syncWallpaperControls();
       setStatus(saved ? message : storageQuotaErrorMessage);
     };
 
@@ -5900,6 +6047,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }, 500);
     };
 
+    const getWallpaperUrl = () => {
+      if (newTabState.backgroundSource === "bing") {
+        return `https://bing.biturl.top/?resolution=1920&format=image&index=${newTabState.wallpaperIndex}&mkt=zh-CN`;
+      }
+
+      return newTabState.backgroundImage;
+    };
+
+    const applyGroupColumns = () => {
+      document.documentElement.style.setProperty("--ntab-group-columns", String(newTabState.groupColumns));
+    };
+
     const applyBackground = () => {
       const backgroundBase = document.querySelector("[data-new-tab-background-base]");
       const backgroundLayer = document.querySelector("[data-new-tab-background-layer]");
@@ -5908,7 +6067,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         return;
       }
 
-      if (!newTabState.backgroundImage) {
+      const wallpaperUrl = getWallpaperUrl();
+
+      if (!wallpaperUrl) {
         backgroundBase.hidden = true;
         backgroundBase.classList.add("hidden");
         backgroundLayer.hidden = true;
@@ -5919,7 +6080,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         return;
       }
 
-      const cssUrl = newTabState.backgroundImage
+      const cssUrl = wallpaperUrl
         .replace(/\\/g, "\\\\")
         .replace(/"/g, '\\"')
         .replace(/\n/g, "");
@@ -5969,7 +6130,37 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           return;
         }
 
+        // 工具面板是不透明浮层，文字用面板自己的主题墨色；跟着页面文字色走会变成
+        // 浅色文字落在浅色面板上（浅色文字模式下整列配置项看不见）。
+        if (target.closest(".new-tab-tools__panel")) {
+          target.style.removeProperty("color");
+          return;
+        }
+
         target.style.color = colors.navigationColor;
+      });
+    };
+
+    const syncWallpaperControls = () => {
+      document.querySelectorAll("[data-wallpaper-source]").forEach((button) => {
+        if (button instanceof HTMLElement) {
+          button.setAttribute(
+            "aria-checked",
+            button.dataset.wallpaperSource === newTabState.backgroundSource ? "true" : "false",
+          );
+        }
+      });
+
+      const shuffleItem = document.querySelector("[data-wallpaper-shuffle-menu]");
+
+      if (shuffleItem instanceof HTMLElement) {
+        shuffleItem.hidden = newTabState.backgroundSource !== "bing";
+      }
+
+      document.querySelectorAll("[data-wallpaper-custom]").forEach((field) => {
+        if (field instanceof HTMLElement) {
+          field.classList.toggle("is-collapsed", newTabState.backgroundSource === "bing");
+        }
       });
     };
 
@@ -5982,7 +6173,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       applyTextColors();
       applyHeaderState();
       syncLayoutSwitcher();
+      applyGroupColumns();
       syncSettingsControls();
+      syncWallpaperControls();
     };
 
     const getHeaderState = () =>
@@ -6011,7 +6204,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         const label = state === "normal"
           ? "收起问候"
           : state === "collapsed"
-            ? "挂起：屏幕只显示 item"
+            ? "挂起：只显示快捷入口"
             : "展开问候与搜索";
 
         toggle.title = label;
@@ -6306,6 +6499,51 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       trigger.dataset.groupAddBound = "true";
     };
 
+    const bindWallpaperMenu = () => {
+      const group = document.querySelector("[data-wallpaper-group]");
+      const trigger = group?.querySelector("[data-wallpaper-trigger]");
+      const menu = group?.querySelector("[data-wallpaper-menu]");
+
+      if (!(group instanceof HTMLElement) || !(trigger instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
+        return;
+      }
+
+      if (trigger.dataset.wallpaperBound === "true") {
+        return;
+      }
+
+      const setOpen = (open) => {
+        group.toggleAttribute("data-open", open);
+        trigger.setAttribute("aria-expanded", open ? "true" : "false");
+        menu.hidden = !open;
+      };
+
+      trigger.addEventListener("click", () => {
+        setOpen(!group.hasAttribute("data-open"));
+      });
+
+      group.querySelectorAll("[data-wallpaper-source]").forEach((button) => {
+        button.addEventListener("click", () => {
+          newTabState.backgroundSource = button.dataset.wallpaperSource === "bing" ? "bing" : "custom";
+          persistConfigChange("已保存");
+          syncSettingsControls();
+          syncWallpaperControls();
+          setOpen(false);
+        });
+      });
+
+      group.querySelector("[data-wallpaper-shuffle-menu]")?.addEventListener("click", () => {
+        newTabState.wallpaperIndex = (newTabState.wallpaperIndex + 1) % 8;
+        persistConfigChange("已换一张");
+        syncSettingsControls();
+        syncWallpaperControls();
+        syncWallpaperControls();
+        setOpen(false);
+      });
+
+      trigger.dataset.wallpaperBound = "true";
+    };
+
     const bindHeaderCollapse = () => {
       const toggle = document.querySelector("[data-header-collapse]");
 
@@ -6430,13 +6668,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
 
       closeSettingsPanel();
-      // 先摘 hidden 让元素回到过渡起点，下一帧再置 data-open 触发滑入
+      // 先摘 hidden 让元素回到过渡起点，强制一帧后再置 data-open 触发滑入
       panel.hidden = false;
       panel.classList.remove("hidden");
       document.querySelector("[data-notes-open]")?.setAttribute("aria-expanded", "true");
-      window.requestAnimationFrame(() => {
-        panel.dataset.open = "true";
-      });
+      void panel.offsetWidth;
+      panel.dataset.open = "true";
     };
 
     const closeNotesPanel = () => {
@@ -6514,6 +6751,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const shortcutOpenModeInput = settings.querySelector("[data-config-shortcut-open-mode]");
       const searchEngineInput = settings.querySelector("[data-config-search-engine]");
       const backgroundInput = settings.querySelector("[data-config-background]");
+      const groupColumnsInput = settings.querySelector("[data-config-group-columns]");
+      const backgroundSourceInput = settings.querySelector("[data-config-background-source]");
+      const wallpaperShuffleButton = settings.querySelector("[data-wallpaper-shuffle]");
       const backgroundOpacityInput = settings.querySelector("[data-config-background-opacity]");
       const textColorModeInput = settings.querySelector("[data-config-text-color-mode]");
       const backgroundFileInput = settings.querySelector("[data-config-background-file]");
@@ -6530,14 +6770,14 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         openButton?.setAttribute("aria-expanded", "true");
         settings.hidden = false;
         settings.classList.remove("hidden");
-        window.requestAnimationFrame(() => {
-          settings.dataset.open = "true";
-          const closeButton = settings.querySelector(".new-tab-config__header [data-config-close]");
+        // 先把 translateX(100%) 落成一帧再开，Safari 里单靠 rAF 不会提交起点，滑入会变成瞬移。
+        void settings.offsetWidth;
+        settings.dataset.open = "true";
+        const closeButton = settings.querySelector(".new-tab-config__header [data-config-close]");
 
-          if (closeButton instanceof HTMLElement) {
-            closeButton.focus();
-          }
-        });
+        if (closeButton instanceof HTMLElement) {
+          closeButton.focus();
+        }
       };
 
       openButton?.addEventListener("click", openSettings);
@@ -6641,12 +6881,42 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         syncSettingsControls();
       });
 
+      groupColumnsInput?.addEventListener("change", () => {
+        if (!(groupColumnsInput instanceof HTMLSelectElement)) {
+          return;
+        }
+
+        newTabState.groupColumns = [2, 3, 4].includes(Number(groupColumnsInput.value)) ? Number(groupColumnsInput.value) : 3;
+        persistConfigChange("已保存");
+        syncSettingsControls();
+      });
+
+      backgroundSourceInput?.addEventListener("change", () => {
+        if (!(backgroundSourceInput instanceof HTMLSelectElement)) {
+          return;
+        }
+
+        newTabState.backgroundSource = backgroundSourceInput.value === "bing" ? "bing" : "custom";
+        persistConfigChange("已保存");
+        syncSettingsControls();
+        syncWallpaperControls();
+      });
+
+      wallpaperShuffleButton?.addEventListener("click", () => {
+        newTabState.wallpaperIndex = (newTabState.wallpaperIndex + 1) % 8;
+        persistConfigChange("已换一张");
+        syncSettingsControls();
+      });
+
       backgroundInput?.addEventListener("input", () => {
         if (!(backgroundInput instanceof HTMLInputElement)) {
           return;
         }
 
         newTabState.backgroundImage = backgroundInput.value.trim();
+        if (newTabState.backgroundImage) {
+          newTabState.backgroundSource = "custom";
+        }
         persistConfigChange();
       });
 
@@ -6698,6 +6968,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           }
 
           newTabState.backgroundImage = backgroundImage;
+          newTabState.backgroundSource = "custom";
           const saved = writeStoredState();
           renderAll();
           backgroundFileInput.value = "";
@@ -6800,6 +7071,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           !target ||
           target.closest("[data-layout-trigger]") ||
           target.closest("[data-layout-menu]") ||
+          target.closest("[data-wallpaper-trigger]") ||
           target.closest("[data-theme-trigger]")
         ) {
           return;
@@ -6809,6 +7081,82 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           tools.open = false;
         }
       });
+    };
+
+    // 滚轮平滑：拦下页面级 wheel，用 rAF 缓动把滚动追到目标位置。
+    // 抽屉、说明面板等内部滚动区不接管；触摸板、键盘、滚动条仍走原生。
+    const bindSmoothScroll = () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+
+      if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+        return;
+      }
+
+      let target = window.scrollY;
+      let current = window.scrollY;
+      let frame = 0;
+
+      const maxScroll = () =>
+        Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+      const clamp = (value) => Math.min(maxScroll(), Math.max(0, value));
+
+      const step = () => {
+        const distance = target - current;
+
+        if (Math.abs(distance) < 0.5) {
+          current = target;
+          window.scrollTo(0, current);
+          frame = 0;
+          return;
+        }
+
+        current += distance * 0.1;
+        window.scrollTo(0, current);
+        frame = window.requestAnimationFrame(step);
+      };
+
+      window.addEventListener(
+        "wheel",
+        (event) => {
+          if (event.ctrlKey || event.defaultPrevented) {
+            return;
+          }
+
+          const targetEl = event.target instanceof Element ? event.target : null;
+
+          if (targetEl?.closest("[data-config-drawer], [data-notes-panel], .new-tab-tools__panel")) {
+            return;
+          }
+
+          if (maxScroll() <= 0) {
+            return;
+          }
+
+          event.preventDefault();
+          target = clamp(target + event.deltaY);
+
+          if (!frame) {
+            current = window.scrollY;
+            frame = window.requestAnimationFrame(step);
+          }
+        },
+        { passive: false },
+      );
+
+      // 键盘、滚动条拖动等非平滑滚动时，保持目标同步
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (!frame) {
+            target = window.scrollY;
+            current = window.scrollY;
+          }
+        },
+        { passive: true },
+      );
     };
 
     const bindNewTab = () => {
@@ -6822,6 +7170,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       bindGroupAdd();
       bindLayoutSwitcher();
       bindToolsMenu();
+      bindWallpaperMenu();
+      bindSmoothScroll();
       bindHeaderCollapse();
       bindHeaderRestore();
       bindShortcutContextMenuDismissal();

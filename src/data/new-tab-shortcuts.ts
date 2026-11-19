@@ -154,7 +154,7 @@ export const newTabConfig: NewTabConfig = {
     backgroundUrlLabel: "背景图 URL",
     backgroundFileLabel: "本地背景图",
     backgroundOpacityLabel: "背景透明度",
-    textColorLabel: "目标文本颜色",
+    textColorLabel: "文字颜色",
     textColorModeLabel: "颜色模式",
     textColorDefaultLabel: "默认",
     textColorLightLabel: "浅色文字",
