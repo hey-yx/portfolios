@@ -56,6 +56,14 @@ export interface NewTabConfig {
     backgroundUrlLabel: string;
     backgroundFileLabel: string;
     backgroundOpacityLabel: string;
+    pageWidthLabel: string;
+    uiScaleLabel: string;
+    fontFamilyLabel: string;
+    fontFamilyDefaultLabel: string;
+    fontFamilySerifLabel: string;
+    fontFamilyKaiLabel: string;
+    fontFamilyRoundedLabel: string;
+    fontFamilyMonoLabel: string;
     textColorLabel: string;
     textColorModeLabel: string;
     textColorDefaultLabel: string;
@@ -154,6 +162,14 @@ export const newTabConfig: NewTabConfig = {
     backgroundUrlLabel: "背景图 URL",
     backgroundFileLabel: "本地背景图",
     backgroundOpacityLabel: "背景透明度",
+    pageWidthLabel: "页面宽度",
+    uiScaleLabel: "字号缩放",
+    fontFamilyLabel: "字体",
+    fontFamilyDefaultLabel: "默认（无衬线）",
+    fontFamilySerifLabel: "衬线",
+    fontFamilyKaiLabel: "楷体",
+    fontFamilyRoundedLabel: "圆体",
+    fontFamilyMonoLabel: "等宽",
     textColorLabel: "文字颜色",
     textColorModeLabel: "颜色模式",
     textColorDefaultLabel: "默认",
