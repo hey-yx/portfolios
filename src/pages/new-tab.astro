@@ -1334,6 +1334,17 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       cursor: grabbing;
     }
 
+    /* 拖拽中：源条目压暗缩小，其它条目按 FLIP 平移让位 */
+    [data-shortcut-stack] .shortcut-item-shell.is-dragging {
+      opacity: 0.35;
+      cursor: grabbing;
+    }
+
+    [data-shortcut-stack] .shortcut-item-shell.is-dragging > .shortcut-item {
+      transform: scale(0.96);
+      transition: transform 150ms ease;
+    }
+
     [data-shortcut-stack] .shortcut-item {
       position: absolute;
       inset: 0;
@@ -2353,6 +2364,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       width: auto;
       height: auto;
       min-width: 0;
+      transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item {
@@ -5290,15 +5302,24 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             const dr = (previous.rot ?? 0) - (target.rot ?? 0);
 
             if (dx || dy || dr) {
-              // 起点先关过渡提交，再同步恢复过渡落到终点；不走 rAF（后台/遮挡标签页会节流导致终态不落地）。
-              child.style.transition = "none";
-              child.style.transform = `translate(${previous.x}px, ${previous.y}px) rotate(${previous.rot ?? 0}deg)`;
-              child.getBoundingClientRect();
-              child.style.transition = "";
+              // 全量重建后节点是新的，transition 不会触发；用 WAAPI 从旧位姿补间到新位姿，
+              // composite: add 把位移叠加在静态定位上，stack 档自带 transform 也不被覆盖。
               child.style.transform =
                 mode === "grid"
                   ? ""
                   : `translate(${target.x}px, ${target.y}px) rotate(${target.rot ?? 0}deg)`;
+              child.getAnimations().forEach((animation) => animation.cancel());
+              child.animate(
+                [
+                  { transform: `translate(${dx}px, ${dy}px) rotate(${dr}deg)`, composite: "add" },
+                  { transform: "translate(0px, 0px) rotate(0deg)", composite: "add" },
+                ],
+                {
+                  duration: 260,
+                  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                  composite: "add",
+                },
+              );
             } else if (mode === "grid") {
               child.style.transform = "";
             } else {
@@ -5889,10 +5910,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
               event.dataTransfer.setData("text/plain", shortcut.title);
               event.dataTransfer.effectAllowed = "move";
             }
-            itemShell.classList.add("opacity-50");
+            itemShell.classList.add("is-dragging");
+            stack.dataset.itemDragging = "true";
           });
           itemShell.addEventListener("dragend", () => {
-            itemShell.classList.remove("opacity-50");
+            itemShell.classList.remove("opacity-50", "is-dragging");
+            delete stack.dataset.itemDragging;
             clearDropIndicators(stack);
             clearDragPayload();
           });
