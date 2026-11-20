@@ -733,7 +733,19 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       zoom: var(--ntab-ui-scale);
     }
 
-    /* 背景层不做入场动画，刷新时直接到位 */
+    /* 背景入场：600ms 淡入 + 1.02 → 1 的轻缩放，只影响壁纸宿主 */
+    [data-new-tab-background-host] {
+      animation: ntab-bg-in 600ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      transform-origin: 50% 45%;
+    }
+
+    @keyframes ntab-bg-in {
+      from {
+        opacity: 0;
+        transform: scale(1.02);
+      }
+    }
+
     @keyframes ntab-rise {
       from {
         opacity: 0;
