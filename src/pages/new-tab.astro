@@ -2097,6 +2097,19 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         visibility 0s;
     }
 
+    /* 刷新时条目按序浮入；只走一次，之后的增删改不重播 */
+    [data-shortcut-stack] .shortcut-item-shell.ntab-pop > .shortcut-item {
+      animation: ntab-pop-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      animation-delay: var(--ntab-delay, 0ms);
+    }
+
+    @keyframes ntab-pop-in {
+      from {
+        opacity: 0;
+        transform: translateY(0.5rem) scale(0.985);
+      }
+    }
+
     [data-shortcut-stack] .shortcut-item-shell.ntab-vanish > .shortcut-item {
       animation: ntab-pop-out 260ms cubic-bezier(0.4, 0, 1, 1) forwards;
       pointer-events: none;
@@ -5373,6 +5386,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       homeLink.textContent = newTabState.homeLink.label;
     };
 
+    let hasRenderedShortcutGroups = false;
+
     const renderShortcutGroups = () => {
       const stack = document.querySelector("[data-shortcut-stack]");
 
@@ -5418,6 +5433,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       }
 
       const groupSections = [];
+      const animateEnter = !hasRenderedShortcutGroups;
+      let enterIndex = 0;
+
+      hasRenderedShortcutGroups = true;
 
       newTabState.shortcutGroups.forEach((group, groupIndex) => {
         const section = document.createElement("section");
@@ -5675,6 +5694,12 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           itemShell.className = "shortcut-item-shell group select-none";
           itemShell.dataset.canvasKey = `${shortcut.url}\n${shortcut.title}`;
           itemShell.dataset.canvasIndex = String(shortcutIndex);
+
+          if (animateEnter) {
+            itemShell.style.setProperty("--ntab-delay", `${Math.min(enterIndex * 24, 360)}ms`);
+            itemShell.classList.add("ntab-pop");
+            enterIndex += 1;
+          }
 
           const openShortcutEditForm = () => {
             openShortcutEditDialog(group, shortcut);
