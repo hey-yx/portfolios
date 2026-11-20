@@ -5851,6 +5851,19 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             }
           });
           itemShell.addEventListener("contextmenu", openShortcutMenu);
+          // macOS 触摸板双指/Ctrl+单击：部分场景只派发 click（ctrlKey/metaKey=true）不派发
+          // contextmenu，若不拦住会直接跳转链接。捕获阶段兜底打开右键菜单。
+          itemShell.addEventListener(
+            "click",
+            (event) => {
+              if (!suppressNextClick && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                event.stopPropagation();
+                openShortcutMenu(event);
+              }
+            },
+            true,
+          );
           let longPressTimer = 0;
           let suppressNextClick = false;
 
