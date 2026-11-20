@@ -5577,6 +5577,62 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
         summary.append(titleWrap, count, rule, groupActions);
 
+        // 空白区（非 group 拖拽）也允许把 item 放进这一组：组尾追加
+        section.addEventListener("dragover", (event) => {
+          const payload = readDragPayload(event);
+
+          if (payload?.type !== "shortcut") {
+            return;
+          }
+
+          // 起点就在本组且指到组尾时，交给 items 的组尾逻辑，避免重复指示
+          if (Number(payload.groupIndex) === groupIndex) {
+            return;
+          }
+
+          const overItem = event.target instanceof Element && event.target.closest(".shortcut-item-shell");
+
+          if (overItem) {
+            return;
+          }
+
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = "move";
+          }
+          clearDropIndicators(stack);
+          setDropContainer(items);
+        });
+        section.addEventListener("drop", (event) => {
+          const payload = readDragPayload(event);
+
+          if (payload?.type !== "shortcut") {
+            return;
+          }
+
+          const overItem = event.target instanceof Element && event.target.closest(".shortcut-item-shell");
+
+          if (Number(payload.groupIndex) === groupIndex || overItem) {
+            return;
+          }
+
+          event.preventDefault();
+          event.stopPropagation();
+          clearDropIndicators(stack);
+
+          if (
+            moveShortcutItem(
+              Number(payload.groupIndex),
+              Number(payload.shortcutIndex),
+              groupIndex,
+              group.shortcuts.length,
+            )
+          ) {
+            persistConfigChange("已移动");
+          }
+        });
+
         section.addEventListener("dragover", (event) => {
           const payload = readDragPayload(event);
 
