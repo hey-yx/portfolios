@@ -1380,17 +1380,17 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       cursor: grabbing;
     }
 
-    /* 拖拽中（SortableJS）：被拖的源条目半透明，落点位置显示虚线占位块；
-       分组拖拽（整行 summary 为把手）与站点拖拽共用这套视觉 */
+    /* 拖拽中（SortableJS，forceFallback）：跟随鼠标的拖影不透明（看得清拖的是什么），
+       原位几乎只剩虚线占位框；分组与站点拖拽共用这套视觉 */
     [data-shortcut-stack] .shortcut-sortable-chosen {
-      opacity: 0.35;
+      opacity: 0.25;
       cursor: grabbing;
     }
 
     [data-shortcut-stack] .shortcut-sortable-ghost {
       opacity: 1;
-      background: color-mix(in srgb, var(--ntab-card-ink) 8%, transparent);
-      border: 1px dashed color-mix(in srgb, var(--ntab-card-ink) 45%, transparent);
+      background: color-mix(in srgb, var(--ntab-card-ink) 6%, transparent);
+      border: 1.5px dashed color-mix(in srgb, var(--ntab-card-ink) 40%, transparent);
       border-radius: 0.55rem;
     }
 
@@ -1399,8 +1399,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     }
 
     [data-shortcut-stack] .shortcut-sortable-drag {
-      opacity: 0.9;
+      opacity: 1;
       cursor: grabbing;
+      filter: drop-shadow(0 8px 24px rgb(0 0 0 / 18%));
     }
 
     [data-shortcut-stack] .shortcut-item {
@@ -5435,13 +5436,15 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       destroyShortcutSortables();
 
       // 分组排序：handle 是整行 summary（标题、计数、按钮整行都算拖拽起点），
-      // 拖动时其它分组用 animation 平滑让位，落点即松手位置，无需再猜指示线
+      // 拖动时其它分组用 animation 平滑让位。swapThreshold 0.5 = 拖影与目标组重叠过半才换位，
+      // 避免轻擦过就「名字先跑过去」；松手时 ghost 归位（revert) 的 250ms 补间让落点更清楚
       groupSortable = Sortable.create(stack, {
         handle: ".shortcut-group__summary",
         draggable: ".shortcut-group",
         forceFallback: true,
         fallbackTolerance: 3,
-        animation: 200,
+        swapThreshold: 0.5,
+        animation: 240,
         easing: "cubic-bezier(0.22, 1, 0.36, 1)",
         ghostClass: "shortcut-sortable-ghost",
         dragClass: "shortcut-sortable-drag",
@@ -5485,7 +5488,8 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           sort: true,
           forceFallback: true,
           fallbackTolerance: 3,
-          animation: 200,
+          swapThreshold: 0.5,
+          animation: 240,
           easing: "cubic-bezier(0.22, 1, 0.36, 1)",
           draggable: ".shortcut-item-shell",
           ghostClass: "shortcut-sortable-ghost",
