@@ -2914,7 +2914,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     // 直连站点（localhost / 内网 / 裸 IP）的真实 favicon 被一路误杀到链尾；同时第三方
     // favicon 服务保留直连候选，导致 Google / DuckDuckGo 的占位图写进缓存。
     // 旧缓存里已存有假图标，全部作废重建。
-    const logoResolverVersion = 7;
+    // v7→v8：缓存键从 origin 换成 origin+path，子路径应用（xx.com/xxx）不再共享根站点缓存；
+    // 旧键（纯 origin）与新键（origin+根路径 ""）结构不同，读不到旧条目即自然失效
+    const logoResolverVersion = 8;
     const settingsLabels = defaultPayload.config?.settings ?? {};
     let newTabState = defaultState();
     let textColorSaveTimer = 0;
@@ -4356,7 +4358,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     const getShortcutLogoCacheKey = (url) => {
       try {
-        return new URL(url).origin;
+        const parsed = new URL(url);
+        // 子路径应用（xx.com/xxx）与根站点标题、图标都不同，缓存必须带路径区分；
+        // 同一路径下 query 变化（/list?page=2）仍视为同一站点
+        return `${parsed.origin}${parsed.pathname.replace(/\/$/, "") || ""}`;
       } catch {
         return url;
       }
