@@ -1150,6 +1150,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       align-items: center;
       gap: 10px;
       min-width: 0;
+      cursor: grab;
+    }
+
+    [data-shortcut-stack] .shortcut-sortable-chosen .shortcut-group__summary,
+    [data-shortcut-stack] .shortcut-sortable-drag .shortcut-group__summary {
+      cursor: grabbing;
+    }
+
+    /* 拖分组时按钮不抢拖拽起点：把手行内的操作按钮照常可点 */
+    .shortcut-group__summary button,
+    .shortcut-group__summary .shortcut-drag-handle {
+      cursor: pointer;
     }
 
     .shortcut-group__title {
@@ -1368,15 +1380,27 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       cursor: grabbing;
     }
 
-    /* 拖拽中：源条目压暗缩小，其它条目按 FLIP 平移让位 */
-    [data-shortcut-stack] .shortcut-item-shell.is-dragging {
+    /* 拖拽中（SortableJS）：被拖的源条目半透明，落点位置显示虚线占位块；
+       分组拖拽（整行 summary 为把手）与站点拖拽共用这套视觉 */
+    [data-shortcut-stack] .shortcut-sortable-chosen {
       opacity: 0.35;
       cursor: grabbing;
     }
 
-    [data-shortcut-stack] .shortcut-item-shell.is-dragging > .shortcut-item {
-      transform: scale(0.96);
-      transition: transform 150ms ease;
+    [data-shortcut-stack] .shortcut-sortable-ghost {
+      opacity: 1;
+      background: color-mix(in srgb, var(--ntab-card-ink) 8%, transparent);
+      border: 1px dashed color-mix(in srgb, var(--ntab-card-ink) 45%, transparent);
+      border-radius: 0.55rem;
+    }
+
+    [data-shortcut-stack] .shortcut-sortable-ghost .shortcut-item {
+      visibility: hidden;
+    }
+
+    [data-shortcut-stack] .shortcut-sortable-drag {
+      opacity: 0.9;
+      cursor: grabbing;
     }
 
     [data-shortcut-stack] .shortcut-item {
@@ -2828,6 +2852,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   <script>
     // @ts-nocheck
     import { buildMetaProxyUrl, META_PROXY_ORIGIN } from "../data/meta-proxy";
+    import Sortable from "sortablejs";
     const defaultPayloadElement = document.getElementById("new-tab-defaults");
     const defaultPayload = defaultPayloadElement?.textContent
       ? JSON.parse(defaultPayloadElement.textContent)
@@ -2891,7 +2916,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     const logoResolverVersion = 7;
     const settingsLabels = defaultPayload.config?.settings ?? {};
     let newTabState = defaultState();
-    let activeDragPayload = null;
     let textColorSaveTimer = 0;
     let pageMetricsSaveTimer = 0;
     let shortcutLogoCache = {};
@@ -4290,182 +4314,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       shortcutEditDialogApi.openFor(group, shortcut);
     };
 
-    const moveArrayItem = (items, fromIndex, toIndex) => {
-      if (
-        fromIndex < 0 ||
-        fromIndex >= items.length ||
-        toIndex < 0 ||
-        fromIndex === toIndex
-      ) {
-        return false;
-      }
-
-      if (toIndex > items.length) {
-        return false;
-      }
-
-      const adjustedTargetIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
-      if (adjustedTargetIndex === fromIndex) {
-        return false;
-      }
-
-      const [item] = items.splice(fromIndex, 1);
-      items.splice(Math.min(Math.max(adjustedTargetIndex, 0), items.length), 0, item);
-      return true;
-    };
-
-    const moveShortcutItem = (fromGroupIndex, fromShortcutIndex, toGroupIndex, toShortcutIndex) => {
-      const fromGroup = newTabState.shortcutGroups[fromGroupIndex];
-      const toGroup = newTabState.shortcutGroups[toGroupIndex];
-
-      if (
-        !fromGroup ||
-        !toGroup ||
-        fromShortcutIndex < 0 ||
-        fromShortcutIndex >= fromGroup.shortcuts.length ||
-        (fromGroupIndex === toGroupIndex && fromShortcutIndex === toShortcutIndex)
-      ) {
-        return false;
-      }
-
-      const [shortcut] = fromGroup.shortcuts.splice(fromShortcutIndex, 1);
-      const adjustedTargetIndex =
-        fromGroupIndex === toGroupIndex && fromShortcutIndex < toShortcutIndex
-          ? toShortcutIndex - 1
-          : toShortcutIndex;
-      const boundedTargetIndex = Math.min(Math.max(adjustedTargetIndex, 0), toGroup.shortcuts.length);
-
-      if (boundedTargetIndex === fromShortcutIndex && fromGroupIndex === toGroupIndex) {
-        return false;
-      }
-
-      toGroup.shortcuts.splice(boundedTargetIndex, 0, shortcut);
-      return true;
-    };
-
-    const readDragPayload = (event) => {
-      try {
-        const payload = event.dataTransfer?.getData("application/json");
-        if (payload) {
-          return JSON.parse(payload);
-        }
-      } catch {
-        // Fall through to the active payload.
-      }
-
-      return activeDragPayload;
-    };
-
-    const setDragPayload = (payload) => {
-      activeDragPayload = payload;
-    };
-
-    const clearDragPayload = () => {
-      activeDragPayload = null;
-    };
-
-    const dropContainerClasses = [
-      "rounded-[0.55rem]",
-      "outline",
-      "outline-1",
-      "outline-dashed",
-      "outline-base-content/30",
-      "outline-offset-[0.22rem]",
-    ];
-    const groupDropBeforeClasses = [
-      "before:content-['']",
-      "before:absolute",
-      "before:left-0",
-      "before:right-0",
-      "before:top-[-0.22rem]",
-      "before:z-[35]",
-      "before:h-0.5",
-      "before:rounded-full",
-      "before:bg-base-content/70",
-      "before:pointer-events-none",
-    ];
-    const groupDropAfterClasses = [
-      "after:content-['']",
-      "after:absolute",
-      "after:left-0",
-      "after:right-0",
-      "after:bottom-[-0.22rem]",
-      "after:z-[35]",
-      "after:h-0.5",
-      "after:rounded-full",
-      "after:bg-base-content/70",
-      "after:pointer-events-none",
-    ];
-    const itemDropBeforeClasses = [
-      "before:content-['']",
-      "before:absolute",
-      "before:left-[-0.24rem]",
-      "before:top-[0.22rem]",
-      "before:bottom-[0.22rem]",
-      "before:z-[35]",
-      "before:w-0.5",
-      "before:rounded-full",
-      "before:bg-base-content/70",
-      "before:pointer-events-none",
-    ];
-    const itemDropAfterClasses = [
-      "after:content-['']",
-      "after:absolute",
-      "after:right-[-0.24rem]",
-      "after:top-[0.22rem]",
-      "after:bottom-[0.22rem]",
-      "after:z-[35]",
-      "after:w-0.5",
-      "after:rounded-full",
-      "after:bg-base-content/70",
-      "after:pointer-events-none",
-    ];
-    const dropIndicatorClasses = [
-      ...dropContainerClasses,
-      ...groupDropBeforeClasses,
-      ...groupDropAfterClasses,
-      ...itemDropBeforeClasses,
-      ...itemDropAfterClasses,
-    ];
-
-    const clearDropElement = (element) => {
-      element.classList.remove(
-        "shortcut-drop-target",
-        "shortcut-drop-before",
-        "shortcut-drop-after",
-        ...dropIndicatorClasses,
-      );
-    };
-
-    const clearDropIndicators = (root) => {
-      clearDropElement(root);
-      root.querySelectorAll(".shortcut-drop-target, .shortcut-drop-before, .shortcut-drop-after").forEach(clearDropElement);
-    };
-
-    const getDropPosition = (event, element, axis = "x") => {
-      const rect = element.getBoundingClientRect();
-      const pointer = axis === "y" ? event.clientY : event.clientX;
-      const midpoint = axis === "y" ? rect.top + rect.height / 2 : rect.left + rect.width / 2;
-      return pointer < midpoint ? "before" : "after";
-    };
-
-    const setDropContainer = (element) => {
-      element.classList.add("shortcut-drop-target", ...dropContainerClasses);
-    };
-
-    const setDropPosition = (element, position, axis = "x") => {
-      const indicatorClasses = axis === "y"
-        ? position === "before"
-          ? groupDropBeforeClasses
-          : groupDropAfterClasses
-        : position === "before"
-          ? itemDropBeforeClasses
-          : itemDropAfterClasses;
-
-      element.classList.add("shortcut-drop-target", `shortcut-drop-${position}`);
-      element.classList.add(...indicatorClasses);
-    };
-
     const dragHandleIcon = getIconMarkup("drag");
 
     // 代理地址固定带斜杠，与 unwrapProxyUrl 的 pathname === "/" 判定保持一致
@@ -5556,6 +5404,144 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     let hasRenderedShortcutGroups = false;
 
+    /* 拖拽排序（SortableJS）：分组在 stack 上整列可拖（handle = 整个标题行），
+       站点在各自 items 里自由排序、跨组拖入。拖完只改数据并持久化，
+       画布位置由 renderShortcutGroups → applyShortcutLayouts 统一重建。
+       stack/两个 items 容器每次渲染都重建，Sortable 实例跟着销毁重建（destroy 在这里做，
+       element 引用旧节点时 Sortable.destroy 会抛错，直接忽略）。 */
+    let groupSortable = null;
+    const itemSortables = new Map();
+
+    const destroyShortcutSortables = () => {
+      if (groupSortable) {
+        try {
+          groupSortable.destroy();
+        } catch {
+          // element 已随上次渲染移除时 destroy 会抛错，无需处理
+        }
+        groupSortable = null;
+      }
+      itemSortables.forEach((sortable) => {
+        try {
+          sortable.destroy();
+        } catch {
+          // 同上
+        }
+      });
+      itemSortables.clear();
+    };
+
+    const bindShortcutSortable = (stack, groupSections, previousPlacements) => {
+      destroyShortcutSortables();
+
+      // 分组排序：handle 是整行 summary（标题、计数、按钮整行都算拖拽起点），
+      // 拖动时其它分组用 animation 平滑让位，落点即松手位置，无需再猜指示线
+      groupSortable = Sortable.create(stack, {
+        handle: ".shortcut-group__summary",
+        draggable: ".shortcut-group",
+        forceFallback: true,
+        fallbackTolerance: 3,
+        animation: 200,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        ghostClass: "shortcut-sortable-ghost",
+        dragClass: "shortcut-sortable-drag",
+        chosenClass: "shortcut-sortable-chosen",
+        onStart() {
+          stack.dataset.groupDragging = "true";
+        },
+        onEnd(event) {
+          delete stack.dataset.groupDragging;
+          const fromIndex = event.oldIndex ?? -1;
+          const toIndex = event.newIndex ?? -1;
+
+          if (
+            fromIndex < 0 ||
+            toIndex < 0 ||
+            fromIndex === toIndex ||
+            fromIndex >= newTabState.shortcutGroups.length ||
+            toIndex > newTabState.shortcutGroups.length
+          ) {
+            return;
+          }
+
+          // Sortable 已把 DOM 挪好；这里把同样的顺序写回数据再全量重渲染
+          const [moved] = newTabState.shortcutGroups.splice(fromIndex, 1);
+          newTabState.shortcutGroups.splice(toIndex, 0, moved);
+          persistConfigChange("已排序");
+        },
+      });
+
+      // 站点排序 + 跨组移动：每个 items 一个 Sortable，group: "shortcut" 互通；
+      // pull true = 可拖出，put true = 可拖入；空组也保留可放置区域
+      groupSections.forEach((section, sectionIndex) => {
+        const itemsEl = section.querySelector(".shortcut-group__items");
+
+        if (!(itemsEl instanceof HTMLElement)) {
+          return;
+        }
+
+        const itemSortable = Sortable.create(itemsEl, {
+          group: "shortcut",
+          sort: true,
+          forceFallback: true,
+          fallbackTolerance: 3,
+          animation: 200,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          draggable: ".shortcut-item-shell",
+          ghostClass: "shortcut-sortable-ghost",
+          dragClass: "shortcut-sortable-drag",
+          chosenClass: "shortcut-sortable-chosen",
+          filter: ".shortcut-group__empty",
+          preventOnFilter: false,
+          onStart() {
+            stack.dataset.itemDragging = "true";
+          },
+          onEnd(event) {
+            delete stack.dataset.itemDragging;
+            const fromGroupIndex = [...stack.querySelectorAll(".shortcut-group")].indexOf(
+              event.from.closest(".shortcut-group"),
+            );
+            const toGroupIndex = [...stack.querySelectorAll(".shortcut-group")].indexOf(
+              event.to.closest(".shortcut-group"),
+            );
+
+            if (fromGroupIndex < 0 || toGroupIndex < 0) {
+              return;
+            }
+
+            // Sortable 把 DOM 节点从 from 挪到 to（跨组）或就地重排（组内）；
+            // 数据以 DOM 结果为准重排，再全量重渲染恢复画布定位
+            const fromGroup = newTabState.shortcutGroups[fromGroupIndex];
+            const toGroup = newTabState.shortcutGroups[toGroupIndex];
+            const toShortcutIndex = event.newIndex ?? 0;
+            const movedTitle = event.item.dataset.canvasKey?.split("\n")[1] ?? "";
+
+            if (!fromGroup || !toGroup) {
+              return;
+            }
+
+            const fromShortcutIndex = fromGroup.shortcuts.findIndex(
+              (shortcut) => shortcut.title === movedTitle,
+            );
+
+            if (fromShortcutIndex < 0) {
+              return;
+            }
+
+            const [shortcut] = fromGroup.shortcuts.splice(fromShortcutIndex, 1);
+            const adjustedIndex =
+              fromGroupIndex === toGroupIndex && fromShortcutIndex < toShortcutIndex
+                ? toShortcutIndex - 1
+                : toShortcutIndex;
+            toGroup.shortcuts.splice(Math.max(0, Math.min(adjustedIndex, toGroup.shortcuts.length)), 0, shortcut);
+            persistConfigChange(fromGroupIndex === toGroupIndex ? "已排序" : "已移动");
+          },
+        });
+
+        itemSortables.set(sectionIndex, itemSortable);
+      });
+    };
+
     const renderShortcutGroups = () => {
       const stack = document.querySelector("[data-shortcut-stack]");
 
@@ -5572,6 +5558,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
       // 入场动画的弧形降级判据挂在 html 上（首帧前由内联脚本写入），切换布局后同步保持一致
       document.documentElement.dataset.newTabLayout = newTabState.shortcutLayout;
+      destroyShortcutSortables();
 
       const previousPlacements = new Map(shortcutPlacementMemory);
 
@@ -5675,27 +5662,11 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
         const groupDragHandle = document.createElement("span");
         groupDragHandle.className = "shortcut-drag-handle";
-        groupDragHandle.draggable = true;
         groupDragHandle.title = "拖拽排序";
         groupDragHandle.setAttribute("aria-label", `拖拽排序：${group.title}`);
+        // getIconMarkup 返回站点内置的静态图标字符串，不含用户输入，无 XSS 风险
         groupDragHandle.innerHTML = dragHandleIcon;
-        groupDragHandle.addEventListener("dragstart", (event) => {
-          setDragPayload({
-            type: "group",
-            groupIndex,
-          });
-          if (event.dataTransfer) {
-            event.dataTransfer.setData("application/json", JSON.stringify(activeDragPayload));
-            event.dataTransfer.setData("text/plain", group.title);
-            event.dataTransfer.effectAllowed = "move";
-          }
-          section.classList.add("opacity-50");
-        });
-        groupDragHandle.addEventListener("dragend", () => {
-          section.classList.remove("opacity-50");
-          clearDropIndicators(stack);
-          clearDragPayload();
-        });
+        // 拖拽由 stack 级 Sortable 实例统一管理（整个标题行可拖），把手只作视觉提示
         titleWrap.append(title);
 
         const groupMenuButton = document.createElement("button");
@@ -5733,142 +5704,16 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
         summary.append(titleWrap, count, rule, groupActions);
 
-        // 空白区（非 group 拖拽）也允许把 item 放进这一组：组尾追加
-        section.addEventListener("dragover", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "shortcut") {
-            return;
-          }
-
-          // 起点就在本组且指到组尾时，交给 items 的组尾逻辑，避免重复指示
-          if (Number(payload.groupIndex) === groupIndex) {
-            return;
-          }
-
-          const overItem = event.target instanceof Element && event.target.closest(".shortcut-item-shell");
-
-          if (overItem) {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-          if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = "move";
-          }
-          clearDropIndicators(stack);
-          setDropContainer(items);
-        });
-        section.addEventListener("drop", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "shortcut") {
-            return;
-          }
-
-          const overItem = event.target instanceof Element && event.target.closest(".shortcut-item-shell");
-
-          if (Number(payload.groupIndex) === groupIndex || overItem) {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-          clearDropIndicators(stack);
-
-          if (
-            moveShortcutItem(
-              Number(payload.groupIndex),
-              Number(payload.shortcutIndex),
-              groupIndex,
-              group.shortcuts.length,
-            )
-          ) {
-            persistConfigChange("已移动");
-          }
-        });
-
-        section.addEventListener("dragover", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "group") {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-          if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = "move";
-          }
-          clearDropIndicators(stack);
-          const position = getDropPosition(event, section, "y");
-          setDropPosition(section, position, "y");
-        });
-        section.addEventListener("dragleave", () => {
-          clearDropElement(section);
-        });
-        section.addEventListener("drop", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "group") {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-          clearDropIndicators(stack);
-
-          const position = getDropPosition(event, section, "y");
-          const targetIndex = groupIndex + (position === "after" ? 1 : 0);
-
-          if (moveArrayItem(newTabState.shortcutGroups, Number(payload.groupIndex), targetIndex)) {
-            persistConfigChange("已排序");
-          }
+        // summary 整行是分组拖拽把手（SortableJS），行内的操作按钮不能当拖拽起点：
+        // 按钮的 pointerdown 不冒泡到 summary，点添加/菜单不会拖着整组走，click 照常触发
+        summary.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("pointerdown", (event) => {
+            event.stopPropagation();
+          });
         });
 
         const items = document.createElement("div");
         items.className = "shortcut-group__items relative flex w-full min-w-0 flex-wrap items-start justify-start gap-2 sm:gap-2.5";
-        items.addEventListener("dragover", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "shortcut") {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-          if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = "move";
-          }
-          clearDropIndicators(stack);
-          setDropContainer(items);
-        });
-        items.addEventListener("dragleave", () => {
-          clearDropElement(items);
-        });
-        items.addEventListener("drop", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "shortcut") {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-          clearDropIndicators(stack);
-
-          if (
-            moveShortcutItem(
-              Number(payload.groupIndex),
-              Number(payload.shortcutIndex),
-              groupIndex,
-              group.shortcuts.length,
-            )
-          ) {
-            persistConfigChange("已排序");
-          }
-        });
         items.addEventListener("contextmenu", (event) => {
           if (event.target !== items) {
             return;
@@ -5972,7 +5817,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             });
           };
 
-          itemShell.draggable = true;
           itemShell.classList.add("select-none");
           itemShell.style.webkitTouchCallout = "none";
           itemShell.addEventListener("pointerenter", () => {
@@ -6042,76 +5886,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             },
             true,
           );
-          itemShell.addEventListener("dragstart", (event) => {
-            if (event.target instanceof Element && event.target.closest("button")) {
-              event.preventDefault();
-              return;
-            }
-
-            setDragPayload({
-              type: "shortcut",
-              groupIndex,
-              shortcutIndex,
-            });
-            if (event.dataTransfer) {
-              event.dataTransfer.setData("application/json", JSON.stringify(activeDragPayload));
-              event.dataTransfer.setData("text/plain", shortcut.title);
-              event.dataTransfer.effectAllowed = "move";
-            }
-            itemShell.classList.add("is-dragging");
-            stack.dataset.itemDragging = "true";
-          });
-          itemShell.addEventListener("dragend", () => {
-            itemShell.classList.remove("opacity-50", "is-dragging");
-            delete stack.dataset.itemDragging;
-            clearDropIndicators(stack);
-            clearDragPayload();
-          });
-
-          itemShell.addEventListener("dragover", (event) => {
-            const payload = readDragPayload(event);
-
-            if (payload?.type !== "shortcut") {
-              return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-            if (event.dataTransfer) {
-              event.dataTransfer.dropEffect = "move";
-            }
-            clearDropIndicators(stack);
-            const position = getDropPosition(event, itemShell, "x");
-            setDropPosition(itemShell, position);
-          });
-          itemShell.addEventListener("dragleave", () => {
-            clearDropElement(itemShell);
-          });
-          itemShell.addEventListener("drop", (event) => {
-            const payload = readDragPayload(event);
-
-            if (payload?.type !== "shortcut") {
-              return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-            clearDropIndicators(stack);
-
-            const position = getDropPosition(event, itemShell, "x");
-            const targetIndex = shortcutIndex + (position === "after" ? 1 : 0);
-
-            if (
-              moveShortcutItem(
-                Number(payload.groupIndex),
-                Number(payload.shortcutIndex),
-                groupIndex,
-                targetIndex,
-              )
-            ) {
-              persistConfigChange("已排序");
-            }
-          });
 
           const item = document.createElement("a");
           item.className = "shortcut-item";
@@ -6201,40 +5975,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         stack.append(section);
       });
 
-      if (stack.dataset.groupDropBound !== "true") {
-        stack.addEventListener("dragover", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "group") {
-            return;
-          }
-
-          event.preventDefault();
-          if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = "move";
-          }
-          clearDropIndicators(stack);
-          setDropContainer(stack);
-        });
-        stack.addEventListener("dragleave", () => {
-          clearDropElement(stack);
-        });
-        stack.addEventListener("drop", (event) => {
-          const payload = readDragPayload(event);
-
-          if (payload?.type !== "group") {
-            return;
-          }
-
-          event.preventDefault();
-          clearDropIndicators(stack);
-
-          if (moveArrayItem(newTabState.shortcutGroups, Number(payload.groupIndex), newTabState.shortcutGroups.length)) {
-            persistConfigChange("已排序");
-          }
-        });
-        stack.dataset.groupDropBound = "true";
-      }
+      bindShortcutSortable(stack, groupSections, previousPlacements);
 
       applyShortcutLayouts(previousPlacements);
       applyTextColors();
