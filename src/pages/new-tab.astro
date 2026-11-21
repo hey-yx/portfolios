@@ -2463,25 +2463,13 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       background: rgb(255 255 255 / 44%);
     }
 
-    /* 索引行悬停反馈：底色轻微加深 + 标题变主墨色 + 图标微放大 + 左缘出现墨色短竖线；
-       悬停底色跟随文字颜色模式切换，浅色文字配深底、深色文字配浅底，保证可读 */
+    /* 索引行悬停反馈：底色轻微加深 + 标题变主墨色 + 图标微放大 + 行最左侧出现墨色竖线；
+       竖线用 shell 上的 ::before（条目自身是 flex，::before 会挤占内容位），
+       覆盖整列高度（上到组标题分隔线、下到最后一条分隔线）；悬停底色跟随文字颜色模式 */
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item {
       transition:
         background-color 160ms var(--ntab-ease-standard),
         border-bottom-color 160ms var(--ntab-ease-standard);
-    }
-
-    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item::before {
-      width: 3px;
-      height: 0;
-      margin-right: -13px;
-      margin-left: -1px;
-      background: var(--ntab-card-ink);
-      opacity: 0;
-      content: "";
-      transition:
-        height 160ms var(--ntab-ease-standard),
-        opacity 160ms var(--ntab-ease-standard);
     }
 
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__label strong {
@@ -2500,12 +2488,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       border-color: color-mix(in srgb, var(--ntab-card-ink) 18%, transparent);
     }
 
-    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover::before,
-    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible::before {
-      height: 20px;
-      opacity: 0.85;
-    }
-
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover .shortcut-item__label strong,
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__label strong {
       color: var(--ntab-card-ink);
@@ -2516,6 +2498,44 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__icon,
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__initial {
       transform: scale(1.12);
+    }
+
+    /* 列竖线：挂在条目 shell 上（shell 是列内唯一全高的元素），占位列最左侧 3px。
+       默认透明，本列任意条目悬停/聚焦时整列显示；有壁纸磨砂时 z-index 需压过 backdrop */
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item-shell::before {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 5;
+      width: 3px;
+      background: var(--ntab-card-ink);
+      opacity: 0;
+      content: "";
+      transition: opacity 160ms var(--ntab-ease-standard);
+      pointer-events: none;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-group__items {
+      position: relative;
+    }
+
+    html[data-new-tab-layout="grid"][data-new-tab-background="true"] [data-shortcut-stack] .shortcut-item-shell::before {
+      z-index: 60;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-group__items:has(.shortcut-item-shell:hover)::before,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-group__items:has(.shortcut-item:focus-visible)::before {
+      opacity: 0.85;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item-shell:hover::before,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item-shell:focus-within::before {
+      opacity: 0.85;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item-shell:has(.shortcut-item:active)::before {
+      opacity: 1;
     }
 
     /* 浅色文字模式：悬停底色换成深底提亮，竖线与文字跟着浅色文字走 */
