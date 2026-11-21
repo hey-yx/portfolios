@@ -2463,11 +2463,70 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       background: rgb(255 255 255 / 44%);
     }
 
+    /* 索引行悬停反馈：底色轻微加深 + 标题变主墨色 + 图标微放大 + 左缘出现墨色短竖线；
+       悬停底色跟随文字颜色模式切换，浅色文字配深底、深色文字配浅底，保证可读 */
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item {
+      transition:
+        background-color 160ms var(--ntab-ease-standard),
+        border-bottom-color 160ms var(--ntab-ease-standard);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item::before {
+      width: 3px;
+      height: 0;
+      margin-right: -13px;
+      margin-left: -1px;
+      background: var(--ntab-card-ink);
+      opacity: 0;
+      content: "";
+      transition:
+        height 160ms var(--ntab-ease-standard),
+        opacity 160ms var(--ntab-ease-standard);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__label strong {
+      transition: color 160ms var(--ntab-ease-standard);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__icon,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__initial {
+      transition: transform 200ms var(--ntab-ease-standard);
+    }
+
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover,
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible {
       transform: none;
-      background: color-mix(in srgb, var(--ntab-card-ink) 7%, transparent);
-      border-color: color-mix(in srgb, var(--ntab-card-ink) 12%, transparent);
+      background: color-mix(in srgb, var(--ntab-card-ink) 10%, transparent);
+      border-color: color-mix(in srgb, var(--ntab-card-ink) 18%, transparent);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover::before,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible::before {
+      height: 20px;
+      opacity: 0.85;
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover .shortcut-item__label strong,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__label strong {
+      color: var(--ntab-card-ink);
+    }
+
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover .shortcut-item__icon,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover .shortcut-item__initial,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__icon,
+    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__initial {
+      transform: scale(1.12);
+    }
+
+    /* 浅色文字模式：悬停底色换成深底提亮，竖线与文字跟着浅色文字走 */
+    html[data-new-tab-layout="grid"][data-new-tab-text-colors="light"] [data-shortcut-stack] .shortcut-item:hover,
+    html[data-new-tab-layout="grid"][data-new-tab-text-colors="light"] [data-shortcut-stack] .shortcut-item:focus-visible {
+      background: rgb(8 10 14 / 52%);
+    }
+
+    html[data-new-tab-layout="grid"][data-new-tab-text-colors="dark"] [data-shortcut-stack] .shortcut-item:hover,
+    html[data-new-tab-layout="grid"][data-new-tab-text-colors="dark"] [data-shortcut-stack] .shortcut-item:focus-visible {
+      background: rgb(255 255 255 / 58%);
     }
 
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible {
@@ -2477,6 +2536,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:active {
       transform: none;
+      background: color-mix(in srgb, var(--ntab-card-ink) 14%, transparent);
     }
 
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__icon,
@@ -2491,11 +2551,6 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__initial {
       font: 600 11px / 1 var(--font-sans);
-    }
-
-    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:hover .shortcut-item__icon,
-    html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item:focus-visible .shortcut-item__icon {
-      transform: none;
     }
 
     html[data-new-tab-layout="grid"] [data-shortcut-stack] .shortcut-item__label {
