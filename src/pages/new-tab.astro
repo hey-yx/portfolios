@@ -4822,7 +4822,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             return shortcutLogoCache[cacheKey];
           }
 
-          const discovered = collectLogoUrlsFromHtml(html, shortcut.url);
+          // baseUrl 要是"目录"形态：相对地址（assets/mark.svg）按 new URL 合成时，
+          // 无尾斜杠的 base 会把最后一段当文件名替换掉，/ohmystamp 就解析成根目录的
+          // /assets/mark.svg（404），而不是子路径自己的 /ohmystamp/assets/mark.svg
+          const resolvedBase = (() => {
+            try {
+              const parsed = new URL(shortcut.url);
+              return parsed.pathname.endsWith("/") ? parsed.href : `${parsed.href}/`;
+            } catch {
+              return shortcut.url;
+            }
+          })();
+          const discovered = collectLogoUrlsFromHtml(html, resolvedBase);
           discovered.logoUrl = unwrapProxyUrl(discovered.logoUrl ?? discovered.candidates[0] ?? "");
 
           if (!discovered.candidates.length && !discovered.title && !discovered.description) {
@@ -5524,6 +5535,30 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           },
           onEnd(event) {
             delete stack.dataset.itemDragging;
+            // forceFallback 模式 Sortable 会在 document capture 阶段吞掉下一次 click
+            //（ignoreNextClick，防拖拽松手误触发链接）。但单击卡片时手指/鼠标几乎必有
+            // ≥3px 的微动（fallbackTolerance），Sortable 照样走 fallback 启动 → click 被吞，
+            // 表现为「点了没反应」。这里识别出「松手位置没换位没跨组」（等于一次点击），
+            // 排到下一帧手动补发 click（下一帧 ignoreNextClick 已被消费复位）
+            const droppedInPlace =
+              event.from === event.to && event.oldIndex === event.newIndex;
+
+            if (droppedInPlace) {
+              const link = event.item.querySelector("a[href]");
+
+              if (link instanceof HTMLAnchorElement) {
+                window.setTimeout(() => {
+                  if (newTabState.shortcutOpenMode === "newTab") {
+                    window.open(link.href, "_blank", "noopener,noreferrer");
+                  } else {
+                    window.location.href = link.href;
+                  }
+                }, 0);
+              }
+
+              return;
+            }
+
             const fromGroupIndex = [...stack.querySelectorAll(".shortcut-group")].indexOf(
               event.from.closest(".shortcut-group"),
             );
