@@ -2460,15 +2460,15 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       opacity: 0.92;
     }
 
-    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .shortcut-group__title {
-      text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .shortcut-group__title,
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .shortcut-group__count {
+      text-shadow: none;
     }
 
     html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"]
       .new-tab-greeting,
     html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .new-tab-date,
-    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .new-tab-group-add,
-    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .shortcut-group__count {
+    html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .new-tab-group-add {
       text-shadow: 0 1px 4px rgb(0 0 0 / 45%);
     }
 
