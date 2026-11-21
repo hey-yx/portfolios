@@ -5435,6 +5435,19 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     const bindShortcutSortable = (stack, groupSections, previousPlacements) => {
       destroyShortcutSortables();
 
+      // forceFallback 模式不依赖原生拖拽；栈内链接/选区的原生 dragstart 会劫持指针事件
+      // 让拖影冻结、冒出系统拖影，统一在捕获阶段拦掉
+      if (stack.dataset.nativeDragGuard !== "true") {
+        stack.addEventListener(
+          "dragstart",
+          (event) => {
+            event.preventDefault();
+          },
+          true,
+        );
+        stack.dataset.nativeDragGuard = "true";
+      }
+
       // 分组排序：handle 是整行 summary（标题、计数、按钮整行都算拖拽起点），
       // 拖动时其它分组用 animation 平滑让位。swapThreshold 0.5 = 拖影与目标组重叠过半才换位，
       // 避免轻擦过就「名字先跑过去」；松手时 ghost 归位（revert) 的 250ms 补间让落点更清楚
@@ -5518,14 +5531,15 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             const fromGroup = newTabState.shortcutGroups[fromGroupIndex];
             const toGroup = newTabState.shortcutGroups[toGroupIndex];
             const toShortcutIndex = event.newIndex ?? 0;
-            const movedTitle = event.item.dataset.canvasKey?.split("\n")[1] ?? "";
+            // canvasKey 是 "url\ntitle"，用完整键匹配，避免同组重名条目找错
+            const movedKey = event.item.dataset.canvasKey ?? "";
 
             if (!fromGroup || !toGroup) {
               return;
             }
 
             const fromShortcutIndex = fromGroup.shortcuts.findIndex(
-              (shortcut) => shortcut.title === movedTitle,
+              (shortcut) => `${shortcut.url}\n${shortcut.title}` === movedKey,
             );
 
             if (fromShortcutIndex < 0) {
@@ -5894,6 +5908,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           const item = document.createElement("a");
           item.className = "shortcut-item";
           item.href = shortcut.url;
+          // 带 href 的链接浏览器默认可原生拖拽，会劫持 forceFallback 的指针拖拽
+          // （拖影冻在原地、冒出系统拖影），关掉后拖拽完全交给 SortableJS
+          item.draggable = false;
           if (newTabState.shortcutOpenMode === "newTab") {
             item.target = "_blank";
             item.rel = "noopener noreferrer";
