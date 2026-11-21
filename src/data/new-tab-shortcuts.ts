@@ -64,6 +64,12 @@ export interface NewTabConfig {
     fontFamilyKaiLabel: string;
     fontFamilyRoundedLabel: string;
     fontFamilyMonoLabel: string;
+    blurLabel: string;
+    blurOffLabel: string;
+    blurSoftLabel: string;
+    blurMediumLabel: string;
+    blurStrongLabel: string;
+    blurDynamicLabel: string;
     textColorLabel: string;
     textColorModeLabel: string;
     textColorDefaultLabel: string;
@@ -170,6 +176,12 @@ export const newTabConfig: NewTabConfig = {
     fontFamilyKaiLabel: "楷体",
     fontFamilyRoundedLabel: "圆体",
     fontFamilyMonoLabel: "等宽",
+    blurLabel: "卡片模糊",
+    blurOffLabel: "关闭",
+    blurSoftLabel: "轻",
+    blurMediumLabel: "中",
+    blurStrongLabel: "强",
+    blurDynamicLabel: "动态",
     textColorLabel: "文字颜色",
     textColorModeLabel: "颜色模式",
     textColorDefaultLabel: "默认",

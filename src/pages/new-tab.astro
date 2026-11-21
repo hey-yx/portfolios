@@ -105,6 +105,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     if (typeof storedFont === "string" && ["default", "serif", "kai", "rounded", "mono"].includes(storedFont) && storedFont !== "default") {
       root.dataset.newTabFont = storedFont;
     }
+    const storedBlur = stored?.itemBlur;
+    if (typeof storedBlur === "string" && ["off", "soft", "medium", "strong", "dynamic"].includes(storedBlur)) {
+      root.dataset.newTabBlur = storedBlur;
+    }
   } catch {
     // 读不到就按默认网格与默认尺寸处理
   }
@@ -365,6 +369,18 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
                 <option value="mono">{newTabConfig.settings.fontFamilyMonoLabel}</option>
               </select>
             </label>
+            <label class="form-control grid min-w-0 gap-1.5 col-span-full">
+              <span class="label">
+                <span class="label-text">{newTabConfig.settings.blurLabel}</span>
+              </span>
+              <select class="select select-bordered select-sm" data-config-blur>
+                <option value="off">{newTabConfig.settings.blurOffLabel}</option>
+                <option value="soft">{newTabConfig.settings.blurSoftLabel}</option>
+                <option value="medium">{newTabConfig.settings.blurMediumLabel}</option>
+                <option value="strong">{newTabConfig.settings.blurStrongLabel}</option>
+                <option value="dynamic">{newTabConfig.settings.blurDynamicLabel}</option>
+              </select>
+            </label>
           </div>
         </section>
 
@@ -601,6 +617,24 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
     html[data-new-tab-font="mono"] {
       --font-sans: var(--font-mono);
       --font-reading: var(--font-mono);
+    }
+
+    /* 卡片模糊档：0/4/10/16px，「动态」随壁纸透明度变化（低透明度配轻模糊，高透明度配强模糊）。
+       只在有壁纸时生效，规则见下方 data-new-tab-background 块。 */
+    html[data-new-tab-blur="off"] {
+      --ntab-item-blur: 0px;
+    }
+
+    html[data-new-tab-blur="soft"] {
+      --ntab-item-blur: 4px;
+    }
+
+    html[data-new-tab-blur="medium"] {
+      --ntab-item-blur: 10px;
+    }
+
+    html[data-new-tab-blur="strong"] {
+      --ntab-item-blur: 16px;
     }
 
     [data-new-tab-page] {
@@ -2386,12 +2420,35 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       transition: none;
     }
 
-    /* 有壁纸时：每条都铺一层磨砂；浅色文字配深底，深色文字配浅底，压住高光 */
+    /* 有壁纸时：每条都铺一层磨砂，强度由 data-new-tab-blur 决定（medium 档为原效果）；
+       「动态」由 JS 按壁纸透明度算出 4 到 16px 写进 style。浅色文字配深底，深色文字配浅底，压住高光 */
     html[data-new-tab-layout="grid"][data-new-tab-background="true"]
       [data-shortcut-stack]
       .shortcut-item {
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(var(--ntab-item-blur, 10px));
       background: color-mix(in srgb, currentColor 7%, transparent);
+    }
+
+    html[data-new-tab-layout="grid"][data-new-tab-background="true"][data-new-tab-blur="off"]
+      [data-shortcut-stack]
+      .shortcut-item {
+      backdrop-filter: none;
+      background: transparent;
+      border-bottom-color: color-mix(in srgb, var(--ntab-card-ink) 18%, transparent);
+    }
+
+    html[data-new-tab-layout="grid"][data-new-tab-background="true"][data-new-tab-blur="off"][data-new-tab-text-colors="light"]
+      [data-shortcut-stack]
+      .shortcut-item {
+      background: rgb(8 10 14 / 38%);
+      border-bottom-color: rgb(255 255 255 / 18%);
+    }
+
+    html[data-new-tab-layout="grid"][data-new-tab-background="true"][data-new-tab-blur="off"][data-new-tab-text-colors="dark"]
+      [data-shortcut-stack]
+      .shortcut-item {
+      background: rgb(255 255 255 / 44%);
+      border-bottom-color: rgb(0 0 0 / 14%);
     }
 
     html[data-new-tab-layout="grid"][data-new-tab-background="true"][data-new-tab-text-colors="light"]
@@ -2469,7 +2526,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       .new-tab-greeting,
     html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .new-tab-date,
     html[data-new-tab-text-colors="light"][data-new-tab-layout="grid"] .new-tab-group-add {
-      text-shadow: 0 1px 4px rgb(0 0 0 / 45%);
+      text-shadow: none;
     }
 
     /* 浅色文字落在照片壁纸上，给行内文字一层极轻的影，别让高光吃掉 */
@@ -2481,7 +2538,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       [data-shortcut-stack]
       .shortcut-item__label
       small {
-      text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
+      text-shadow: none;
     }
 
     /* 「更多」面板：一行一项、图标左对齐、右端留给指示符 */
@@ -2728,6 +2785,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       pageWidth: 992,
       uiScale: 100,
       fontFamily: "default",
+      itemBlur: "medium",
       textColors: cloneValue(defaultTextColors),
       defaultSearchEngineId: defaultPayload.config?.search?.defaultEngineId ?? "google",
       homeLink: cloneValue(defaultPayload.config?.homeLink ?? { label: "资料卡首页", href: "/" }),
@@ -2780,6 +2838,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
 
     const shortcutLayoutIds = ["grid", "stack", "ring", "scatter"];
     const fontFamilyIds = ["default", "serif", "kai", "rounded", "mono"];
+    const blurIds = ["off", "soft", "medium", "strong", "dynamic"];
 
     const normalizeShortcutLayout = (value, fallback = "grid") =>
       shortcutLayoutIds.includes(value) ? value : fallback;
@@ -2939,6 +2998,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           ? Math.min(130, Math.max(85, Math.round(Number(value.uiScale))))
           : fallback.uiScale,
         fontFamily: fontFamilyIds.includes(value.fontFamily) ? value.fontFamily : "default",
+        itemBlur: blurIds.includes(value.itemBlur) ? value.itemBlur : "medium",
         textColors: normalizeTextColors(value.textColors, fallback.textColors),
         defaultSearchEngineId: searchEngines.some((engine) => engine.id === defaultSearchEngineId)
           ? defaultSearchEngineId
@@ -6197,6 +6257,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const uiScaleInput = document.querySelector("[data-config-ui-scale]");
       const uiScaleValue = document.querySelector("[data-config-ui-scale-value]");
       const fontFamilyInput = document.querySelector("[data-config-font-family]");
+      const blurInput = document.querySelector("[data-config-blur]");
 
       if (nameInput instanceof HTMLInputElement) {
         nameInput.value = newTabState.userName;
@@ -6273,6 +6334,10 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
         fontFamilyInput.value = newTabState.fontFamily;
       }
 
+      if (blurInput instanceof HTMLSelectElement) {
+        blurInput.value = newTabState.itemBlur;
+      }
+
       if (backgroundStatus instanceof HTMLElement) {
         backgroundStatus.textContent = newTabState.backgroundImage.startsWith("data:")
           ? (settingsLabels.backgroundUploadedLabel ?? "已上传本地背景")
@@ -6295,6 +6360,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       applyGroupColumns();
       applyPageMetrics();
       applyFontFamily();
+      applyItemBlur();
       syncWallpaperControls();
       setStatus(saved ? message : storageQuotaErrorMessage);
     };
@@ -6477,6 +6543,24 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       document.documentElement.dataset.newTabFont = newTabState.fontFamily;
     };
 
+    // 「动态」模糊：低透明度（壁纸抢眼）配轻模糊，高透明度（壁纸雾化）配强模糊。
+    // 其余档位直接用 CSS 变量；动态档把具体值写进变量，同一套规则生效。
+    const applyItemBlur = () => {
+      const mode = newTabState.itemBlur;
+      document.documentElement.dataset.newTabBlur = mode;
+
+      if (mode === "dynamic") {
+        const opacity = Math.min(100, Math.max(0, newTabState.backgroundOpacity)) / 100;
+        const blur = Math.round(4 + opacity * 12);
+        document.documentElement.style.setProperty("--ntab-item-blur", `${blur}px`);
+        return;
+      }
+
+      if (mode === "off" || mode === "soft" || mode === "medium" || mode === "strong") {
+        document.documentElement.style.removeProperty("--ntab-item-blur");
+      }
+    };
+
     const paintBackground = (cssUrl) => {
       const backgroundBase = document.querySelector("[data-new-tab-background-base]");
       const backgroundLayer = document.querySelector("[data-new-tab-background-layer]");
@@ -6642,6 +6726,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       applyGroupColumns();
       applyPageMetrics();
       applyFontFamily();
+      applyItemBlur();
       syncSettingsControls();
       syncWallpaperControls();
     };
@@ -7227,6 +7312,7 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
       const pageWidthInput = settings.querySelector("[data-config-page-width]");
       const uiScaleInput = settings.querySelector("[data-config-ui-scale]");
       const fontFamilyInput = settings.querySelector("[data-config-font-family]");
+      const blurInput = settings.querySelector("[data-config-blur]");
       const backgroundFileInput = settings.querySelector("[data-config-background-file]");
       const backgroundFileTrigger = settings.querySelector("[data-config-background-file-trigger]");
       const fileInput = settings.querySelector("[data-config-file]");
@@ -7438,6 +7524,17 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
           ? fontFamilyInput.value
           : "default";
         applyFontFamily();
+        setStatus(writeStoredState() ? "已保存" : storageQuotaErrorMessage);
+        syncSettingsControls();
+      });
+
+      blurInput?.addEventListener("change", () => {
+        if (!(blurInput instanceof HTMLSelectElement)) {
+          return;
+        }
+
+        newTabState.itemBlur = blurIds.includes(blurInput.value) ? blurInput.value : "medium";
+        applyItemBlur();
         setStatus(writeStoredState() ? "已保存" : storageQuotaErrorMessage);
         syncSettingsControls();
       });
