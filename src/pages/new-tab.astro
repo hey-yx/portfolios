@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   PencilLine,
   Plus,
+  RefreshCw,
   Spline,
   Search,
   Settings,
@@ -565,6 +566,9 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
   </template>
   <template data-new-tab-icon="trash">
     <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
+  </template>
+  <template data-new-tab-icon="refresh">
+    <RefreshCw class="h-3.5 w-3.5" aria-hidden="true" />
   </template>
 
   <script is:inline type="application/json" id="new-tab-defaults" set:html={serializedDefaultNewTabPayload} />
@@ -5818,6 +5822,29 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
             group.shortcuts.splice(currentShortcutIndex, 1);
             persistConfigChange("已删除");
           };
+          // 删掉这个站点的图标探测缓存并立即重新探测：站点换了 favicon / 标题时
+          // 用它拿新结果，不动站点数据本身。刷新完成后缓存按新结果重新写入
+          const refreshShortcutLogo = () => {
+            const cacheKey = getShortcutLogoCacheKey(shortcut.url);
+
+            if (cacheKey && shortcutLogoCache[cacheKey]) {
+              delete shortcutLogoCache[cacheKey];
+              writeShortcutLogoCache();
+            }
+
+            const image = itemShell.querySelector(".shortcut-item__icon img");
+
+            if (image instanceof HTMLImageElement) {
+              delete image.dataset.logoExhausted;
+              delete image.dataset.logoFallbacks;
+              image.hidden = false;
+              image.closest(".shortcut-item__icon")?.querySelector(".shortcut-item__initial")?.classList.add("hidden");
+              image.src = "";
+              discoverShortcutLogo(shortcut, image);
+            }
+
+            setStatus("正在重新获取图标");
+          };
           const openShortcutMenu = (event) => {
             openShortcutContextMenu({
               event,
@@ -5829,6 +5856,11 @@ const serializedDefaultNewTabPayload = JSON.stringify(defaultNewTabPayload).repl
                   label: settingsLabels.editShortcutLabel ?? "修改站点",
                   icon: "edit",
                   onSelect: openShortcutEditForm,
+                },
+                {
+                  label: "刷新图标",
+                  icon: "refresh",
+                  onSelect: refreshShortcutLogo,
                 },
                 {
                   label: settingsLabels.removeShortcutLabel ?? "删除站点",
